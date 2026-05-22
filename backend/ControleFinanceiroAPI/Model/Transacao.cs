@@ -1,0 +1,21 @@
+﻿using ControleFinanceiroAPI.Enums;
+using System.ComponentModel.DataAnnotations;
+
+namespace ControleFinanceiroAPI.Model
+{
+    public class Transacao
+    {
+        public Guid Id { get; set; }
+        public string? Descricao { get; set; }
+        public decimal Valor { get; set; }
+        public DateTime Data { get; set; }
+        public string? Observacao { get; set; }
+        public TipoTransacao TipoTransacao { get; set; }
+        public Guid CategoriaId { get; set; }
+        public Categoria? Categoria { get; set; }
+        public Guid ContaId { get; set; }
+        public Conta? Conta { get; set; }
+        public string? UsuarioId { get; set; }
+        public Usuario? Usuario { get; set; }
+    }
+}
