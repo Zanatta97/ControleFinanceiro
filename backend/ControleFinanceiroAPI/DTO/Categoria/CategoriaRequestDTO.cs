@@ -5,5 +5,6 @@
         public string Nome { get; set; } = string.Empty;
         public string Cor { get; set; } = string.Empty;
         public string UrlIcone { get; set; } = string.Empty;
+        public string UsuarioId { get; set; } = string.Empty;
     }
 }

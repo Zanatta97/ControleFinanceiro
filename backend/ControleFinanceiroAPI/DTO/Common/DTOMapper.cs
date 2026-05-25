@@ -1,0 +1,142 @@
+﻿using ControleFinanceiroAPI.DTO.Categoria;
+using ControleFinanceiroAPI.DTO.Conta;
+using ControleFinanceiroAPI.DTO.Orcamento;
+using ControleFinanceiroAPI.DTO.Transacao;
+using ControleFinanceiroAPI.DTO.Usuario;
+using ControleFinanceiroAPI.Model;
+using System.Net.NetworkInformation;
+
+namespace ControleFinanceiroAPI.DTO.Common
+{
+    public static class DTOMapper
+    {
+        public static Model.Categoria? ToEntity(this CategoriaRequestDTO dto)
+        {
+            if (dto == null) return null;
+
+            return new Model.Categoria
+            {
+                Nome = dto.Nome,
+                Cor = dto.Cor,
+                UrlIcone = dto.UrlIcone,
+                UsuarioId = dto.UsuarioId
+            };
+        }
+
+        public static CategoriaResponseDTO? ToResponseDTO(this Model.Categoria entity)
+        {
+            if (entity == null) return null;
+
+            return new CategoriaResponseDTO
+            {
+                Id = entity.Id,
+                Nome = entity.Nome,
+                Cor = entity.Cor,
+                UrlIcone = entity.UrlIcone,
+                UsuarioId = entity.UsuarioId
+            };
+        }
+
+        public static Model.Conta? ToEntity(this ContaRequestDTO dto)
+        {
+            if (dto == null) return null;
+            return new Model.Conta
+            {
+                Nome = dto.Nome,
+                TipoConta = dto.TipoConta,
+                Saldo = dto.Saldo,
+                UsuarioId = dto.UsuarioId
+            };
+        }
+
+        public static ContaResponseDTO? ToResponseDTO(this Model.Conta entity)
+        {
+            if (entity == null) return null;
+            return new ContaResponseDTO
+            {
+                Id = entity.Id,
+                Nome = entity.Nome,
+                TipoConta = entity.TipoConta,
+                Saldo = entity.Saldo,
+                UsuarioId = entity.UsuarioId
+            };
+        }
+
+        public static Model.Orcamento? ToEntity(this OrcamentoRequestDTO dto)
+        {
+            if (dto == null) return null;
+            return new Model.Orcamento
+            {
+                Nome = dto.Nome,
+                Descricao = dto.Descricao,
+                ValorLimite = dto.ValorLimite,
+                DataLimite = dto.DataLimite,
+                StatusOrcamento = dto.StatusOrcamento,
+                CategoriaId = dto.CategoriaId,
+                UsuarioId = dto.UsuarioId
+            };
+        }
+
+        public static OrcamentoResponseDTO? ToResponseDTO(this Model.Orcamento entity)
+        {
+            if (entity == null) return null;
+            return new OrcamentoResponseDTO
+            {
+                Id = entity.Id,
+                Nome = entity.Nome,
+                Descricao = entity.Descricao,
+                ValorLimite = entity.ValorLimite,
+                DataLimite = entity.DataLimite,
+                StatusOrcamento = entity.StatusOrcamento,
+                CategoriaId = entity.CategoriaId,
+                UsuarioId = entity.UsuarioId
+            };
+        }
+
+        public static Model.Transacao? ToEntity(this TransacaoRequestDTO dto)
+        {
+            if (dto == null) return null;
+            return new Model.Transacao
+            {
+                Descricao = dto.Descricao,
+                Valor = dto.Valor,
+                Data = dto.Data,
+                Observacao = dto.Observacao,
+                TipoTransacao = dto.TipoTransacao,
+                CategoriaId = dto.CategoriaId,
+                ContaId = dto.ContaId,
+                UsuarioId = dto.UsuarioId
+            };
+        }
+
+        public static TransacaoResponseDTO? ToResponseDTO(this Model.Transacao entity)
+        {
+            if (entity == null) return null;
+            return new TransacaoResponseDTO
+            {
+                Id = entity.Id,
+                Descricao = entity.Descricao,
+                Valor = entity.Valor,
+                Data = entity.Data,
+                Observacao = entity.Observacao,
+                TipoTransacao = entity.TipoTransacao,
+                CategoriaId = entity.CategoriaId,
+                ContaId = entity.ContaId,
+                UsuarioId = entity.UsuarioId
+            };
+        }
+
+        public static UsuarioResponseDTO? ToResponseDTO(this Model.Usuario entity)
+        {
+            if (entity == null) return null;
+            return new UsuarioResponseDTO
+            {
+                Id = entity.Id,
+                Nome = entity.Nome,
+                Email = entity.Email,
+                DtaCriacao = entity.DtaCriacao,
+                Token = entity.RefreshToken
+            };
+        }
+    }
+}
