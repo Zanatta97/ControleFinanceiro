@@ -14,6 +14,7 @@ namespace ControleFinanceiroAPI.Context
         public DbSet<Conta> Contas { get; set; }
         public DbSet<Orcamento> Orcamentos { get; set; }
         public DbSet<Transacao> Transacoes { get; set; }
+        public DbSet<ApiLog> ApiLogs { get; set; }
 
         //Não é necessário o DbSet para Usuario, pois ele é gerenciado pelo IdentityDbContext
 
