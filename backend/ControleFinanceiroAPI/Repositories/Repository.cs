@@ -1,5 +1,5 @@
 ﻿using ControleFinanceiroAPI.Context;
-using ControleFinanceiroAPI.Interfaces;
+using ControleFinanceiroAPI.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 

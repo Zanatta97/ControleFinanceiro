@@ -1,4 +1,4 @@
-namespace ControleFinanceiroAPI.Interfaces
+namespace ControleFinanceiroAPI.Interfaces.Repositories
 {
     public interface IUnityOfWork : IDisposable
     {

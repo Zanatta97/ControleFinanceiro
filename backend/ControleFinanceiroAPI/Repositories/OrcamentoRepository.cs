@@ -1,6 +1,6 @@
 using ControleFinanceiroAPI.Context;
 using ControleFinanceiroAPI.Enums;
-using ControleFinanceiroAPI.Interfaces;
+using ControleFinanceiroAPI.Interfaces.Repositories;
 using ControleFinanceiroAPI.Model;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace ControleFinanceiroAPI.Interfaces
+namespace ControleFinanceiroAPI.Interfaces.Repositories
 {
     public interface IRepository<T> where T : class
     {

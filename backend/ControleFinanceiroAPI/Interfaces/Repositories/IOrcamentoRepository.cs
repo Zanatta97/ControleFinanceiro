@@ -1,7 +1,7 @@
 using ControleFinanceiroAPI.Enums;
 using ControleFinanceiroAPI.Model;
 
-namespace ControleFinanceiroAPI.Interfaces
+namespace ControleFinanceiroAPI.Interfaces.Repositories
 {
     public interface IOrcamentoRepository : IRepository<Orcamento>
     {

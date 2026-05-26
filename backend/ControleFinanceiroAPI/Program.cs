@@ -1,12 +1,15 @@
 using ControleFinanceiroAPI.Context;
-using ControleFinanceiroAPI.Interfaces;
+using ControleFinanceiroAPI.Interfaces.Repositories;
 using ControleFinanceiroAPI.Logging;
 using ControleFinanceiroAPI.Middleware;
 using ControleFinanceiroAPI.Model;
 using ControleFinanceiroAPI.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 
 namespace ControleFinanceiroAPI
 {
@@ -27,6 +30,28 @@ namespace ControleFinanceiroAPI
             builder.Services.AddIdentity<Usuario, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.SaveToken = true;
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ClockSkew = TimeSpan.Zero, // Elimina o tempo de tolerância para expiração do token
+                        ValidIssuers = builder.Configuration.GetSection("Jwt:ValidIssuers").Get<string[]>(),
+                        ValidAudiences = builder.Configuration.GetSection("Jwt:ValidAudiences").Get<string[]>(),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+                    };
+                });
 
             builder.Services.AddScoped<IUnityOfWork, UnityOfWork>();
 
@@ -69,7 +94,9 @@ namespace ControleFinanceiroAPI
             app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseMiddleware<ErrorHandlingMiddleware>();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+            
 
             app.MapControllers();
 
