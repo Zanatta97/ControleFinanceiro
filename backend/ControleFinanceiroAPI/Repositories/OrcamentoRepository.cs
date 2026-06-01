@@ -32,6 +32,7 @@ namespace ControleFinanceiroAPI.Repositories
         {
             return await _context.Orcamentos
                 .AsNoTracking()
+                .Include(o => o.Categoria)
                 .Where(c => c.AmbienteId == ambienteId)
                 .ToListAsync();
         }
