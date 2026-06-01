@@ -16,5 +16,13 @@ namespace ControleFinanceiroAPI.Repositories
                 .Where(c => c.UsuarioId == usuarioId)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Categoria>> GetAllByAmbienteAsync(Guid ambienteId)
+        {
+            return await _context.Categorias
+                .AsNoTracking()
+                .Where(c => c.AmbienteId == ambienteId)
+                .ToListAsync();
+        }
     }
 }

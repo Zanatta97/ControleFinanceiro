@@ -6,6 +6,7 @@ namespace ControleFinanceiroAPI.Interfaces.Repositories
         IContaRepository ContaRepository { get; }
         IOrcamentoRepository OrcamentoRepository { get; }
         ITransacaoRepository TransacaoRepository { get; }
+        IAmbienteRepository AmbienteRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }

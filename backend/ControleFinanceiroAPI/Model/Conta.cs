@@ -11,5 +11,7 @@ namespace ControleFinanceiroAPI.Model
         public decimal Saldo { get; set; }
         public string? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
+        public Guid? AmbienteId { get; set; }
+        public Ambiente? Ambiente { get; set; }
     }
 }

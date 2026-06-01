@@ -1,4 +1,5 @@
-﻿using ControleFinanceiroAPI.DTO.Categoria;
+﻿using ControleFinanceiroAPI.DTO.Ambiente;
+using ControleFinanceiroAPI.DTO.Categoria;
 using ControleFinanceiroAPI.DTO.Conta;
 using ControleFinanceiroAPI.DTO.Orcamento;
 using ControleFinanceiroAPI.DTO.Transacao;
@@ -10,7 +11,48 @@ namespace ControleFinanceiroAPI.DTO.Common
 {
     public static class DTOMapper
     {
-        public static Model.Categoria? ToEntity(this CategoriaRequestDTO dto)
+        public static UsuarioResumoDTO? ToResumoDTO(this Model.Usuario entity)
+        {
+            if (entity == null) return null;
+            return new UsuarioResumoDTO
+            {
+                Id = entity.Id,
+                Nome = entity.Nome,
+                Email = entity.Email
+            };
+        }
+
+        public static Model.Ambiente? ToEntity(this AmbienteRequestDTO dto)
+        {
+            if (dto == null) return null;
+            return new Model.Ambiente
+            {
+                Nome = dto.Nome
+            };
+        }
+
+        public static AmbienteResponseDTO? ToResponseDTO(this Model.Ambiente entity)
+        {
+            if (entity == null) return null;
+            return new AmbienteResponseDTO
+            {
+                Id = entity.Id,
+                Nome = entity.Nome,
+                DataCriacao = entity.DataCriacao
+            };
+        }
+
+        public static AmbienteMembroResponseDTO? ToResponseDTO(this AmbienteMembro entity)
+        {
+            if (entity == null) return null;
+            return new AmbienteMembroResponseDTO
+            {
+                Usuario = entity.Usuario?.ToResumoDTO(),
+                Role = entity.Role
+            };
+        }
+
+        public static Model.Categoria? ToEntity(this CategoriaRequestDTO dto, Guid ambienteId, string userId)
         {
             if (dto == null) return null;
 
@@ -19,7 +61,8 @@ namespace ControleFinanceiroAPI.DTO.Common
                 Nome = dto.Nome,
                 Cor = dto.Cor,
                 UrlIcone = dto.UrlIcone,
-                UsuarioId = dto.UsuarioId
+                AmbienteId = ambienteId,
+                UsuarioId = userId
             };
         }
 
@@ -37,7 +80,7 @@ namespace ControleFinanceiroAPI.DTO.Common
             };
         }
 
-        public static Model.Conta? ToEntity(this ContaRequestDTO dto)
+        public static Model.Conta? ToEntity(this ContaRequestDTO dto, Guid ambienteId, string userId)
         {
             if (dto == null) return null;
             return new Model.Conta
@@ -45,7 +88,8 @@ namespace ControleFinanceiroAPI.DTO.Common
                 Nome = dto.Nome,
                 TipoConta = dto.TipoConta,
                 Saldo = dto.Saldo,
-                UsuarioId = dto.UsuarioId
+                AmbienteId = ambienteId,
+                UsuarioId = userId
             };
         }
 
@@ -62,7 +106,7 @@ namespace ControleFinanceiroAPI.DTO.Common
             };
         }
 
-        public static Model.Orcamento? ToEntity(this OrcamentoRequestDTO dto)
+        public static Model.Orcamento? ToEntity(this OrcamentoRequestDTO dto, Guid ambienteId, string userId)
         {
             if (dto == null) return null;
             return new Model.Orcamento
@@ -73,7 +117,8 @@ namespace ControleFinanceiroAPI.DTO.Common
                 DataLimite = dto.DataLimite,
                 StatusOrcamento = dto.StatusOrcamento,
                 CategoriaId = dto.CategoriaId,
-                UsuarioId = dto.UsuarioId
+                AmbienteId = ambienteId,
+                UsuarioId = userId
             };
         }
 
@@ -93,7 +138,7 @@ namespace ControleFinanceiroAPI.DTO.Common
             };
         }
 
-        public static Model.Transacao? ToEntity(this TransacaoRequestDTO dto)
+        public static Model.Transacao? ToEntity(this TransacaoRequestDTO dto, Guid ambienteId, string userId)
         {
             if (dto == null) return null;
             return new Model.Transacao
@@ -105,7 +150,8 @@ namespace ControleFinanceiroAPI.DTO.Common
                 TipoTransacao = dto.TipoTransacao,
                 CategoriaId = dto.CategoriaId,
                 ContaId = dto.ContaId,
-                UsuarioId = dto.UsuarioId
+                AmbienteId = ambienteId,
+                UsuarioId = userId
             };
         }
 

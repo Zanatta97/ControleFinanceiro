@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DTO\Ambiente\" />
     <Folder Include="Logging\" />
     <Folder Include="Middleware\" />
   </ItemGroup>

@@ -6,6 +6,7 @@ namespace ControleFinanceiroAPI.Interfaces.Repositories
     public interface IOrcamentoRepository : IRepository<Orcamento>
     {
         Task<IEnumerable<Orcamento>> GetAllByUsuarioAsync(string usuarioId);
-        Task<IEnumerable<Orcamento>> GetByStatusAsync(string usuarioId, StatusOrcamento status);
+        Task<IEnumerable<Orcamento>> GetByStatusAsync(Guid ambienteId, StatusOrcamento status);
+        Task<IEnumerable<Orcamento>> GetAllByAmbienteAsync(Guid ambienteId);
     }
 }

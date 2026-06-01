@@ -20,25 +20,33 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transacao>> GetByPeriodoAsync(string usuarioId, DateTime inicio, DateTime fim)
+        public async Task<IEnumerable<Transacao>> GetByPeriodoAsync(Guid ambienteId, DateTime inicio, DateTime fim)
         {
             return await _context.Transacoes
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Include(t => t.Conta)
-                .Where(t => t.UsuarioId == usuarioId && t.Data >= inicio && t.Data <= fim)
+                .Where(t => t.AmbienteId == ambienteId && t.Data >= inicio && t.Data <= fim)
                 .OrderByDescending(t => t.Data)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Transacao>> GetByTipoAsync(string usuarioId, TipoTransacao tipo)
+        public async Task<IEnumerable<Transacao>> GetByTipoAsync(Guid ambienteId, TipoTransacao tipo)
         {
             return await _context.Transacoes
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Include(t => t.Conta)
-                .Where(t => t.UsuarioId == usuarioId && t.TipoTransacao == tipo)
+                .Where(t => t.AmbienteId == ambienteId && t.TipoTransacao == tipo)
                 .OrderByDescending(t => t.Data)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Transacao>> GetAllByAmbienteAsync(Guid ambienteId)
+        {
+            return await _context.Transacoes
+                .AsNoTracking()
+                .Where(c => c.AmbienteId == ambienteId)
                 .ToListAsync();
         }
     }
