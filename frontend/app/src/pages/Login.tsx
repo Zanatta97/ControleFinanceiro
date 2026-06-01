@@ -20,8 +20,8 @@ export default function Login() {
     setLoading(true)
     try {
       const { data } = await apiLogin({ email, senha })
-      if (data.success && data.dados?.accessToken && data.dados.refreshToken) {
-        login(data.dados.accessToken, data.dados.refreshToken)
+      if (data.success && data.dados?.token && data.dados.refreshToken) {
+        login(data.dados.token, data.dados.refreshToken)
         navigate('/selecionar-ambiente')
       } else {
         setError(data.errorMessage || 'Credenciais inválidas.')

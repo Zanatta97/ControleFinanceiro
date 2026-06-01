@@ -43,6 +43,13 @@ export interface TokenDTO {
   refreshToken: string | null
 }
 
+// Resposta do /api/Auth/login — .NET serializa o objeto anônimo em camelCase
+export interface LoginTokenDTO {
+  token: string
+  refreshToken: string
+  expiration: string
+}
+
 // Usuario
 export interface UsuarioResumoDTO {
   id: string | null

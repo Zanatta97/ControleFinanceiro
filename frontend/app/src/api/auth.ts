@@ -1,8 +1,8 @@
 import api from './client'
-import type { ApiResponse, TokenDTO, UsuarioLoginRequest, UsuarioRegisterRequest } from '../types/api'
+import type { ApiResponse, TokenDTO, LoginTokenDTO, UsuarioLoginRequest, UsuarioRegisterRequest } from '../types/api'
 
 export const login = (data: UsuarioLoginRequest) =>
-  api.post<ApiResponse<TokenDTO>>('/Auth/login', data)
+  api.post<ApiResponse<LoginTokenDTO>>('/Auth/login', data)
 
 export const register = (data: UsuarioRegisterRequest) =>
   api.post<ApiResponse<null>>('/Auth/register', data)
