@@ -19,23 +19,11 @@ namespace ControleFinanceiroAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly ILogger<AuthController> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly UserManager<Usuario> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _configuration;
+        private readonly IUsuarioService _service;
 
-        public AuthController(ILogger<AuthController> logger,
-                              ITokenService tokenService,
-                              UserManager<Usuario> userManager,
-                              RoleManager<IdentityRole> roleManager,
-                              IConfiguration configuration)
+        public AuthController(IUsuarioService service)
         {
-            _logger = logger;
-            _tokenService = tokenService;
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _configuration = configuration;
+            _service = service;
         }
 
         [HttpPost]
@@ -43,97 +31,59 @@ namespace ControleFinanceiroAPI.Controllers
         [Route("createRole")]
         public async Task<IActionResult> CreateRole(string roleName)
         {
-            var roleExist = await _roleManager.RoleExistsAsync(roleName);
+            var resultado = await _service.CreateRole(roleName);
 
-            if (!roleExist)
-            {
-                var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
-                
-                if (result.Succeeded)
-                {
-                    return Ok(ApiResponseDTO<object>.SuccessResponse(result));
-                }
-                else
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, ApiResponseDTO<object>.ErrorResponse(
-                        $"Erro ao criar a role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}",
-                        StatusCodes.Status500InternalServerError));
-                }
-            }
-
-            return BadRequest(ApiResponseDTO<object>.ErrorResponse($"Role '{roleName}' já existe.",
-                              StatusCodes.Status400BadRequest));
+            return StatusCode(resultado.StatusCode, resultado);
         }
 
         [HttpPost]
-        [Authorize(Policy = "Admin")]
+        [Authorize(Roles = "Admin")]
         [Route("assignUserToRole")]
         public async Task<IActionResult> AssignUserToRole(string email, string roleName)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var resultado = await _service.AssignUserToRole(email, roleName);
 
-            if (user != null)
-            {
-                var result = await _userManager.AddToRoleAsync(user, roleName);
-
-                if (result.Succeeded)
-                {
-                    return Ok(ApiResponseDTO<object>.SuccessResponse(result));
-
-                }
-                else
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, ApiResponseDTO<object>.ErrorResponse(
-                        $"Erro ao atribuir a role '{roleName}' ao usuário '{email}': {string.Join(", ", result.Errors.Select(e => e.Description))}",
-                        StatusCodes.Status500InternalServerError));
-                } 
-            }
-
-            return BadRequest(ApiResponseDTO<object>.ErrorResponse($"Usuário com email '{email}' não encontrado.",
-                              StatusCodes.Status400BadRequest));
+            return StatusCode(resultado.StatusCode, resultado);
         }
 
-        [HttpGet("login")]
+        [HttpPost]
+        [Route("login")]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginRequestDTO usuario)
         {
-            var user = await _userManager.FindByNameAsync(usuario.Email);
+            var resultado = await _service.Login(usuario);
 
-            if (user is not null && await _userManager.CheckPasswordAsync(user, usuario.Senha))
-            {
-                var userRoles = await _userManager.GetRolesAsync(user);
+            return StatusCode(resultado.StatusCode, resultado);
+        }
 
-                var authClaims  = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName!),
-                    new Claim(ClaimTypes.Email, user.Email!),
-                    new Claim("id", user.UserName!)
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
+        [HttpPost]
+        [Route("register")]
+        public async Task<IActionResult> Register([FromBody] UsuarioRegisterDTO dto)
+        {
+            var resultado = await _service.Register(dto);
 
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
+            return StatusCode(resultado.StatusCode, resultado);
 
-                var token = _tokenService.GenerateAccessToken(authClaims, _configuration);
+        }
 
-                var refreshToken = _tokenService.GenerateRefreshToken();
+        [HttpPost]
+        [Route("refresh-token")]
+        public async Task<IActionResult> RefreshToken(TokenDTO tokenDTO)
+        {
+            var resultado = await _service.RefreshToken(tokenDTO);
 
-                _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
+            return StatusCode(resultado.StatusCode, resultado);
 
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(refreshTokenValidityInMinutes);
+        }
 
-                user.RefreshToken = refreshToken;
+        [HttpPost]
+        [Route("revoke/{username}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Revoke(string username)
+        {
+            var resultado = await _service.Revoke(username);
 
-                return Ok(new
-                {
-                    Token = new JwtSecurityTokenHandler().WriteToken(token),
-                    RefreshToken = refreshToken,
-                    Expiration = token.ValidTo
-                });
-            }
+            return StatusCode(resultado.StatusCode, resultado);
 
-            return Unauthorized();
         }
     }
 }
