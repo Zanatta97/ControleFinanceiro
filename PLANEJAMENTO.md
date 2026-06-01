@@ -213,10 +213,78 @@ Enums → Models → DbContext → Migration → DTOs
 
 ---
 
-## Checklist Final
+## Checklist Final (Backend)
 
-- [ ] Todos os endpoints testados no Scalar (`/scalar`)
-- [ ] Migrations aplicadas e banco consistente
-- [ ] Nenhum `null reference` não tratado
-- [ ] Respostas sempre usando `ApiResponse` padronizado
-- [ ] Erros retornam código HTTP correto (400, 404, 500)
+- [x] Todos os endpoints testados no Scalar (`/scalar`)
+- [x] Migrations aplicadas e banco consistente
+- [x] Nenhum `null reference` não tratado
+- [x] Respostas sempre usando `ApiResponseDTO` padronizado
+- [x] Erros retornam código HTTP correto (400, 404, 500)
+
+---
+
+## Sistema de Logging em Runtime
+
+**Implementado.** O `LogSettingsManager` (Singleton) permite ativar/desativar o log detalhado de requisições sem reiniciar a API.
+
+| Endpoint | Ação |
+|---|---|
+| `GET /api/logs/status` | Retorna se o log detalhado está ativo |
+| `POST /api/logs/ativar` | Ativa log completo (request + response body) |
+| `POST /api/logs/desativar` | Volta ao modo padrão (apenas erros 4xx/5xx) |
+
+**Comportamento padrão:** só registra erros, sem body (proteção de dados sensíveis).
+
+---
+
+## Sistema de Ambientes
+
+**Implementado.** Um `Ambiente` é um espaço financeiro compartilhável. Cada usuário pode criar ambientes e convidar membros por e-mail.
+
+**Endpoints principais:**
+
+| Endpoint | Ação |
+|---|---|
+| `GET /api/Ambiente/user-ambientes` | Lista ambientes do usuário logado |
+| `POST /api/Ambiente` | Cria novo ambiente |
+| `POST /api/Ambiente/selecionar/{id}` | Troca o ambiente ativo — retorna novo JWT |
+| `POST /api/Ambiente/{id}/membros` | Adiciona membro por e-mail |
+| `DELETE /api/Ambiente/{id}/membros/{membroId}` | Remove membro |
+| `PUT /api/Ambiente/{id}/dono` | Transfere ownership do ambiente |
+
+**Fluxo de troca de ambiente:**
+1. Login retorna JWT sem claim de ambiente.
+2. `POST /api/Ambiente/selecionar/{id}` retorna novo `TokenDTO` com o ambiente embutido.
+3. O front-end substitui o token e todas as requisições subsequentes operam no ambiente selecionado.
+
+---
+
+## Front-end React (Issue [#18](https://github.com/Zanatta97/ControleFinanceiro/issues/18))
+
+**Branch:** `feature/issue-frontend-react`
+
+**Stack:** React + Vite + TypeScript + Tailwind CSS + React Router + TanStack Query
+
+### Telas planejadas
+
+| Tela | Status |
+|---|---|
+| Login / Cadastro | [ ] |
+| Seleção de ambiente (pós-login) | [ ] |
+| Dashboard (resumo financeiro) | [ ] |
+| Contas (CRUD + extrato) | [ ] |
+| Categorias (CRUD) | [ ] |
+| Transações (listagem paginada + CRUD) | [ ] |
+| Orçamentos (CRUD + progresso) | [ ] |
+| Configurações (troca de ambiente + toggle de log) | [ ] |
+
+### Componentes especiais
+
+- **Seletor de ambiente** no header/navbar — chama `POST /api/Ambiente/selecionar/{id}` e substitui o JWT
+- **Toggle de log detalhado** — botão na tela de configurações que chama `POST /api/logs/ativar` ou `POST /api/logs/desativar` e exibe o status atual
+
+### Notas técnicas
+
+- Configurar proxy no `vite.config.ts`: `/api` → `http://localhost:5284`
+- Todas as respostas seguem `ApiResponseDTO<T>` — sempre ler `sucesso`, `dados`, `mensagem`
+- Após login, obrigatório selecionar um ambiente antes de acessar dados financeiros
