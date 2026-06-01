@@ -6,8 +6,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5284',
+        target: 'https://localhost:7234',
         changeOrigin: true,
+        secure: false, // certificado autoassinado do .NET em dev
       },
     },
   },
