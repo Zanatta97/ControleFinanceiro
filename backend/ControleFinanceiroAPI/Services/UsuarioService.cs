@@ -98,6 +98,11 @@ namespace ControleFinanceiroAPI.Services
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
+                if (user.AmbienteAtivoId.HasValue)
+                {
+                    authClaims.Add(new Claim("ambiente_id", user.AmbienteAtivoId.Value.ToString()));
+                }
+
                 foreach (var userRole in userRoles)
                 {
                     authClaims.Add(new Claim(ClaimTypes.Role, userRole));

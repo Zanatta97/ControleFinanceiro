@@ -19,12 +19,20 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Orcamento>> GetByStatusAsync(string usuarioId, StatusOrcamento status)
+        public async Task<IEnumerable<Orcamento>> GetByStatusAsync(Guid ambienteId, StatusOrcamento status)
         {
             return await _context.Orcamentos
                 .AsNoTracking()
                 .Include(o => o.Categoria)
-                .Where(o => o.UsuarioId == usuarioId && o.StatusOrcamento == status)
+                .Where(o => o.AmbienteId == ambienteId && o.StatusOrcamento == status)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Orcamento>> GetAllByAmbienteAsync(Guid ambienteId)
+        {
+            return await _context.Orcamentos
+                .AsNoTracking()
+                .Where(c => c.AmbienteId == ambienteId)
                 .ToListAsync();
         }
     }

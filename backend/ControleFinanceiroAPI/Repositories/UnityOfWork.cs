@@ -11,6 +11,7 @@ namespace ControleFinanceiroAPI.Repositories
         private IContaRepository? _contaRepository;
         private ITransacaoRepository? _transacaoRepository;
         private IOrcamentoRepository? _trcamentoRepository;
+        private IAmbienteRepository? _ambienteRepository;
 
         public UnityOfWork(AppDbContext context)
         {
@@ -47,6 +48,14 @@ namespace ControleFinanceiroAPI.Repositories
             get
             {
                 return _trcamentoRepository ??= new OrcamentoRepository(_context);
+            }
+        }
+
+        public IAmbienteRepository AmbienteRepository
+        {
+            get
+            {
+                return _ambienteRepository ??= new AmbienteRepository(_context);
             }
         }
 
