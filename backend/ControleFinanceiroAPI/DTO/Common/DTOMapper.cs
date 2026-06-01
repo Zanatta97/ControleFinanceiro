@@ -199,7 +199,9 @@ namespace ControleFinanceiroAPI.DTO.Common
                 Observacao = entity.Observacao,
                 TipoTransacao = entity.TipoTransacao,
                 CategoriaId = entity.CategoriaId,
+                CategoriaNome = entity.Categoria?.Nome,
                 ContaId = entity.ContaId,
+                ContaNome = entity.Conta?.Nome,
                 UsuarioId = entity.UsuarioId
             };
         }

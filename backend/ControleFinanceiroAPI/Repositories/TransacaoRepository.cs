@@ -20,6 +20,17 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Transacao>> GetByContaAndPeriodoAsync(Guid contaId, Guid ambienteId, DateTime inicio, DateTime fim)
+        {
+            return await _context.Transacoes
+                .AsNoTracking()
+                .Include(t => t.Categoria)
+                .Include(t => t.Conta)
+                .Where(t => t.ContaId == contaId && t.AmbienteId == ambienteId && t.Data >= inicio && t.Data <= fim)
+                .OrderByDescending(t => t.Data)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Transacao>> GetByPeriodoAsync(Guid ambienteId, DateTime inicio, DateTime fim)
         {
             return await _context.Transacoes
