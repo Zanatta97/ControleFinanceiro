@@ -1,12 +1,18 @@
 using ControleFinanceiroAPI.Context;
-using ControleFinanceiroAPI.Interfaces;
+using ControleFinanceiroAPI.Interfaces.Repositories;
+using ControleFinanceiroAPI.Interfaces.Services;
 using ControleFinanceiroAPI.Logging;
 using ControleFinanceiroAPI.Middleware;
 using ControleFinanceiroAPI.Model;
 using ControleFinanceiroAPI.Repositories;
+using ControleFinanceiroAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 
 namespace ControleFinanceiroAPI
 {
@@ -24,11 +30,42 @@ namespace ControleFinanceiroAPI
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddIdentity<Usuario, IdentityRole>()
+            builder.Services.AddIdentity<Usuario, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false; //Tira a exigência de pelo menos um dígito
+                options.Password.RequireLowercase = false; //Tira a exigência de pelo menos uma letra minúscula
+                options.Password.RequireUppercase = false; //Tira a exigência de pelo menos uma letra maiúscula
+                options.Password.RequireNonAlphanumeric = false; //Tira a exigência de pelo menos um caractere especial
+                options.Password.RequiredLength = 6; //Define o comprimento mínimo da senha para 6 caracteres
+            })
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.SaveToken = true;
+                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ClockSkew = TimeSpan.Zero, // Elimina o tempo de tolerância para expiração do token
+                        ValidIssuer = builder.Configuration["JWT:ValidIssuer"], //Uma forma de buscar
+                        ValidAudience = builder.Configuration.GetSection("Jwt:ValidAudience").Get<string>(), //Outra forma de buscar
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]))
+                    };
+                });
+
             builder.Services.AddScoped<IUnityOfWork, UnityOfWork>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
             // Registra o LogSettingsManager como Singleton: uma única instância compartilhada
             // entre o RequestLoggingMiddleware (que lê o estado) e o LogsController
@@ -69,7 +106,9 @@ namespace ControleFinanceiroAPI
             app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseMiddleware<ErrorHandlingMiddleware>();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+            
 
             app.MapControllers();
 

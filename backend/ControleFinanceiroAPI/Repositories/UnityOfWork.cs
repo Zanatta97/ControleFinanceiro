@@ -1,5 +1,5 @@
 using ControleFinanceiroAPI.Context;
-using ControleFinanceiroAPI.Interfaces;
+using ControleFinanceiroAPI.Interfaces.Repositories;
 
 namespace ControleFinanceiroAPI.Repositories
 {
