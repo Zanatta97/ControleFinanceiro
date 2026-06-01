@@ -39,15 +39,23 @@ namespace ControleFinanceiroAPI.Middleware
         private static async Task HandleExceptionAsync(HttpContext context)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            // Retorna sempre no formato padrão ApiResponseDTO, igual ao resto da API.
-            // A mensagem é genérica de propósito: não expõe detalhes internos ao cliente.
-            var response = ApiResponseDTO<object>.ErrorResponse(
-                "Erro interno do servidor. Por favor, tente novamente mais tarde."
-            );
+            var exception = context.Items["Exception"] as Exception;
 
-            // Serializa em camelCase para seguir a convenção JSON de APIs REST
+            var (statusCode, message) = exception switch
+            {
+                KeyNotFoundException ex         => ((int)HttpStatusCode.NotFound, ex.Message),
+                UnauthorizedAccessException ex  => ((int)HttpStatusCode.Forbidden, ex.Message),
+                InvalidOperationException ex    => ((int)HttpStatusCode.Conflict, ex.Message),
+                ArgumentNullException ex        => ((int)HttpStatusCode.BadRequest, ex.Message),
+                _                              => ((int)HttpStatusCode.InternalServerError,
+                                                    "Erro interno do servidor. Por favor, tente novamente mais tarde.")
+            };
+
+            context.Response.StatusCode = statusCode;
+
+            var response = ApiResponseDTO<object>.ErrorResponse(message, statusCode);
+
             var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase

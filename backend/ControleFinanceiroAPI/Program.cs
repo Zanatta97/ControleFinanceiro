@@ -63,9 +63,14 @@ namespace ControleFinanceiroAPI
                     };
                 });
 
-            builder.Services.AddScoped<IUnityOfWork, UnityOfWork>();
+            builder.Services.AddScoped<IUnityOfWork, UnityOfWork>(); //Já instancia todos os repositórios dentro do UnityOfWork
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+            builder.Services.AddScoped<IAmbienteService, AmbienteService>();
+            builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+            builder.Services.AddScoped<IContaService, ContaService>();
+            builder.Services.AddScoped<IOrcamentoService, OrcamentoService>();
+            builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 
             // Registra o LogSettingsManager como Singleton: uma única instância compartilhada
             // entre o RequestLoggingMiddleware (que lê o estado) e o LogsController

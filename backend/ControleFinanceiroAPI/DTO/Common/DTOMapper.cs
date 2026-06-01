@@ -42,6 +42,14 @@ namespace ControleFinanceiroAPI.DTO.Common
             };
         }
 
+        public static IEnumerable<AmbienteResponseDTO> ToDTOList(this IEnumerable<Model.Ambiente> ambientes)
+        {
+            if (ambientes is null || !ambientes.Any())
+                return new List<AmbienteResponseDTO>();
+
+            return ambientes.Select(a => a.ToResponseDTO()!).ToList();
+        }
+
         public static AmbienteMembroResponseDTO? ToResponseDTO(this AmbienteMembro entity)
         {
             if (entity == null) return null;
@@ -80,6 +88,14 @@ namespace ControleFinanceiroAPI.DTO.Common
             };
         }
 
+        public static IEnumerable<CategoriaResponseDTO> ToDTOList(this IEnumerable<Model.Categoria> categorias)
+        {
+            if (categorias is null || !categorias.Any())
+                return new List<CategoriaResponseDTO>();
+
+            return categorias.Select(c => c.ToResponseDTO()!).ToList();
+        }
+
         public static Model.Conta? ToEntity(this ContaRequestDTO dto, Guid ambienteId, string userId)
         {
             if (dto == null) return null;
@@ -104,6 +120,14 @@ namespace ControleFinanceiroAPI.DTO.Common
                 Saldo = entity.Saldo,
                 UsuarioId = entity.UsuarioId
             };
+        }
+
+        public static IEnumerable<ContaResponseDTO> ToDTOList(this IEnumerable<Model.Conta> contas)
+        {
+            if (contas is null || !contas.Any())
+                return new List<ContaResponseDTO>();
+
+            return contas.Select(c => c.ToResponseDTO()!).ToList();
         }
 
         public static Model.Orcamento? ToEntity(this OrcamentoRequestDTO dto, Guid ambienteId, string userId)
@@ -138,6 +162,14 @@ namespace ControleFinanceiroAPI.DTO.Common
             };
         }
 
+        public static IEnumerable<OrcamentoResponseDTO> ToDTOList(this IEnumerable<Model.Orcamento> orcamentos)
+        {
+            if (orcamentos is null || !orcamentos.Any())
+                return new List<OrcamentoResponseDTO>();
+
+            return orcamentos.Select(o => o.ToResponseDTO()!).ToList();
+        }
+
         public static Model.Transacao? ToEntity(this TransacaoRequestDTO dto, Guid ambienteId, string userId)
         {
             if (dto == null) return null;
@@ -170,6 +202,14 @@ namespace ControleFinanceiroAPI.DTO.Common
                 ContaId = entity.ContaId,
                 UsuarioId = entity.UsuarioId
             };
+        }
+
+        public static IEnumerable<TransacaoResponseDTO> ToDTOList(this IEnumerable<Model.Transacao> transacoes)
+        {
+            if (transacoes is null || !transacoes.Any())
+                return new List<TransacaoResponseDTO>();
+
+            return transacoes.Select(t => t.ToResponseDTO()!).ToList();
         }
 
         public static UsuarioResponseDTO? ToResponseDTO(this Model.Usuario entity)
