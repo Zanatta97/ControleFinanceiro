@@ -5,12 +5,13 @@ import { listarDoAmbiente as listarCategorias } from '../api/categoria'
 import type { TransacaoResponse, TransacaoRequest, ContaResponse, CategoriaResponse } from '../types/api'
 import { TipoTransacao } from '../types/api'
 import { formatCurrency, formatDate, formatMesCompetencia } from '../utils/format'
+import type { AxiosError } from 'axios'
 import Button from '../components/ui/Button'
 import Drawer from '../components/ui/Drawer'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Card from '../components/ui/Card'
-import Alert from '../components/ui/Alert'
+import Toast from '../components/ui/Toast'
 import Badge from '../components/ui/Badge'
 import CurrencyInput from '../components/ui/CurrencyInput'
 
@@ -143,8 +144,9 @@ export default function Transacoes() {
       }
       setModal(false)
       await load()
-    } catch {
-      setError('Erro ao salvar transação.')
+    } catch (err) {
+      const msg = (err as AxiosError<{ errorMessage?: string }>).response?.data?.errorMessage
+      setError(msg || 'Erro ao salvar transação.')
     } finally {
       setSaving(false)
     }
@@ -171,6 +173,7 @@ export default function Transacoes() {
 
   return (
     <div className="space-y-6">
+      {error && <Toast message={error} onClose={() => setError('')} />}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Transações</h1>
         <Button onClick={openNew}>+ Nova Transação</Button>
@@ -302,8 +305,6 @@ export default function Transacoes() {
 
       <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Transação' : 'Nova Transação'}>
         <div className="space-y-4">
-          {error && <Alert type="error" message={error} />}
-
           <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." required />
           <Select
             label="Tipo"
