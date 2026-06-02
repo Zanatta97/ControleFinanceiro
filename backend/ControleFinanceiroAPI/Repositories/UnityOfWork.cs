@@ -12,6 +12,7 @@ namespace ControleFinanceiroAPI.Repositories
         private ITransacaoRepository? _transacaoRepository;
         private IOrcamentoRepository? _trcamentoRepository;
         private IAmbienteRepository? _ambienteRepository;
+        private ISaldoMensalRepository? _saldoMensalRepository;
 
         public UnityOfWork(AppDbContext context)
         {
@@ -56,6 +57,14 @@ namespace ControleFinanceiroAPI.Repositories
             get
             {
                 return _ambienteRepository ??= new AmbienteRepository(_context);
+            }
+        }
+
+        public ISaldoMensalRepository SaldoMensalRepository
+        {
+            get
+            {
+                return _saldoMensalRepository ??= new SaldoMensalRepository(_context);
             }
         }
 

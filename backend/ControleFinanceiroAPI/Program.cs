@@ -72,6 +72,7 @@ namespace ControleFinanceiroAPI
             builder.Services.AddScoped<IOrcamentoService, OrcamentoService>();
             builder.Services.AddScoped<ITransacaoService, TransacaoService>();
             builder.Services.AddScoped<IRelatorioService, RelatorioService>();
+            builder.Services.AddScoped<ISaldoMensalService, SaldoMensalService>();
 
             // Registra o LogSettingsManager como Singleton: uma única instância compartilhada
             // entre o RequestLoggingMiddleware (que lê o estado) e o LogsController
