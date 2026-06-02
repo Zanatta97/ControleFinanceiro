@@ -31,6 +31,41 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Transacao>> GetByMesCompetenciaAsync(Guid ambienteId, int mes, int ano)
+        {
+            return await _context.Transacoes
+                .AsNoTracking()
+                .Include(t => t.Categoria)
+                .Include(t => t.Conta)
+                .Where(t => t.AmbienteId == ambienteId
+                         && t.MesCompetencia.Month == mes
+                         && t.MesCompetencia.Year == ano)
+                .OrderByDescending(t => t.Data)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Transacao>> GetByMesCompetenciaEContaAsync(Guid ambienteId, Guid contaId, int mes, int ano)
+        {
+            return await _context.Transacoes
+                .AsNoTracking()
+                .Include(t => t.Categoria)
+                .Where(t => t.AmbienteId == ambienteId
+                         && t.ContaId == contaId
+                         && t.MesCompetencia.Month == mes
+                         && t.MesCompetencia.Year == ano)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Transacao>> GetAPartirDeMesCompetenciaAsync(Guid ambienteId, Guid contaId, DateOnly mesInicio)
+        {
+            return await _context.Transacoes
+                .AsNoTracking()
+                .Where(t => t.AmbienteId == ambienteId
+                         && t.ContaId == contaId
+                         && t.MesCompetencia >= mesInicio)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Transacao>> GetByPeriodoAsync(Guid ambienteId, DateTime inicio, DateTime fim)
         {
             return await _context.Transacoes
