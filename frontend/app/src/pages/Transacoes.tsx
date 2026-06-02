@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { listarDoAmbiente, criar, atualizar, excluir } from '../api/transacao'
 import { listarDoAmbiente as listarContas } from '../api/conta'
 import { listarDoAmbiente as listarCategorias } from '../api/categoria'
@@ -14,23 +14,29 @@ import Card from '../components/ui/Card'
 import Toast from '../components/ui/Toast'
 import Badge from '../components/ui/Badge'
 import CurrencyInput from '../components/ui/CurrencyInput'
+import Pagination from '../components/ui/Pagination'
+import { usePagination } from '../hooks/usePagination'
 
 const tipoOptions = [
   { value: TipoTransacao.Receita, label: 'Receita' },
   { value: TipoTransacao.Despesa, label: 'Despesa' },
 ]
 
+type SortField = 'descricao' | 'categoriaNome' | 'contaNome' | 'mesCompetencia' | 'data' | 'valor'
+type SortDir = 'asc' | 'desc'
+
+function SortIcon({ field, active, dir }: { field: string; active: boolean; dir: SortDir }) {
+  if (!active) return <span className="ml-1 text-gray-300">↕</span>
+  return <span className="ml-1">{dir === 'asc' ? '↑' : '↓'}</span>
+}
+
 function currentMonth() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
-// "YYYY-MM" → "YYYY-MM-01" (formato DateOnly esperado pelo backend)
-function monthToDateOnly(ym: string) {
-  return `${ym}-01`
-}
+function monthToDateOnly(ym: string) { return `${ym}-01` }
 
-// "YYYY-MM-DD" → "YYYY-MM" (para preencher o input type="month")
 function dateOnlyToMonth(iso: string | null | undefined) {
   if (!iso) return currentMonth()
   return iso.slice(0, 7)
@@ -59,6 +65,8 @@ function previewParcelas(mesInicio: string, n: number): string {
   }).join(', ')
 }
 
+const ITENS_POR_PAGINA = 20
+
 export default function Transacoes() {
   const [transacoes, setTransacoes] = useState<TransacaoResponse[]>([])
   const [contas, setContas] = useState<ContaResponse[]>([])
@@ -77,6 +85,10 @@ export default function Transacoes() {
   const [filtroCategoria, setFiltroCategoria] = useState('')
   const [filtroConta, setFiltroConta] = useState('')
 
+  // Ordenação
+  const [sortField, setSortField] = useState<SortField>('data')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
   useEffect(() => { load() }, [])
 
   async function load() {
@@ -90,6 +102,11 @@ export default function Transacoes() {
     if (c.status === 'fulfilled') setContas(c.value.data.dados ?? [])
     if (cat.status === 'fulfilled') setCategorias(cat.value.data.dados ?? [])
     setLoading(false)
+  }
+
+  function handleSort(field: SortField) {
+    if (sortField === field) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortField(field); setSortDir('asc') }
   }
 
   function openNew() {
@@ -158,22 +175,54 @@ export default function Transacoes() {
     await load()
   }
 
-  const filtradas = transacoes.filter((t) => {
-    if (filtroTipo !== 'todos') {
-      const tipo = filtroTipo === 'Receita' ? TipoTransacao.Receita : TipoTransacao.Despesa
-      if (t.tipoTransacao !== tipo) return false
-    }
-    if (filtroMes && t.mesCompetencia?.slice(0, 7) !== filtroMes) return false
-    if (filtroCategoria && t.categoriaId !== filtroCategoria) return false
-    if (filtroConta && t.contaId !== filtroConta) return false
-    return true
-  })
+  const filtradas = useMemo(() => {
+    let list = transacoes.filter((t) => {
+      if (filtroTipo !== 'todos') {
+        const tipo = filtroTipo === 'Receita' ? TipoTransacao.Receita : TipoTransacao.Despesa
+        if (t.tipoTransacao !== tipo) return false
+      }
+      if (filtroMes && t.mesCompetencia?.slice(0, 7) !== filtroMes) return false
+      if (filtroCategoria && t.categoriaId !== filtroCategoria) return false
+      if (filtroConta && t.contaId !== filtroConta) return false
+      return true
+    })
 
+    list = [...list].sort((a, b) => {
+      let va: string | number = ''
+      let vb: string | number = ''
+      if (sortField === 'descricao') { va = a.descricao ?? ''; vb = b.descricao ?? '' }
+      else if (sortField === 'categoriaNome') { va = a.categoriaNome ?? ''; vb = b.categoriaNome ?? '' }
+      else if (sortField === 'contaNome') { va = a.contaNome ?? ''; vb = b.contaNome ?? '' }
+      else if (sortField === 'mesCompetencia') { va = a.mesCompetencia ?? ''; vb = b.mesCompetencia ?? '' }
+      else if (sortField === 'data') { va = a.data; vb = b.data }
+      else if (sortField === 'valor') { va = a.valor; vb = b.valor }
+      if (va < vb) return sortDir === 'asc' ? -1 : 1
+      if (va > vb) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+
+    return list
+  }, [transacoes, filtroTipo, filtroMes, filtroCategoria, filtroConta, sortField, sortDir])
+
+  const { paginados, pagina, totalPaginas, irPara, total } = usePagination(filtradas, ITENS_POR_PAGINA)
   const parcelas = form.parcelas ?? 1
 
+  function ThSort({ field, label, className = '' }: { field: SortField; label: string; className?: string }) {
+    return (
+      <th
+        className={`px-4 py-3 cursor-pointer select-none hover:text-gray-700 ${className}`}
+        onClick={() => handleSort(field)}
+      >
+        {label}
+        <SortIcon field={field} active={sortField === field} dir={sortDir} />
+      </th>
+    )
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full gap-4">
       {error && <Toast message={error} onClose={() => setError('')} />}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Transações</h1>
         <Button onClick={openNew}>+ Nova Transação</Button>
@@ -181,66 +230,38 @@ export default function Transacoes() {
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 items-end">
-        {/* Tipo */}
         <div className="flex gap-1">
           {(['todos', 'Receita', 'Despesa'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFiltroTipo(f)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${filtroTipo === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-            >
+            <button key={f} onClick={() => setFiltroTipo(f)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${filtroTipo === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
               {f === 'todos' ? 'Todas' : f === 'Receita' ? '📈 Receitas' : '📉 Despesas'}
             </button>
           ))}
         </div>
-
-        {/* Mês de competência */}
         <div className="flex flex-col gap-0.5">
           <label className="text-xs text-gray-500">Competência</label>
-          <input
-            type="month"
-            value={filtroMes}
-            onChange={(e) => setFiltroMes(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+          <input type="month" value={filtroMes} onChange={(e) => setFiltroMes(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
         </div>
-
-        {/* Categoria */}
         <div className="flex flex-col gap-0.5">
           <label className="text-xs text-gray-500">Categoria</label>
-          <select
-            value={filtroCategoria}
-            onChange={(e) => setFiltroCategoria(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
+          <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
             <option value="">Todas</option>
-            {categorias.map((c) => (
-              <option key={c.id} value={c.id}>{c.nome}</option>
-            ))}
+            {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </div>
-
-        {/* Conta */}
         <div className="flex flex-col gap-0.5">
           <label className="text-xs text-gray-500">Conta</label>
-          <select
-            value={filtroConta}
-            onChange={(e) => setFiltroConta(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
+          <select value={filtroConta} onChange={(e) => setFiltroConta(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
             <option value="">Todas</option>
-            {contas.map((c) => (
-              <option key={c.id} value={c.id}>{c.nome}</option>
-            ))}
+            {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </div>
-
-        {/* Limpar filtros */}
         {(filtroMes || filtroCategoria || filtroConta || filtroTipo !== 'todos') && (
-          <button
-            onClick={() => { setFiltroTipo('todos'); setFiltroMes(''); setFiltroCategoria(''); setFiltroConta('') }}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50 transition"
-          >
+          <button onClick={() => { setFiltroTipo('todos'); setFiltroMes(''); setFiltroCategoria(''); setFiltroConta('') }}
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50 transition">
             Limpar
           </button>
         )}
@@ -255,29 +276,29 @@ export default function Transacoes() {
           <Button className="mt-4" onClick={openNew}>Registrar primeira transação</Button>
         </Card>
       ) : (
-        <Card>
-          <div className="overflow-x-auto">
+        <Card className="flex flex-col min-h-0">
+          <div className="overflow-auto flex-1" style={{ maxHeight: 'calc(100vh - 320px)' }}>
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 bg-white z-10">
                 <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                  <th className="px-4 py-3">Descrição</th>
-                  <th className="px-4 py-3">Categoria</th>
-                  <th className="px-4 py-3">Conta</th>
-                  <th className="px-4 py-3">Competência</th>
-                  <th className="px-4 py-3">Data</th>
-                  <th className="px-4 py-3 text-right">Valor</th>
+                  <ThSort field="descricao" label="Descrição" />
+                  <ThSort field="categoriaNome" label="Categoria" />
+                  <ThSort field="contaNome" label="Conta" />
+                  <ThSort field="mesCompetencia" label="Competência" />
+                  <ThSort field="data" label="Data" />
+                  <ThSort field="valor" label="Valor" className="text-right" />
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtradas.map((t) => (
+                {paginados.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50 transition">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-gray-800">{t.descricao}</p>
+                      <p className="font-medium text-gray-800">{t.descricao || '—'}</p>
                       {t.observacao && <p className="text-xs text-gray-400">{t.observacao}</p>}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{t.categoriaNome ?? '-'}</td>
-                    <td className="px-4 py-3 text-gray-600">{t.contaNome ?? '-'}</td>
+                    <td className="px-4 py-3 text-gray-600">{t.categoriaNome || '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{t.contaNome || '—'}</td>
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
                         {formatMesCompetencia(t.mesCompetencia)}
@@ -300,80 +321,50 @@ export default function Transacoes() {
               </tbody>
             </table>
           </div>
+          <Pagination pagina={pagina} totalPaginas={totalPaginas} total={total} itensPorPagina={ITENS_POR_PAGINA} onPagina={irPara} />
         </Card>
       )}
 
       <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Transação' : 'Nova Transação'}>
         <div className="space-y-4">
           <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." required />
-          <Select
-            label="Tipo"
-            value={form.tipoTransacao}
+          <Select label="Tipo" value={form.tipoTransacao}
             onChange={(e) => setForm((f) => ({ ...f, tipoTransacao: Number(e.target.value) as TipoTransacao }))}
-            options={tipoOptions}
-          />
-          <CurrencyInput
-            label="Valor (R$)"
-            value={form.valor}
-            onChange={(v) => setForm((f) => ({ ...f, valor: v }))}
-          />
-          <Select
-            label="Conta"
-            value={form.contaId}
+            options={tipoOptions} />
+          <CurrencyInput label="Valor (R$)" value={form.valor} onChange={(v) => setForm((f) => ({ ...f, valor: v }))} />
+          <Select label="Conta" value={form.contaId}
             onChange={(e) => setForm((f) => ({ ...f, contaId: e.target.value }))}
-            options={contas.map((c) => ({ value: c.id, label: c.nome }))}
-          />
-          <Select
-            label="Categoria"
-            value={form.categoriaId}
+            options={contas.map((c) => ({ value: c.id, label: c.nome }))} />
+          <Select label="Categoria" value={form.categoriaId}
             onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
-            options={categorias.map((c) => ({ value: c.id, label: c.nome ?? '' }))}
-          />
-          <Input
-            label="Data da compra"
-            type="datetime-local"
-            value={form.data}
-            onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))}
-          />
+            options={categorias.map((c) => ({ value: c.id, label: c.nome ?? '' }))} />
+          <Input label="Data da compra" type="datetime-local" value={form.data}
+            onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))} />
 
-          {/* Mês de competência */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Mês de competência</label>
-            <input
-              type="month"
-              value={mesInput}
-              onChange={(e) => handleMesChange(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+            <input type="month" value={mesInput} onChange={(e) => handleMesChange(e.target.value)}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
             <p className="text-xs text-gray-400">Mês ao qual esta transação será atribuída financeiramente.</p>
           </div>
 
-          {/* Parcelas — apenas no cadastro */}
           {!editing && (
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">Número de parcelas</label>
-              <input
-                type="number"
-                min={1}
-                value={parcelas}
+              <input type="number" min={1} value={parcelas}
                 onChange={(e) => setForm((f) => ({ ...f, parcelas: Math.max(1, parseInt(e.target.value) || 1) }))}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
               {parcelas > 1 && (
                 <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
-                  Serão criadas <strong>{parcelas} transações</strong>:{' '}
-                  {previewParcelas(mesInput, parcelas)}
+                  Serão criadas <strong>{parcelas} transações</strong>: {previewParcelas(mesInput, parcelas)}
                 </div>
               )}
             </div>
           )}
 
-          <Input
-            label="Observação"
-            value={form.observacao ?? ''}
+          <Input label="Observação" value={form.observacao ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value || null }))}
-            placeholder={parcelas > 1 ? 'Opcional — será adicionada após o número da parcela' : 'Opcional...'}
-          />
+            placeholder={parcelas > 1 ? 'Opcional — será adicionada após o número da parcela' : 'Opcional...'} />
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setModal(false)}>Cancelar</Button>

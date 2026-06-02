@@ -11,6 +11,14 @@ namespace ControleFinanceiroAPI.Repositories
 
         public AmbienteRepository(AppDbContext context) : base(context) { }
 
+        public override async Task<IEnumerable<Ambiente>> GetAllAsync()
+        {
+            return await _context.Ambientes
+                .Include(a => a.Membros)
+                    .ThenInclude(m => m.Usuario)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Usuario>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _context.AmbienteMembros
