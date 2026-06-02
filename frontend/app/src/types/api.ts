@@ -109,7 +109,7 @@ export interface TransacaoRequest {
   descricao: string
   valor: number
   data: string
-  observacao: string
+  observacao: string | null
   tipoTransacao: TipoTransacao
   categoriaId: string
   contaId: string

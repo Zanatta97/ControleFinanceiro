@@ -12,6 +12,7 @@ import Select from '../components/ui/Select'
 import Card from '../components/ui/Card'
 import Alert from '../components/ui/Alert'
 import Badge from '../components/ui/Badge'
+import CurrencyInput from '../components/ui/CurrencyInput'
 
 const tipoOptions = [
   { value: TipoTransacao.Receita, label: 'Receita' },
@@ -39,7 +40,7 @@ function emptyForm(contas: ContaResponse[], categorias: CategoriaResponse[]): Tr
     descricao: '',
     valor: 0,
     data: new Date().toISOString().slice(0, 16),
-    observacao: '',
+    observacao: null,
     tipoTransacao: TipoTransacao.Despesa,
     categoriaId: categorias[0]?.id ?? '',
     contaId: contas[0]?.id ?? '',
@@ -65,10 +66,15 @@ export default function Transacoes() {
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<TransacaoResponse | null>(null)
   const [form, setForm] = useState<TransacaoRequest>(emptyForm([], []))
-  const [mesInput, setMesInput] = useState(currentMonth())  // estado separado para o input type="month"
+  const [mesInput, setMesInput] = useState(currentMonth())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Filtros
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'Receita' | 'Despesa'>('todos')
+  const [filtroMes, setFiltroMes] = useState('')
+  const [filtroCategoria, setFiltroCategoria] = useState('')
+  const [filtroConta, setFiltroConta] = useState('')
 
   useEffect(() => { load() }, [])
 
@@ -102,7 +108,7 @@ export default function Transacoes() {
       descricao: t.descricao ?? '',
       valor: t.valor,
       data: t.data.slice(0, 16),
-      observacao: t.observacao ?? '',
+      observacao: t.observacao ?? null,
       tipoTransacao: t.tipoTransacao,
       categoriaId: t.categoriaId,
       contaId: t.contaId,
@@ -125,7 +131,11 @@ export default function Transacoes() {
     setSaving(true)
     setError('')
     try {
-      const payload = { ...form, data: new Date(form.data).toISOString() }
+      const payload = {
+        ...form,
+        data: new Date(form.data).toISOString(),
+        observacao: form.observacao?.trim() || null,
+      }
       if (editing) {
         await atualizar(editing.id, { ...payload, parcelas: 1 })
       } else {
@@ -147,8 +157,14 @@ export default function Transacoes() {
   }
 
   const filtradas = transacoes.filter((t) => {
-    if (filtroTipo === 'todos') return true
-    return filtroTipo === 'Receita' ? t.tipoTransacao === TipoTransacao.Receita : t.tipoTransacao === TipoTransacao.Despesa
+    if (filtroTipo !== 'todos') {
+      const tipo = filtroTipo === 'Receita' ? TipoTransacao.Receita : TipoTransacao.Despesa
+      if (t.tipoTransacao !== tipo) return false
+    }
+    if (filtroMes && t.mesCompetencia?.slice(0, 7) !== filtroMes) return false
+    if (filtroCategoria && t.categoriaId !== filtroCategoria) return false
+    if (filtroConta && t.contaId !== filtroConta) return false
+    return true
   })
 
   const parcelas = form.parcelas ?? 1
@@ -161,16 +177,70 @@ export default function Transacoes() {
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-2">
-        {(['todos', 'Receita', 'Despesa'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFiltroTipo(f)}
-            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${filtroTipo === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+      <div className="flex flex-wrap gap-2 items-end">
+        {/* Tipo */}
+        <div className="flex gap-1">
+          {(['todos', 'Receita', 'Despesa'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFiltroTipo(f)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${filtroTipo === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            >
+              {f === 'todos' ? 'Todas' : f === 'Receita' ? '📈 Receitas' : '📉 Despesas'}
+            </button>
+          ))}
+        </div>
+
+        {/* Mês de competência */}
+        <div className="flex flex-col gap-0.5">
+          <label className="text-xs text-gray-500">Competência</label>
+          <input
+            type="month"
+            value={filtroMes}
+            onChange={(e) => setFiltroMes(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        {/* Categoria */}
+        <div className="flex flex-col gap-0.5">
+          <label className="text-xs text-gray-500">Categoria</label>
+          <select
+            value={filtroCategoria}
+            onChange={(e) => setFiltroCategoria(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            {f === 'todos' ? 'Todas' : f === 'Receita' ? '📈 Receitas' : '📉 Despesas'}
+            <option value="">Todas</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>{c.nome}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Conta */}
+        <div className="flex flex-col gap-0.5">
+          <label className="text-xs text-gray-500">Conta</label>
+          <select
+            value={filtroConta}
+            onChange={(e) => setFiltroConta(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="">Todas</option>
+            {contas.map((c) => (
+              <option key={c.id} value={c.id}>{c.nome}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Limpar filtros */}
+        {(filtroMes || filtroCategoria || filtroConta || filtroTipo !== 'todos') && (
+          <button
+            onClick={() => { setFiltroTipo('todos'); setFiltroMes(''); setFiltroCategoria(''); setFiltroConta('') }}
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50 transition"
+          >
+            Limpar
           </button>
-        ))}
+        )}
       </div>
 
       {loading ? (
@@ -241,13 +311,10 @@ export default function Transacoes() {
             onChange={(e) => setForm((f) => ({ ...f, tipoTransacao: Number(e.target.value) as TipoTransacao }))}
             options={tipoOptions}
           />
-          <Input
+          <CurrencyInput
             label="Valor (R$)"
-            type="number"
-            step="0.01"
-            min="0"
             value={form.valor}
-            onChange={(e) => setForm((f) => ({ ...f, valor: parseFloat(e.target.value) || 0 }))}
+            onChange={(v) => setForm((f) => ({ ...f, valor: v }))}
           />
           <Select
             label="Conta"
@@ -302,8 +369,8 @@ export default function Transacoes() {
 
           <Input
             label="Observação"
-            value={form.observacao}
-            onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value }))}
+            value={form.observacao ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value || null }))}
             placeholder={parcelas > 1 ? 'Opcional — será adicionada após o número da parcela' : 'Opcional...'}
           />
 

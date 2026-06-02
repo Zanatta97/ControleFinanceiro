@@ -46,8 +46,11 @@ export default function Dashboard() {
       statusOrcamentos(),
     ])
     if (r.status === 'fulfilled') setResumo(r.value.data.dados)
+    else setResumo(null)
     if (c.status === 'fulfilled') setCategorias(c.value.data.dados ?? [])
+    else setCategorias([])
     if (o.status === 'fulfilled') setOrcamentos(o.value.data.dados ?? [])
+    else setOrcamentos([])
     setLoading(false)
   }
 
@@ -155,9 +158,10 @@ export default function Dashboard() {
                 <h2 className="font-semibold text-gray-800">Orçamentos Ativos</h2>
               </div>
               <div className="p-5 space-y-4">
-                {orcamentos.length === 0
-                  ? <p className="text-sm text-gray-400 text-center py-4">Nenhum orçamento ativo.</p>
-                  : orcamentos.slice(0, 5).map((o) => {
+                {orcamentos
+                  .filter((o) => new Date(o.dataLimite) >= new Date(ano, mes - 1, 1))
+                  .slice(0, 5)
+                  .map((o) => {
                     const pct = Math.min(o.percentual, 100)
                     const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f97316' : '#22c55e'
                     return (
@@ -172,7 +176,11 @@ export default function Dashboard() {
                         <p className="mt-0.5 text-xs text-gray-400">{o.nomeCategoria} · {pct.toFixed(1)}% usado</p>
                       </div>
                     )
-                  })}
+                  })
+                }
+                {orcamentos.filter((o) => new Date(o.dataLimite) >= new Date(ano, mes - 1, 1)).length === 0 && (
+                  <p className="text-sm text-gray-400 text-center py-4">Nenhum orçamento ativo.</p>
+                )}
               </div>
             </Card>
           </div>
