@@ -19,5 +19,6 @@ namespace ControleFinanceiroAPI.Model
         public Usuario? Usuario { get; set; }
         public Guid? AmbienteId { get; set; }
         public Ambiente? Ambiente { get; set; }
+        public DateOnly MesCompetencia { get; set; }
     }
 }

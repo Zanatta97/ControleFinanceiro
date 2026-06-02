@@ -97,15 +97,29 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(ApiResponseDTO<TransacaoResponseDTO>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] TransacaoRequestDTO dto)
         {
             var ambienteId = User.GetAmbienteAtivo();
             var userId = User.GetUserId();
-            var transacao = await _service.AddAsync(dto.ToEntity(ambienteId, userId)!);
+            var parcelas = Math.Max(1, dto.Parcelas);
 
+            if (parcelas == 1)
+            {
+                var transacao = await _service.AddAsync(dto.ToEntity(ambienteId, userId)!);
+                return StatusCode(StatusCodes.Status201Created,
+                    ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.SuccessResponse(
+                        new[] { transacao.ToResponseDTO()! }, StatusCodes.Status201Created));
+            }
+
+            var entidades = Enumerable.Range(0, parcelas)
+                .Select(i => dto.ToEntity(ambienteId, userId, i)!)
+                .ToList();
+
+            var criadas = await _service.AddManyAsync(entidades);
             return StatusCode(StatusCodes.Status201Created,
-                ApiResponseDTO<TransacaoResponseDTO>.SuccessResponse(transacao.ToResponseDTO()!, StatusCodes.Status201Created));
+                ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.SuccessResponse(
+                    criadas.ToDTOList(), StatusCodes.Status201Created));
         }
 
         [HttpPut("{id}")]

@@ -4,7 +4,7 @@ import { listarDoAmbiente as listarContas } from '../api/conta'
 import { listarDoAmbiente as listarCategorias } from '../api/categoria'
 import type { TransacaoResponse, TransacaoRequest, ContaResponse, CategoriaResponse } from '../types/api'
 import { TipoTransacao } from '../types/api'
-import { formatCurrency, formatDate } from '../utils/format'
+import { formatCurrency, formatDate, formatMesCompetencia } from '../utils/format'
 import Button from '../components/ui/Button'
 import Drawer from '../components/ui/Drawer'
 import Input from '../components/ui/Input'
@@ -18,6 +18,22 @@ const tipoOptions = [
   { value: TipoTransacao.Despesa, label: 'Despesa' },
 ]
 
+function currentMonth() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+// "YYYY-MM" → "YYYY-MM-01" (formato DateOnly esperado pelo backend)
+function monthToDateOnly(ym: string) {
+  return `${ym}-01`
+}
+
+// "YYYY-MM-DD" → "YYYY-MM" (para preencher o input type="month")
+function dateOnlyToMonth(iso: string | null | undefined) {
+  if (!iso) return currentMonth()
+  return iso.slice(0, 7)
+}
+
 function emptyForm(contas: ContaResponse[], categorias: CategoriaResponse[]): TransacaoRequest {
   return {
     descricao: '',
@@ -27,7 +43,18 @@ function emptyForm(contas: ContaResponse[], categorias: CategoriaResponse[]): Tr
     tipoTransacao: TipoTransacao.Despesa,
     categoriaId: categorias[0]?.id ?? '',
     contaId: contas[0]?.id ?? '',
+    mesCompetencia: monthToDateOnly(currentMonth()),
+    parcelas: 1,
   }
+}
+
+function previewParcelas(mesInicio: string, n: number): string {
+  const [year, month] = mesInicio.split('-').map(Number)
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(year, month - 1 + i, 1)
+    return d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+      .replace('. de ', '/').replace('.', '')
+  }).join(', ')
 }
 
 export default function Transacoes() {
@@ -38,6 +65,7 @@ export default function Transacoes() {
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState<TransacaoResponse | null>(null)
   const [form, setForm] = useState<TransacaoRequest>(emptyForm([], []))
+  const [mesInput, setMesInput] = useState(currentMonth())  // estado separado para o input type="month"
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'Receita' | 'Despesa'>('todos')
@@ -46,29 +74,30 @@ export default function Transacoes() {
 
   async function load() {
     setLoading(true)
-    try {
-      const [t, c, cat] = await Promise.all([
-        listarDoAmbiente(),
-        listarContas(),
-        listarCategorias(),
-      ])
-      setTransacoes(t.data.dados ?? [])
-      setContas(c.data.dados ?? [])
-      setCategorias(cat.data.dados ?? [])
-    } finally {
-      setLoading(false)
-    }
+    const [t, c, cat] = await Promise.allSettled([
+      listarDoAmbiente(),
+      listarContas(),
+      listarCategorias(),
+    ])
+    if (t.status === 'fulfilled') setTransacoes(t.value.data.dados ?? [])
+    if (c.status === 'fulfilled') setContas(c.value.data.dados ?? [])
+    if (cat.status === 'fulfilled') setCategorias(cat.value.data.dados ?? [])
+    setLoading(false)
   }
 
   function openNew() {
     setEditing(null)
-    setForm(emptyForm(contas, categorias))
+    const mes = currentMonth()
+    setMesInput(mes)
+    setForm({ ...emptyForm(contas, categorias), mesCompetencia: monthToDateOnly(mes) })
     setError('')
     setModal(true)
   }
 
   function openEdit(t: TransacaoResponse) {
     setEditing(t)
+    const mes = dateOnlyToMonth(t.mesCompetencia)
+    setMesInput(mes)
     setForm({
       descricao: t.descricao ?? '',
       valor: t.valor,
@@ -77,9 +106,16 @@ export default function Transacoes() {
       tipoTransacao: t.tipoTransacao,
       categoriaId: t.categoriaId,
       contaId: t.contaId,
+      mesCompetencia: monthToDateOnly(mes),
+      parcelas: 1,
     })
     setError('')
     setModal(true)
+  }
+
+  function handleMesChange(ym: string) {
+    setMesInput(ym)
+    setForm((f) => ({ ...f, mesCompetencia: monthToDateOnly(ym) }))
   }
 
   async function handleSave() {
@@ -91,7 +127,7 @@ export default function Transacoes() {
     try {
       const payload = { ...form, data: new Date(form.data).toISOString() }
       if (editing) {
-        await atualizar(editing.id, payload)
+        await atualizar(editing.id, { ...payload, parcelas: 1 })
       } else {
         await criar(payload)
       }
@@ -114,6 +150,8 @@ export default function Transacoes() {
     if (filtroTipo === 'todos') return true
     return filtroTipo === 'Receita' ? t.tipoTransacao === TipoTransacao.Receita : t.tipoTransacao === TipoTransacao.Despesa
   })
+
+  const parcelas = form.parcelas ?? 1
 
   return (
     <div className="space-y-6">
@@ -145,92 +183,135 @@ export default function Transacoes() {
         </Card>
       ) : (
         <Card>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                <th className="px-4 py-3">Descrição</th>
-                <th className="px-4 py-3">Categoria</th>
-                <th className="px-4 py-3">Conta</th>
-                <th className="px-4 py-3">Data</th>
-                <th className="px-4 py-3 text-right">Valor</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtradas.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-50 transition">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-800">{t.descricao}</p>
-                    {t.observacao && <p className="text-xs text-gray-400">{t.observacao}</p>}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{t.categoriaNome ?? '-'}</td>
-                  <td className="px-4 py-3 text-gray-600">{t.contaNome ?? '-'}</td>
-                  <td className="px-4 py-3 text-gray-500">{formatDate(t.data)}</td>
-                  <td className="px-4 py-3 text-right">
-                    <Badge color={t.tipoTransacao === TipoTransacao.Receita ? '#16a34a' : '#dc2626'}>
-                      {t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}{formatCurrency(t.valor)}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1 justify-end">
-                      <button onClick={() => openEdit(t)} className="rounded p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600">✏️</button>
-                      <button onClick={() => handleDelete(t.id)} className="rounded p-1 hover:bg-red-50 text-gray-400 hover:text-red-600">🗑️</button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                  <th className="px-4 py-3">Descrição</th>
+                  <th className="px-4 py-3">Categoria</th>
+                  <th className="px-4 py-3">Conta</th>
+                  <th className="px-4 py-3">Competência</th>
+                  <th className="px-4 py-3">Data</th>
+                  <th className="px-4 py-3 text-right">Valor</th>
+                  <th className="px-4 py-3" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtradas.map((t) => (
+                  <tr key={t.id} className="hover:bg-gray-50 transition">
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-800">{t.descricao}</p>
+                      {t.observacao && <p className="text-xs text-gray-400">{t.observacao}</p>}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">{t.categoriaNome ?? '-'}</td>
+                    <td className="px-4 py-3 text-gray-600">{t.contaNome ?? '-'}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        {formatMesCompetencia(t.mesCompetencia)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{formatDate(t.data)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Badge color={t.tipoTransacao === TipoTransacao.Receita ? '#16a34a' : '#dc2626'}>
+                        {t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}{formatCurrency(t.valor)}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1 justify-end">
+                        <button onClick={() => openEdit(t)} className="rounded p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600">✏️</button>
+                        <button onClick={() => handleDelete(t.id)} className="rounded p-1 hover:bg-red-50 text-gray-400 hover:text-red-600">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
 
       <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Transação' : 'Nova Transação'}>
         <div className="space-y-4">
           {error && <Alert type="error" message={error} />}
-          <div className="grid grid-cols-1 gap-4">
-            <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." required />
-            <Select
-              label="Tipo"
-              value={form.tipoTransacao}
-              onChange={(e) => setForm((f) => ({ ...f, tipoTransacao: Number(e.target.value) as TipoTransacao }))}
-              options={tipoOptions}
+
+          <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." required />
+          <Select
+            label="Tipo"
+            value={form.tipoTransacao}
+            onChange={(e) => setForm((f) => ({ ...f, tipoTransacao: Number(e.target.value) as TipoTransacao }))}
+            options={tipoOptions}
+          />
+          <Input
+            label="Valor (R$)"
+            type="number"
+            step="0.01"
+            min="0"
+            value={form.valor}
+            onChange={(e) => setForm((f) => ({ ...f, valor: parseFloat(e.target.value) || 0 }))}
+          />
+          <Select
+            label="Conta"
+            value={form.contaId}
+            onChange={(e) => setForm((f) => ({ ...f, contaId: e.target.value }))}
+            options={contas.map((c) => ({ value: c.id, label: c.nome }))}
+          />
+          <Select
+            label="Categoria"
+            value={form.categoriaId}
+            onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
+            options={categorias.map((c) => ({ value: c.id, label: c.nome ?? '' }))}
+          />
+          <Input
+            label="Data da compra"
+            type="datetime-local"
+            value={form.data}
+            onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))}
+          />
+
+          {/* Mês de competência */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Mês de competência</label>
+            <input
+              type="month"
+              value={mesInput}
+              onChange={(e) => handleMesChange(e.target.value)}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
-            <Input
-              label="Valor"
-              type="number"
-              step="0.01"
-              min="0"
-              value={form.valor}
-              onChange={(e) => setForm((f) => ({ ...f, valor: parseFloat(e.target.value) || 0 }))}
-            />
-            <Select
-              label="Conta"
-              value={form.contaId}
-              onChange={(e) => setForm((f) => ({ ...f, contaId: e.target.value }))}
-              options={contas.map((c) => ({ value: c.id, label: c.nome }))}
-            />
-            <Select
-              label="Categoria"
-              value={form.categoriaId}
-              onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
-              options={categorias.map((c) => ({ value: c.id, label: c.nome ?? '' }))}
-            />
-            <Input
-              label="Data"
-              type="datetime-local"
-              value={form.data}
-              onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))}
-            />
-            <Input
-              label="Observação"
-              value={form.observacao}
-              onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value }))}
-              placeholder="Opcional..."
-            />
+            <p className="text-xs text-gray-400">Mês ao qual esta transação será atribuída financeiramente.</p>
           </div>
+
+          {/* Parcelas — apenas no cadastro */}
+          {!editing && (
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700">Número de parcelas</label>
+              <input
+                type="number"
+                min={1}
+                value={parcelas}
+                onChange={(e) => setForm((f) => ({ ...f, parcelas: Math.max(1, parseInt(e.target.value) || 1) }))}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              {parcelas > 1 && (
+                <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+                  Serão criadas <strong>{parcelas} transações</strong>:{' '}
+                  {previewParcelas(mesInput, parcelas)}
+                </div>
+              )}
+            </div>
+          )}
+
+          <Input
+            label="Observação"
+            value={form.observacao}
+            onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value }))}
+            placeholder={parcelas > 1 ? 'Opcional — será adicionada após o número da parcela' : 'Opcional...'}
+          />
+
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setModal(false)}>Cancelar</Button>
-            <Button onClick={handleSave} loading={saving}>Salvar</Button>
+            <Button onClick={handleSave} loading={saving}>
+              {parcelas > 1 ? `Criar ${parcelas} parcelas` : 'Salvar'}
+            </Button>
           </div>
         </div>
       </Drawer>

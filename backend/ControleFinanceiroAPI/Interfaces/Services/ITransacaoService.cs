@@ -13,6 +13,7 @@ namespace ControleFinanceiroAPI.Interfaces.Services
         Task<Transacao?> GetAsync(Guid id, Guid ambienteId);
         Task<Transacao?> GetReadOnlyAsync(Guid id, Guid ambienteId);
         Task<Transacao> AddAsync(Transacao transacao);
+        Task<IEnumerable<Transacao>> AddManyAsync(IEnumerable<Transacao> transacoes);
         Task<Transacao> UpdateAsync(Guid id, Transacao transacao, Guid ambienteId);
         Task<bool> DeleteAsync(Guid id, Guid ambienteId);
     }

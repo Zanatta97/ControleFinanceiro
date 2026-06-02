@@ -113,6 +113,8 @@ export interface TransacaoRequest {
   tipoTransacao: TipoTransacao
   categoriaId: string
   contaId: string
+  mesCompetencia: string  // YYYY-MM-DD (dia 1 do mês)
+  parcelas: number
 }
 
 export interface TransacaoResponse {
@@ -127,6 +129,7 @@ export interface TransacaoResponse {
   contaId: string
   contaNome: string | null
   usuarioId: string | null
+  mesCompetencia: string | null  // YYYY-MM-DD
 }
 
 // Orcamento

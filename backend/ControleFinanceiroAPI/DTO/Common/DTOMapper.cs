@@ -170,20 +170,31 @@ namespace ControleFinanceiroAPI.DTO.Common
             return orcamentos.Select(o => o.ToResponseDTO()!).ToList();
         }
 
-        public static Model.Transacao? ToEntity(this TransacaoRequestDTO dto, Guid ambienteId, string userId)
+        public static Model.Transacao? ToEntity(this TransacaoRequestDTO dto, Guid ambienteId, string userId, int parcelaIndex = 0)
         {
             if (dto == null) return null;
+
+            var mesCompetencia = dto.MesCompetencia.AddMonths(parcelaIndex);
+
+            string? observacao = dto.Observacao;
+            if (dto.Parcelas > 1)
+            {
+                var parcela = $"Parcela {parcelaIndex + 1}/{dto.Parcelas}";
+                observacao = string.IsNullOrWhiteSpace(observacao) ? parcela : $"{parcela} — {observacao}";
+            }
+
             return new Model.Transacao
             {
                 Descricao = dto.Descricao,
                 Valor = dto.Valor,
                 Data = dto.Data,
-                Observacao = dto.Observacao,
+                Observacao = observacao,
                 TipoTransacao = dto.TipoTransacao,
                 CategoriaId = dto.CategoriaId,
                 ContaId = dto.ContaId,
                 AmbienteId = ambienteId,
-                UsuarioId = userId
+                UsuarioId = userId,
+                MesCompetencia = mesCompetencia
             };
         }
 
@@ -202,7 +213,8 @@ namespace ControleFinanceiroAPI.DTO.Common
                 CategoriaNome = entity.Categoria?.Nome,
                 ContaId = entity.ContaId,
                 ContaNome = entity.Conta?.Nome,
-                UsuarioId = entity.UsuarioId
+                UsuarioId = entity.UsuarioId,
+                MesCompetencia = entity.MesCompetencia
             };
         }
 
