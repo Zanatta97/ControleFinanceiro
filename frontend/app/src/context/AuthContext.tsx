@@ -54,13 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback((accessToken: string, refreshToken: string) => {
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', refreshToken)
-    setState({ accessToken, refreshToken, ...parseTokenState(accessToken) })
+    setState({ ...EMPTY_STATE, accessToken, refreshToken, ...parseTokenState(accessToken) })
   }, [])
 
   const setAmbienteToken = useCallback((accessToken: string, refreshToken: string) => {
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', refreshToken)
-    setState({ accessToken, refreshToken, ...parseTokenState(accessToken) })
+    setState({ ...EMPTY_STATE, accessToken, refreshToken, ...parseTokenState(accessToken) })
   }, [])
 
   const logout = useCallback(() => {
