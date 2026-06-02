@@ -5,6 +5,7 @@ interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   ambienteId: string | null
+  nomeAmbiente: string | null
   nome: string | null
   email: string | null
   userId: string | null
@@ -13,7 +14,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (accessToken: string, refreshToken: string) => void
-  setAmbienteToken: (accessToken: string, refreshToken: string) => void
+  setAmbienteToken: (accessToken: string, refreshToken: string, nomeAmbiente?: string | null) => void
   logout: () => void
   isAuthenticated: boolean
   hasAmbiente: boolean
@@ -39,13 +40,14 @@ function parseTokenState(accessToken: string): Partial<AuthState> {
   }
 }
 
-const EMPTY_STATE: AuthState = { accessToken: null, refreshToken: null, ambienteId: null, nome: null, email: null, userId: null, roles: [] }
+const EMPTY_STATE: AuthState = { accessToken: null, refreshToken: null, ambienteId: null, nomeAmbiente: null, nome: null, email: null, userId: null, roles: [] }
 
 function loadInitialState(): AuthState {
   const accessToken = localStorage.getItem('accessToken')
   const refreshToken = localStorage.getItem('refreshToken')
+  const nomeAmbiente = localStorage.getItem('nomeAmbiente')
   if (!accessToken) return { ...EMPTY_STATE }
-  return { ...EMPTY_STATE, accessToken, refreshToken, ...parseTokenState(accessToken) }
+  return { ...EMPTY_STATE, accessToken, refreshToken, nomeAmbiente, ...parseTokenState(accessToken) }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -57,15 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ ...EMPTY_STATE, accessToken, refreshToken, ...parseTokenState(accessToken) })
   }, [])
 
-  const setAmbienteToken = useCallback((accessToken: string, refreshToken: string) => {
+  const setAmbienteToken = useCallback((accessToken: string, refreshToken: string, nomeAmbiente?: string | null) => {
     localStorage.setItem('accessToken', accessToken)
     localStorage.setItem('refreshToken', refreshToken)
-    setState({ ...EMPTY_STATE, accessToken, refreshToken, ...parseTokenState(accessToken) })
+    if (nomeAmbiente != null) localStorage.setItem('nomeAmbiente', nomeAmbiente)
+    else localStorage.removeItem('nomeAmbiente')
+    setState({ ...EMPTY_STATE, accessToken, refreshToken, nomeAmbiente: nomeAmbiente ?? null, ...parseTokenState(accessToken) })
   }, [])
 
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
+    localStorage.removeItem('nomeAmbiente')
     setState({ ...EMPTY_STATE })
   }, [])
 

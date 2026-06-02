@@ -207,3 +207,18 @@ export interface ExtratoContaResponse {
   totalSaidas: number
   transacoes: TransacaoResponse[]
 }
+
+export interface ApiLogResponse {
+  id: number
+  timestamp: string
+  method: string
+  path: string
+  queryString: string | null
+  statusCode: number
+  exceptionMessage: string | null
+  isError: boolean
+  elapsedMs: number
+  userId: string | null
+  requestBody: string | null
+  responseBody: string | null
+}
