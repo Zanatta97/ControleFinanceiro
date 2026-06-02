@@ -44,18 +44,15 @@ export default function Orcamentos() {
 
   async function load() {
     setLoading(true)
-    try {
-      const [o, s, cat] = await Promise.all([
-        listarDoAmbiente(),
-        statusOrcamentos(),
-        listarCategorias(),
-      ])
-      setOrcamentos(o.data.dados ?? [])
-      setStatus(s.data.dados ?? [])
-      setCategorias(cat.data.dados ?? [])
-    } finally {
-      setLoading(false)
-    }
+    const [o, s, cat] = await Promise.allSettled([
+      listarDoAmbiente(),
+      statusOrcamentos(),
+      listarCategorias(),
+    ])
+    if (o.status === 'fulfilled') setOrcamentos(o.value.data.dados ?? [])
+    if (s.status === 'fulfilled') setStatus(s.value.data.dados ?? [])
+    if (cat.status === 'fulfilled') setCategorias(cat.value.data.dados ?? [])
+    setLoading(false)
   }
 
   function openNew() {
