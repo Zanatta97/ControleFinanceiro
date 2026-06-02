@@ -7,6 +7,7 @@ namespace ControleFinanceiroAPI.Interfaces.Repositories
         IOrcamentoRepository OrcamentoRepository { get; }
         ITransacaoRepository TransacaoRepository { get; }
         IAmbienteRepository AmbienteRepository { get; }
+        ISaldoMensalRepository SaldoMensalRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }

@@ -17,6 +17,7 @@ namespace ControleFinanceiroAPI.Context
         public DbSet<ApiLog> ApiLogs { get; set; }
         public DbSet<Ambiente> Ambientes { get; set; }
         public DbSet<AmbienteMembro> AmbienteMembros { get; set; }
+        public DbSet<SaldoMensalConta> SaldoMensalContas { get; set; }
 
         //Não é necessário o DbSet para Usuario, pois ele é gerenciado pelo IdentityDbContext
 

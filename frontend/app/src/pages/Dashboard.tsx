@@ -3,6 +3,26 @@ import { resumoMensal, gastoPorCategoria, statusOrcamentos } from '../api/relato
 import type { ResumoFinanceiroResponse, GastoPorCategoriaResponse, OrcamentoStatusResponse } from '../types/api'
 import { formatCurrency } from '../utils/format'
 import Card from '../components/ui/Card'
+import SaldoMensalContas from '../components/SaldoMensalContas'
+
+function currentYM() {
+  const d = new Date()
+  return { mes: d.getMonth() + 1, ano: d.getFullYear() }
+}
+
+function ymToInput(mes: number, ano: number) {
+  return `${ano}-${String(mes).padStart(2, '0')}`
+}
+
+function inputToYM(val: string) {
+  const [ano, mes] = val.split('-').map(Number)
+  return { mes, ano }
+}
+
+function labelMes(mes: number, ano: number) {
+  return new Date(ano, mes - 1, 1)
+    .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+}
 
 function currentYM() {
   const d = new Date()
@@ -95,7 +115,7 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <div className="flex h-64 items-center justify-center text-gray-400">Carregando...</div>
+        <div className="flex h-48 items-center justify-center text-gray-400">Carregando...</div>
       ) : (
         <>
           {/* Resumo */}
@@ -115,6 +135,9 @@ export default function Dashboard() {
               </p>
             </Card>
           </div>
+
+          {/* Saldo Mensal por Conta */}
+          <SaldoMensalContas mes={mes} ano={ano} />
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Gastos por Categoria */}
