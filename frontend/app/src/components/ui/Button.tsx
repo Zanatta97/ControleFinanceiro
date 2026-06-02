@@ -10,10 +10,14 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-green-600 hover:bg-green-700 text-white disabled:bg-green-300',
-  secondary: 'bg-white border border-gray-300 hover:bg-gray-50 text-gray-700',
-  danger: 'bg-red-600 hover:bg-red-700 text-white disabled:bg-red-300',
-  ghost: 'hover:bg-gray-100 text-gray-700',
+  primary:
+    'bg-fin-brand hover:bg-fin-brand-hover active:bg-fin-brand-active text-white disabled:bg-fin-disabled-bg disabled:text-fin-disabled-text',
+  secondary:
+    'bg-fin-surface border border-fin-border text-fin-text-primary hover:bg-fin-surface-2',
+  danger:
+    'bg-fin-negative hover:bg-fin-negative-hover active:bg-fin-negative-active text-white disabled:bg-fin-disabled-bg disabled:text-fin-disabled-text',
+  ghost:
+    'hover:bg-fin-ghost-hover active:bg-fin-ghost-active text-fin-brand',
 }
 
 const sizes: Record<Size, string> = {
@@ -27,7 +31,7 @@ export default function Button({ variant = 'primary', size = 'md', loading, chil
     <button
       {...rest}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:shadow-fin-focus disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
     >
       {loading && (
         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">

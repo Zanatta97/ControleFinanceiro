@@ -19,7 +19,7 @@ function isIconifyName(value: string) {
   return value.includes(':') && !value.startsWith('http')
 }
 
-export default function IconPicker({ value, onChange, previewColor = '#22c55e' }: IconPickerProps) {
+export default function IconPicker({ value, onChange, previewColor = 'var(--fin-brand)' }: IconPickerProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [icons, setIcons] = useState<string[]>(DEFAULT_ICONS)
@@ -76,13 +76,13 @@ export default function IconPicker({ value, onChange, previewColor = '#22c55e' }
 
   return (
     <div ref={containerRef} className="relative">
-      <label className="text-sm font-medium text-gray-700 mb-1 block">Ícone (opcional)</label>
+      <label className="text-sm font-medium text-fin-text-primary mb-1 block">Ícone (opcional)</label>
 
       {/* Botão de preview / trigger */}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm hover:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+        className="flex items-center gap-3 w-full rounded-lg border border-fin-border bg-fin-surface px-3 py-2 text-sm hover:border-fin-brand focus:outline-none focus:shadow-fin-focus transition"
       >
         <span
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white"
@@ -96,13 +96,13 @@ export default function IconPicker({ value, onChange, previewColor = '#22c55e' }
             <Icon icon="mdi:image-search-outline" width={18} height={18} color="white" />
           )}
         </span>
-        <span className="flex-1 text-left text-gray-500">
+        <span className="flex-1 text-left text-fin-text-muted">
           {value ? (isIconifyName(value) ? value : 'URL personalizada') : 'Selecionar ícone...'}
         </span>
         {value && (
           <span
             onClick={handleClear}
-            className="text-gray-400 hover:text-red-500 transition cursor-pointer px-1"
+            className="text-fin-text-muted hover:text-fin-negative transition cursor-pointer px-1"
             title="Remover ícone"
           >
             ✕
@@ -112,25 +112,25 @@ export default function IconPicker({ value, onChange, previewColor = '#22c55e' }
 
       {/* Painel do picker */}
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg">
-          <div className="p-3 border-b border-gray-100">
+        <div className="absolute z-50 mt-1 w-full rounded-xl border border-fin-border bg-fin-surface shadow-lg">
+          <div className="p-3 border-b border-fin-border">
             <input
               autoFocus
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Pesquisar ícone (ex: casa, comida, carro...)"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
             />
           </div>
 
           <div className="p-2 h-52 overflow-y-auto">
             {loading ? (
-              <div className="flex h-full items-center justify-center text-sm text-gray-400">
+              <div className="flex h-full items-center justify-center text-sm text-fin-text-muted">
                 Buscando...
               </div>
             ) : icons.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-gray-400">
+              <div className="flex h-full items-center justify-center text-sm text-fin-text-muted">
                 Nenhum ícone encontrado.
               </div>
             ) : (
@@ -141,7 +141,7 @@ export default function IconPicker({ value, onChange, previewColor = '#22c55e' }
                     type="button"
                     title={icon}
                     onClick={() => handleSelect(icon)}
-                    className={`flex items-center justify-center rounded-lg p-2 text-gray-600 hover:bg-green-50 hover:text-green-600 transition ${value === icon ? 'bg-green-100 text-green-600 ring-1 ring-green-400' : ''}`}
+                    className={`flex items-center justify-center rounded-lg p-2 text-fin-text-secondary hover:bg-fin-ghost-hover hover:text-fin-brand transition ${value === icon ? 'bg-fin-brand-soft text-fin-brand ring-1 ring-fin-brand' : ''}`}
                   >
                     <Icon icon={icon} width={22} height={22} />
                   </button>
@@ -150,7 +150,7 @@ export default function IconPicker({ value, onChange, previewColor = '#22c55e' }
             )}
           </div>
 
-          <div className="border-t border-gray-100 px-3 py-2 text-xs text-gray-400 text-right">
+          <div className="border-t border-fin-border px-3 py-2 text-xs text-fin-text-muted text-right">
             Ícones por <span className="font-medium">Iconify</span>
           </div>
         </div>

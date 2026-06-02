@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=DM+Mono:wght@400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,8 +9,84 @@
     box-sizing: border-box;
   }
 
+  :root {
+    --fin-bg: #F7F8FA;
+    --fin-surface: #FFFFFF;
+    --fin-surface-2: #EEF0F5;
+    --fin-border: #DDE1EA;
+    --fin-text-primary: #1A1D2E;
+    --fin-text-secondary: #5A6075;
+    --fin-text-muted: #9399AD;
+    --fin-brand: #2D5BE3;
+    --fin-brand-soft: #EBF0FD;
+    --fin-brand-hover: #2450C8;
+    --fin-brand-active: #1C3FA3;
+    --fin-positive: #1A9E5C;
+    --fin-positive-soft: #E6F7EE;
+    --fin-positive-hover: #158049;
+    --fin-positive-active: #0F6038;
+    --fin-negative: #D93B3B;
+    --fin-negative-soft: #FDEAEA;
+    --fin-negative-hover: #BC2D2D;
+    --fin-negative-active: #9E2323;
+    --fin-warning: #E07D10;
+    --fin-warning-soft: #FEF3E2;
+    --fin-warning-hover: #C46A09;
+    --fin-warning-active: #A85806;
+    --fin-invest: #7A5AF8;
+    --fin-invest-soft: #F0ECFF;
+    --fin-invest-hover: #6344E0;
+    --fin-invest-active: #4E34C2;
+    --fin-ghost-hover: rgba(45, 91, 227, 0.07);
+    --fin-ghost-active: rgba(45, 91, 227, 0.14);
+    --fin-focus-ring: rgba(45, 91, 227, 0.30);
+    --fin-highlight-row: rgba(45, 91, 227, 0.06);
+    --fin-highlight-selected: rgba(45, 91, 227, 0.12);
+    --fin-overlay: rgba(26, 29, 46, 0.45);
+    --fin-disabled-bg: #E8EAF0;
+    --fin-disabled-text: #9399AD;
+  }
+
+  .dark {
+    --fin-bg: #111318;
+    --fin-surface: #1C1F29;
+    --fin-surface-2: #252934;
+    --fin-border: #2E3347;
+    --fin-text-primary: #E8EAF2;
+    --fin-text-secondary: #8E95AD;
+    --fin-text-muted: #555B73;
+    --fin-brand: #5C88F5;
+    --fin-brand-soft: #1A2340;
+    --fin-brand-hover: #4A74E0;
+    --fin-brand-active: #3A62CC;
+    --fin-positive: #2DC97A;
+    --fin-positive-soft: #0D2B1D;
+    --fin-positive-hover: #24AD68;
+    --fin-positive-active: #1C9156;
+    --fin-negative: #F05252;
+    --fin-negative-soft: #2B1010;
+    --fin-negative-hover: #D94444;
+    --fin-negative-active: #C03838;
+    --fin-warning: #F5A623;
+    --fin-warning-soft: #2B1F08;
+    --fin-warning-hover: #D98E18;
+    --fin-warning-active: #BF7A10;
+    --fin-invest: #9B7EFF;
+    --fin-invest-soft: #1D1535;
+    --fin-invest-hover: #8568E8;
+    --fin-invest-active: #7055D0;
+    --fin-ghost-hover: rgba(92, 136, 245, 0.10);
+    --fin-ghost-active: rgba(92, 136, 245, 0.18);
+    --fin-focus-ring: rgba(92, 136, 245, 0.35);
+    --fin-highlight-row: rgba(92, 136, 245, 0.07);
+    --fin-highlight-selected: rgba(92, 136, 245, 0.15);
+    --fin-overlay: rgba(0, 0, 0, 0.55);
+    --fin-disabled-bg: #252934;
+    --fin-disabled-text: #555B73;
+  }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }

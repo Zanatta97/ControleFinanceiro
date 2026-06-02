@@ -25,8 +25,8 @@ const tipoOptions = [
 type SortField = 'descricao' | 'categoriaNome' | 'contaNome' | 'mesCompetencia' | 'data' | 'valor'
 type SortDir = 'asc' | 'desc'
 
-function SortIcon({ field, active, dir }: { field: string; active: boolean; dir: SortDir }) {
-  if (!active) return <span className="ml-1 text-gray-300">↕</span>
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+  if (!active) return <span className="ml-1 text-fin-text-muted">↕</span>
   return <span className="ml-1">{dir === 'asc' ? '↑' : '↓'}</span>
 }
 
@@ -210,11 +210,11 @@ export default function Transacoes() {
   function ThSort({ field, label, className = '' }: { field: SortField; label: string; className?: string }) {
     return (
       <th
-        className={`px-4 py-3 cursor-pointer select-none hover:text-gray-700 ${className}`}
+        className={`px-4 py-3 cursor-pointer select-none hover:text-fin-text-primary ${className}`}
         onClick={() => handleSort(field)}
       >
         {label}
-        <SortIcon field={field} active={sortField === field} dir={sortDir} />
+        <SortIcon active={sortField === field} dir={sortDir} />
       </th>
     )
   }
@@ -224,7 +224,7 @@ export default function Transacoes() {
       {error && <Toast message={error} onClose={() => setError('')} />}
 
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Transações</h1>
+        <h1 className="text-2xl font-bold text-fin-text-primary">Transações</h1>
         <Button onClick={openNew}>+ Nova Transação</Button>
       </div>
 
@@ -233,54 +233,54 @@ export default function Transacoes() {
         <div className="flex gap-1">
           {(['todos', 'Receita', 'Despesa'] as const).map((f) => (
             <button key={f} onClick={() => setFiltroTipo(f)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${filtroTipo === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${filtroTipo === f ? 'bg-fin-brand text-white' : 'bg-fin-surface border border-fin-border text-fin-text-secondary hover:bg-fin-surface-2'}`}>
               {f === 'todos' ? 'Todas' : f === 'Receita' ? '📈 Receitas' : '📉 Despesas'}
             </button>
           ))}
         </div>
         <div className="flex flex-col gap-0.5">
-          <label className="text-xs text-gray-500">Competência</label>
+          <label className="text-xs text-fin-text-muted">Competência</label>
           <input type="month" value={filtroMes} onChange={(e) => setFiltroMes(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
         </div>
         <div className="flex flex-col gap-0.5">
-          <label className="text-xs text-gray-500">Categoria</label>
+          <label className="text-xs text-fin-text-muted">Categoria</label>
           <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand">
             <option value="">Todas</option>
             {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </div>
         <div className="flex flex-col gap-0.5">
-          <label className="text-xs text-gray-500">Conta</label>
+          <label className="text-xs text-fin-text-muted">Conta</label>
           <select value={filtroConta} onChange={(e) => setFiltroConta(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand">
             <option value="">Todas</option>
             {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </div>
         {(filtroMes || filtroCategoria || filtroConta || filtroTipo !== 'todos') && (
           <button onClick={() => { setFiltroTipo('todos'); setFiltroMes(''); setFiltroCategoria(''); setFiltroConta('') }}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-50 transition">
+            className="rounded-lg border border-fin-border px-3 py-1.5 text-sm text-fin-text-muted hover:bg-fin-surface-2 transition">
             Limpar
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Carregando...</div>
+        <div className="text-center py-12 text-fin-text-muted">Carregando...</div>
       ) : filtradas.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-4xl mb-3">💸</p>
-          <p className="text-gray-500">Nenhuma transação encontrada.</p>
+          <p className="text-fin-text-secondary">Nenhuma transação encontrada.</p>
           <Button className="mt-4" onClick={openNew}>Registrar primeira transação</Button>
         </Card>
       ) : (
         <Card className="flex flex-col min-h-0">
           <div className="overflow-auto flex-1" style={{ maxHeight: 'calc(100vh - 320px)' }}>
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-white z-10">
-                <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+              <thead className="sticky top-0 bg-fin-surface z-10">
+                <tr className="border-b border-fin-border text-left text-xs font-medium uppercase tracking-wide text-fin-text-muted">
                   <ThSort field="descricao" label="Descrição" />
                   <ThSort field="categoriaNome" label="Categoria" />
                   <ThSort field="contaNome" label="Conta" />
@@ -290,30 +290,30 @@ export default function Transacoes() {
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-fin-border">
                 {paginados.map((t) => (
-                  <tr key={t.id} className="hover:bg-gray-50 transition">
+                  <tr key={t.id} className="hover:bg-fin-highlight-row transition">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-gray-800">{t.descricao || '—'}</p>
-                      {t.observacao && <p className="text-xs text-gray-400">{t.observacao}</p>}
+                      <p className="font-medium text-fin-text-primary">{t.descricao || '—'}</p>
+                      {t.observacao && <p className="text-xs text-fin-text-muted">{t.observacao}</p>}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{t.categoriaNome || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{t.contaNome || '—'}</td>
+                    <td className="px-4 py-3 text-fin-text-secondary">{t.categoriaNome || '—'}</td>
+                    <td className="px-4 py-3 text-fin-text-secondary">{t.contaNome || '—'}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      <span className="rounded-full bg-fin-brand-soft px-2 py-0.5 text-xs font-medium text-fin-brand">
                         {formatMesCompetencia(t.mesCompetencia)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(t.data)}</td>
+                    <td className="px-4 py-3 text-fin-text-muted">{formatDate(t.data)}</td>
                     <td className="px-4 py-3 text-right">
-                      <Badge color={t.tipoTransacao === TipoTransacao.Receita ? '#16a34a' : '#dc2626'}>
-                        {t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}{formatCurrency(t.valor)}
+                      <Badge color={t.tipoTransacao === TipoTransacao.Receita ? 'var(--fin-positive)' : 'var(--fin-negative)'}>
+                        {`${t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}${formatCurrency(t.valor)}`}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1 justify-end">
-                        <button onClick={() => openEdit(t)} className="rounded p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600">✏️</button>
-                        <button onClick={() => handleDelete(t.id)} className="rounded p-1 hover:bg-red-50 text-gray-400 hover:text-red-600">🗑️</button>
+                        <button onClick={() => openEdit(t)} className="rounded p-1 hover:bg-fin-surface-2 text-fin-text-muted hover:text-fin-text-primary">✏️</button>
+                        <button onClick={() => handleDelete(t.id)} className="rounded p-1 hover:bg-fin-negative-soft text-fin-text-muted hover:text-fin-negative">🗑️</button>
                       </div>
                     </td>
                   </tr>
@@ -342,20 +342,20 @@ export default function Transacoes() {
             onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))} />
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Mês de competência</label>
+            <label className="text-sm font-medium text-fin-text-primary">Mês de competência</label>
             <input type="month" value={mesInput} onChange={(e) => handleMesChange(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
-            <p className="text-xs text-gray-400">Mês ao qual esta transação será atribuída financeiramente.</p>
+              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-2 text-sm shadow-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
+            <p className="text-xs text-fin-text-muted">Mês ao qual esta transação será atribuída financeiramente.</p>
           </div>
 
           {!editing && (
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Número de parcelas</label>
+              <label className="text-sm font-medium text-fin-text-primary">Número de parcelas</label>
               <input type="number" min={1} value={parcelas}
                 onChange={(e) => setForm((f) => ({ ...f, parcelas: Math.max(1, parseInt(e.target.value) || 1) }))}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-2 text-sm shadow-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
               {parcelas > 1 && (
-                <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+                <div className="rounded-lg bg-fin-brand-soft border border-fin-brand px-3 py-2 text-xs text-fin-brand">
                   Serão criadas <strong>{parcelas} transações</strong>: {previewParcelas(mesInput, parcelas)}
                 </div>
               )}

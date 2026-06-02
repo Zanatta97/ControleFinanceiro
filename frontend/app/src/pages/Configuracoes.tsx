@@ -162,50 +162,50 @@ export default function Configuracoes() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+      <h1 className="text-2xl font-bold text-fin-text-primary">Configurações</h1>
 
       {/* Perfil */}
       <Card>
-        <div className="border-b px-6 py-4">
-          <h2 className="font-semibold text-gray-800">Perfil</h2>
+        <div className="border-b border-fin-border px-6 py-4">
+          <h2 className="font-semibold text-fin-text-primary">Perfil</h2>
         </div>
         <div className="px-6 py-5 flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-700 text-xl font-bold">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-fin-brand-soft text-fin-brand text-xl font-bold">
             {nome?.[0]?.toUpperCase() ?? '?'}
           </div>
           <div>
-            <p className="font-semibold text-gray-800">{nome ?? 'Usuário'}</p>
-            <p className="text-sm text-gray-500">{email ?? ''}</p>
+            <p className="font-semibold text-fin-text-primary">{nome ?? 'Usuário'}</p>
+            <p className="text-sm text-fin-text-secondary">{email ?? ''}</p>
           </div>
         </div>
       </Card>
 
       {/* Logging */}
       <Card>
-        <div className="border-b px-6 py-4">
-          <h2 className="font-semibold text-gray-800">Log Detalhado de Requisições</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Quando ativo, todas as requisições com corpo são registradas no banco.</p>
+        <div className="border-b border-fin-border px-6 py-4">
+          <h2 className="font-semibold text-fin-text-primary">Log Detalhado de Requisições</h2>
+          <p className="text-xs text-fin-text-muted mt-0.5">Quando ativo, todas as requisições com corpo são registradas no banco.</p>
         </div>
         <div className="px-6 py-5 flex items-center justify-between">
           <div>
             {loadingLog ? (
-              <p className="text-sm text-gray-400">Verificando status...</p>
+              <p className="text-sm text-fin-text-muted">Verificando status...</p>
             ) : (
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-fin-text-primary">
                 Status atual:{' '}
-                <span className={`font-semibold ${logAtivo ? 'text-green-600' : 'text-gray-500'}`}>
+                <span className={`font-semibold ${logAtivo ? 'text-fin-positive' : 'text-fin-text-muted'}`}>
                   {logAtivo ? '🟢 Ativo' : '⚫ Inativo'}
                 </span>
               </p>
             )}
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-fin-text-muted mt-1">
               {logAtivo ? 'Todas as requisições estão sendo logadas (incluindo bodies).' : 'Apenas erros 4xx/5xx são registrados.'}
             </p>
           </div>
           <button
             onClick={toggleLog}
             disabled={togglingLog || loadingLog}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 disabled:opacity-50 ${logAtivo ? 'bg-green-600' : 'bg-gray-300'}`}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:shadow-fin-focus disabled:opacity-50 ${logAtivo ? 'bg-fin-brand' : 'bg-fin-surface-2'}`}
           >
             <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${logAtivo ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
@@ -214,23 +214,23 @@ export default function Configuracoes() {
 
       {/* Ambientes */}
       <Card>
-        <div className="flex items-center justify-between border-b px-6 py-4">
+        <div className="flex items-center justify-between border-b border-fin-border px-6 py-4">
           <div>
-            <h2 className="font-semibold text-gray-800">Ambientes</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Gerencie seus espaços financeiros.</p>
+            <h2 className="font-semibold text-fin-text-primary">Ambientes</h2>
+            <p className="text-xs text-fin-text-muted mt-0.5">Gerencie seus espaços financeiros.</p>
           </div>
           <Button size="sm" onClick={openNovoAmbiente}>+ Novo</Button>
         </div>
-        <div className="divide-y">
+        <div className="divide-y divide-fin-border">
           {loadingAmbientes ? (
-            <p className="px-6 py-5 text-sm text-gray-400">Carregando...</p>
+            <p className="px-6 py-5 text-sm text-fin-text-muted">Carregando...</p>
           ) : ambientes.length === 0 ? (
-            <p className="px-6 py-5 text-sm text-gray-400 text-center">Nenhum ambiente.</p>
+            <p className="px-6 py-5 text-sm text-fin-text-muted text-center">Nenhum ambiente.</p>
           ) : ambientes.map((a) => (
             <div key={a.id} className="flex items-center justify-between px-6 py-4">
               <div>
-                <p className="font-medium text-gray-800">{a.nome}</p>
-                <p className="text-xs text-gray-500">{a.membros?.length ?? 0} membro(s)</p>
+                <p className="font-medium text-fin-text-primary">{a.nome}</p>
+                <p className="text-xs text-fin-text-muted">{a.membros?.length ?? 0} membro(s)</p>
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="ghost" onClick={() => handleSelecionarAmbiente(a.id)}>Entrar</Button>
@@ -275,18 +275,18 @@ export default function Configuracoes() {
               <Button onClick={handleAdicionarMembro} loading={addingMembro} size="sm">Adicionar</Button>
             </div>
           )}
-          <div className="divide-y max-h-64 overflow-y-auto rounded-lg border">
-            {modalMembros?.membros?.length === 0 && <p className="px-4 py-3 text-sm text-gray-400">Nenhum membro.</p>}
+          <div className="divide-y divide-fin-border max-h-64 overflow-y-auto rounded-lg border border-fin-border">
+            {modalMembros?.membros?.length === 0 && <p className="px-4 py-3 text-sm text-fin-text-muted">Nenhum membro.</p>}
             {modalMembros?.membros?.map((m) => (
               <div key={m.usuario?.id} className="flex items-center justify-between px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-gray-800">{m.usuario?.nome}</p>
-                  <p className="text-xs text-gray-500">{m.usuario?.email}</p>
+                  <p className="text-sm font-medium text-fin-text-primary">{m.usuario?.nome}</p>
+                  <p className="text-xs text-fin-text-secondary">{m.usuario?.email}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 bg-gray-100 rounded px-2 py-0.5">{m.role}</span>
+                  <span className="text-xs text-fin-text-secondary bg-fin-surface-2 rounded px-2 py-0.5">{m.role}</span>
                   {modalMembros && podeGerenciar(modalMembros) && m.usuario?.id && m.usuario.id !== userId && (
-                    <button onClick={() => handleRemoverMembro(modalMembros.id, m.usuario!.id!)} className="text-xs text-red-500 hover:text-red-700">Remover</button>
+                    <button onClick={() => handleRemoverMembro(modalMembros.id, m.usuario!.id!)} className="text-xs text-fin-negative hover:text-fin-negative-hover">Remover</button>
                   )}
                 </div>
               </div>
