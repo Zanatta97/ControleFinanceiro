@@ -65,15 +65,9 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("{id}/membros")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<UsuarioResumoDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetMembros(Guid id)
         {
             var usuarios = await _service.GetAllByAmbienteAsync(id);
-
-            if (!usuarios.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<UsuarioResumoDTO>>.ErrorResponse("Nenhum membro encontrado.", StatusCodes.Status404NotFound));
-
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<UsuarioResumoDTO>>.SuccessResponse(usuarios.Select(u => u.ToResumoDTO()!)));
         }

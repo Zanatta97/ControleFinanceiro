@@ -25,6 +25,8 @@ namespace ControleFinanceiroAPI.Repositories
             return await _context.AmbienteMembros
                 .Where(m => m.UsuarioId == usuarioId)
                 .Include(m => m.Ambiente)
+                    .ThenInclude(a => a!.Membros)
+                        .ThenInclude(m => m.Usuario)
                 .Select(m => m.Ambiente!)
                 .ToListAsync();
         }

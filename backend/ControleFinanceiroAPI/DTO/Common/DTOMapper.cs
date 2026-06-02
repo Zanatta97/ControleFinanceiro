@@ -38,7 +38,8 @@ namespace ControleFinanceiroAPI.DTO.Common
             {
                 Id = entity.Id,
                 Nome = entity.Nome,
-                DataCriacao = entity.DataCriacao
+                DataCriacao = entity.DataCriacao,
+                Membros = entity.Membros?.Select(m => m.ToResponseDTO()!).ToList() ?? []
             };
         }
 
