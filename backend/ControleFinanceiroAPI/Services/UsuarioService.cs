@@ -157,6 +157,9 @@ namespace ControleFinanceiroAPI.Services
                         StatusCodes.Status500InternalServerError);
             }
 
+            if (await _roleManager.RoleExistsAsync("User"))
+                await _userManager.AddToRoleAsync(usuario, "User");
+
             return ApiResponseDTO<object>.SuccessResponse("Usuário criado com sucesso");
 
         }
