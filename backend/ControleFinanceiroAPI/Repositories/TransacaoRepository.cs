@@ -48,6 +48,7 @@ namespace ControleFinanceiroAPI.Repositories
         {
             return await _context.Transacoes
                 .AsNoTracking()
+                .Include(t => t.Categoria)
                 .Where(t => t.AmbienteId == ambienteId
                          && t.ContaId == contaId
                          && t.MesCompetencia.Month == mes

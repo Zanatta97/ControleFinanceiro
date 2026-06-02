@@ -18,10 +18,7 @@ namespace ControleFinanceiroAPI.Services
 
         public async Task<ResumoFinanceiroResponseDTO> GetResumoAsync(Guid ambienteId, int mes, int ano)
         {
-            var inicio = new DateTime(ano, mes, 1);
-            var fim = inicio.AddMonths(1).AddTicks(-1);
-
-            var transacoes = await _repository.TransacaoRepository.GetByPeriodoAsync(ambienteId, inicio, fim);
+            var transacoes = await _repository.TransacaoRepository.GetByMesCompetenciaAsync(ambienteId, mes, ano);
 
             var receitas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
             var despesas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
@@ -38,10 +35,7 @@ namespace ControleFinanceiroAPI.Services
 
         public async Task<IEnumerable<GastoPorCategoriaResponseDTO>> GetGastoPorCategoriaAsync(Guid ambienteId, int mes, int ano)
         {
-            var inicio = new DateTime(ano, mes, 1);
-            var fim = inicio.AddMonths(1).AddTicks(-1);
-
-            var transacoes = await _repository.TransacaoRepository.GetByPeriodoAsync(ambienteId, inicio, fim);
+            var transacoes = await _repository.TransacaoRepository.GetByMesCompetenciaAsync(ambienteId, mes, ano);
 
             var despesas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).ToList();
             var totalGeral = despesas.Sum(t => t.Valor);
@@ -71,7 +65,7 @@ namespace ControleFinanceiroAPI.Services
 
             var meses = Enumerable.Range(1, 12).Select(mes =>
             {
-                var doMes = transacoes.Where(t => t.Data.Month == mes).ToList();
+                var doMes = transacoes.Where(t => t.MesCompetencia.Month == mes && t.MesCompetencia.Year == ano).ToList();
                 var receitas = doMes.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
                 var despesas = doMes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
 
