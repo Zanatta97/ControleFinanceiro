@@ -1,13 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { selecionarAmbiente, listarDoUsuario, criar } from '../api/ambiente'
+import { selecionarAmbiente, listarDoUsuario, criar, buscarPorId } from '../api/ambiente'
 import type { AmbienteResponse } from '../types/api'
 
 export default function Navbar() {
-  const { nome, email, nomeAmbiente, logout, setAmbienteToken } = useAuth()
+  const { nome, email, nomeAmbiente, ambienteId, logout, setAmbienteToken } = useAuth()
   const navigate = useNavigate()
   const [ambientes, setAmbientes] = useState<AmbienteResponse[]>([])
+
+  useEffect(() => {
+    if (ambienteId && !nomeAmbiente) {
+      buscarPorId(ambienteId).then(({ data }) => {
+        if (data.dados?.nome) {
+          localStorage.setItem('nomeAmbiente', data.dados.nome)
+          // força re-render lendo do localStorage via setAmbienteToken
+          const token = localStorage.getItem('accessToken')!
+          const refresh = localStorage.getItem('refreshToken')!
+          setAmbienteToken(token, refresh, data.dados.nome)
+        }
+      }).catch(() => {})
+    }
+  }, [ambienteId, nomeAmbiente, setAmbienteToken])
   const [showDropdown, setShowDropdown] = useState(false)
   const [showAmbientes, setShowAmbientes] = useState(false)
   const [novoNome, setNovoNome] = useState('')
