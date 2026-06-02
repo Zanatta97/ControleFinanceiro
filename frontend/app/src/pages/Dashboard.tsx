@@ -24,25 +24,6 @@ function labelMes(mes: number, ano: number) {
     .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 }
 
-function currentYM() {
-  const d = new Date()
-  return { mes: d.getMonth() + 1, ano: d.getFullYear() }
-}
-
-function ymToInput(mes: number, ano: number) {
-  return `${ano}-${String(mes).padStart(2, '0')}`
-}
-
-function inputToYM(val: string) {
-  const [ano, mes] = val.split('-').map(Number)
-  return { mes, ano }
-}
-
-function labelMes(mes: number, ano: number) {
-  return new Date(ano, mes - 1, 1)
-    .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-}
-
 export default function Dashboard() {
   const init = currentYM()
   const [mes, setMes] = useState(init.mes)
