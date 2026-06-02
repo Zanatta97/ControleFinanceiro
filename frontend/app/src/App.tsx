@@ -11,6 +11,7 @@ import Categorias from './pages/Categorias'
 import Transacoes from './pages/Transacoes'
 import Orcamentos from './pages/Orcamentos'
 import Configuracoes from './pages/Configuracoes'
+import Admin from './pages/Admin'
 
 const qc = new QueryClient()
 
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="/transacoes" element={<Transacoes />} />
         <Route path="/orcamentos" element={<Orcamentos />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
+        <Route path="/admin" element={<Admin />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

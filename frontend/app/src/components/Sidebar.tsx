@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const links = [
   { to: '/', label: 'Dashboard', icon: '📊' },
@@ -10,6 +11,8 @@ const links = [
 ]
 
 export default function Sidebar() {
+  const { isAdmin } = useAuth()
+
   return (
     <aside className="flex h-full w-56 flex-col border-r border-gray-200 bg-white">
       <div className="flex h-16 items-center gap-2 border-b px-5">
@@ -34,6 +37,25 @@ export default function Sidebar() {
             {l.label}
           </NavLink>
         ))}
+
+        {isAdmin && (
+          <>
+            <div className="my-2 border-t border-gray-100" />
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-purple-50 text-purple-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`
+              }
+            >
+              <span className="text-base">🛡️</span>
+              Administração
+            </NavLink>
+          </>
+        )}
       </nav>
     </aside>
   )
