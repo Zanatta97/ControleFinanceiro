@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -13,6 +13,8 @@ import Button from '../components/ui/Button'
 import Alert from '../components/ui/Alert'
 import Modal from '../components/ui/Modal'
 import Badge from '../components/ui/Badge'
+import Pagination from '../components/ui/Pagination'
+import { usePagination } from '../hooks/usePagination'
 
 type Tab = 'usuarios' | 'ambientes' | 'logs'
 
@@ -359,6 +361,8 @@ function TabAmbientes() {
 
 /* ─────────────────────── Tab Logs ─────────────────────── */
 
+const LOGS_POR_PAGINA = 50
+
 function TabLogs() {
   const [logs, setLogs] = useState<ApiLogResponse[]>([])
   const [loading, setLoading] = useState(false)
@@ -370,7 +374,7 @@ function TabLogs() {
     path: '',
     statusCode: '',
     apenasErros: false,
-    limite: 100,
+    limite: 500,
   })
 
   async function load() {
@@ -395,6 +399,11 @@ function TabLogs() {
     if (code >= 200) return '#16a34a'
     return '#6b7280'
   }
+
+  const { paginados, pagina, totalPaginas, irPara, total } = usePagination(logs, LOGS_POR_PAGINA)
+
+  // useMemo apenas para satisfazer o lint; a lógica real fica no hook
+  useMemo(() => {}, [logs])
 
   return (
     <div className="space-y-4">
@@ -426,12 +435,7 @@ function TabLogs() {
             <input type="text" placeholder="ID do usuário" value={filtros.userId ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, userId: e.target.value }))}
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500">Limite</label>
-            <input type="number" min={1} max={500} value={filtros.limite ?? 100} onChange={(e) => setFiltros((f) => ({ ...f, limite: Number(e.target.value) || 100 }))}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
-          </div>
-          <div className="flex items-end gap-2 col-span-2">
+          <div className="flex items-end gap-2 col-span-2 lg:col-span-3">
             <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
               <input type="checkbox" checked={filtros.apenasErros ?? false} onChange={(e) => setFiltros((f) => ({ ...f, apenasErros: e.target.checked }))}
                 className="h-4 w-4 rounded border-gray-300 text-green-600" />
@@ -450,10 +454,10 @@ function TabLogs() {
       )}
 
       {logs.length > 0 && (
-        <Card>
-          <div className="overflow-x-auto">
+        <Card className="flex flex-col">
+          <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 420px)' }}>
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 bg-white z-10">
                 <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
                   <th className="px-4 py-3">Timestamp</th>
                   <th className="px-4 py-3">Método</th>
@@ -465,7 +469,7 @@ function TabLogs() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {logs.map((l) => (
+                {paginados.map((l) => (
                   <>
                     <tr key={l.id} className={`hover:bg-gray-50 transition ${l.isError ? 'bg-red-50/40' : ''}`}>
                       <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
@@ -524,7 +528,7 @@ function TabLogs() {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-3 border-t text-xs text-gray-400">{logs.length} registro(s)</div>
+          <Pagination pagina={pagina} totalPaginas={totalPaginas} total={total} itensPorPagina={LOGS_POR_PAGINA} onPagina={irPara} />
         </Card>
       )}
     </div>

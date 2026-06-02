@@ -92,6 +92,8 @@ namespace ControleFinanceiroAPI.Repositories
         {
             return await _context.Transacoes
                 .AsNoTracking()
+                .Include(t => t.Categoria)
+                .Include(t => t.Conta)
                 .Where(c => c.AmbienteId == ambienteId)
                 .ToListAsync();
         }
