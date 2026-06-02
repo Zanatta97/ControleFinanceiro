@@ -14,10 +14,10 @@ export default function Sidebar() {
   const { isAdmin } = useAuth()
 
   return (
-    <aside className="flex h-full w-56 flex-col border-r border-gray-200 bg-white">
-      <div className="flex h-16 items-center gap-2 border-b px-5">
+    <aside className="flex h-full w-56 flex-col border-r border-fin-border bg-fin-surface">
+      <div className="flex h-16 items-center gap-2 border-b border-fin-border px-5">
         <span className="text-xl">💰</span>
-        <span className="font-bold text-gray-800 text-sm">Controle Financeiro</span>
+        <span className="font-bold text-fin-text-primary text-sm">Controle Financeiro</span>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {links.map((l) => (
@@ -28,8 +28,8 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-green-50 text-green-700'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-fin-brand-soft text-fin-brand'
+                  : 'text-fin-text-secondary hover:bg-fin-ghost-hover hover:text-fin-brand'
               }`
             }
           >
@@ -40,14 +40,14 @@ export default function Sidebar() {
 
         {isAdmin && (
           <>
-            <div className="my-2 border-t border-gray-100" />
+            <div className="my-2 border-t border-fin-border" />
             <NavLink
               to="/admin"
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-purple-50 text-purple-700'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-fin-invest-soft text-fin-invest'
+                    : 'text-fin-text-secondary hover:bg-fin-ghost-hover hover:text-fin-brand'
                 }`
               }
             >

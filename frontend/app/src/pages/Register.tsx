@@ -41,15 +41,15 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-fin-bg p-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <span className="text-5xl">💰</span>
-          <h1 className="mt-3 text-2xl font-bold text-gray-900">Criar Conta</h1>
-          <p className="mt-1 text-sm text-gray-500">Preencha os dados abaixo</p>
+          <h1 className="mt-3 text-2xl font-bold text-fin-text-primary">Criar Conta</h1>
+          <p className="mt-1 text-sm text-fin-text-secondary">Preencha os dados abaixo</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="rounded-2xl border border-fin-border bg-fin-surface p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && <Alert type="error" message={error} />}
             {success && <Alert type="success" message={success} />}
@@ -61,9 +61,9 @@ export default function Register() {
               Criar Conta
             </Button>
           </form>
-          <p className="mt-5 text-center text-sm text-gray-500">
+          <p className="mt-5 text-center text-sm text-fin-text-secondary">
             Já tem conta?{' '}
-            <Link to="/login" className="font-medium text-green-600 hover:underline">
+            <Link to="/login" className="font-medium text-fin-brand hover:underline">
               Entrar
             </Link>
           </p>

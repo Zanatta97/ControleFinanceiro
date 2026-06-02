@@ -114,7 +114,7 @@ export default function Orcamentos() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Orçamentos</h1>
+        <h1 className="text-2xl font-bold text-fin-text-primary">Orçamentos</h1>
         <Button onClick={openNew}>+ Novo Orçamento</Button>
       </div>
 
@@ -123,7 +123,7 @@ export default function Orcamentos() {
           <button
             key={f}
             onClick={() => setFiltro(f)}
-            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${filtro === f ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${filtro === f ? 'bg-fin-brand text-white' : 'bg-fin-surface border border-fin-border text-fin-text-secondary hover:bg-fin-surface-2'}`}
           >
             {f === 'ativos' ? 'Ativos' : 'Todos'}
           </button>
@@ -131,11 +131,11 @@ export default function Orcamentos() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Carregando...</div>
+        <div className="text-center py-12 text-fin-text-muted">Carregando...</div>
       ) : filtrados.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-4xl mb-3">📋</p>
-          <p className="text-gray-500">Nenhum orçamento encontrado.</p>
+          <p className="text-fin-text-secondary">Nenhum orçamento encontrado.</p>
           <Button className="mt-4" onClick={openNew}>Criar primeiro orçamento</Button>
         </Card>
       ) : (
@@ -143,38 +143,38 @@ export default function Orcamentos() {
           {filtrados.map((o) => {
             const st = getStatus(o.id)
             const pct = st ? Math.min(st.percentual, 100) : 0
-            const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f97316' : '#22c55e'
+            const color = pct >= 90 ? 'var(--fin-negative)' : pct >= 70 ? 'var(--fin-warning)' : 'var(--fin-positive)'
             return (
               <Card key={o.id} className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="font-semibold text-gray-800">{o.nome}</p>
-                    <p className="text-xs text-gray-500">{st?.nomeCategoria ?? categorias.find(c => c.id === o.categoriaId)?.nome ?? '-'}</p>
+                    <p className="font-semibold text-fin-text-primary">{o.nome}</p>
+                    <p className="text-xs text-fin-text-muted">{st?.nomeCategoria ?? categorias.find(c => c.id === o.categoriaId)?.nome ?? '-'}</p>
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={() => openEdit(o)} className="rounded p-1 hover:bg-gray-100 text-gray-400">✏️</button>
-                    <button onClick={() => handleDelete(o.id)} className="rounded p-1 hover:bg-red-50 text-gray-400 hover:text-red-600">🗑️</button>
+                    <button onClick={() => openEdit(o)} className="rounded p-1 hover:bg-fin-surface-2 text-fin-text-muted">✏️</button>
+                    <button onClick={() => handleDelete(o.id)} className="rounded p-1 hover:bg-fin-negative-soft text-fin-text-muted hover:text-fin-negative">🗑️</button>
                   </div>
                 </div>
 
                 {st && (
                   <>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">{formatCurrency(st.valorGasto)}</span>
-                      <span className="text-gray-400">de {formatCurrency(st.valorLimite)}</span>
+                      <span className="text-fin-text-secondary">{formatCurrency(st.valorGasto)}</span>
+                      <span className="text-fin-text-muted">de {formatCurrency(st.valorLimite)}</span>
                     </div>
-                    <div className="h-2 rounded-full bg-gray-100">
+                    <div className="h-2 rounded-full bg-fin-surface-2">
                       <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
                     </div>
-                    <p className="mt-1 text-xs text-gray-400">{pct.toFixed(1)}% utilizado</p>
+                    <p className="mt-1 text-xs text-fin-text-muted">{pct.toFixed(1)}% utilizado</p>
                   </>
                 )}
                 {!st && (
-                  <p className="text-sm text-gray-500">Limite: {formatCurrency(o.valorLimite)}</p>
+                  <p className="text-sm text-fin-text-secondary">Limite: {formatCurrency(o.valorLimite)}</p>
                 )}
 
-                <p className="mt-2 text-xs text-gray-400">Vence em {formatDate(o.dataLimite)}</p>
-                <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${o.statusOrcamento === StatusOrcamento.Ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                <p className="mt-2 text-xs text-fin-text-muted">Vence em {formatDate(o.dataLimite)}</p>
+                <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${o.statusOrcamento === StatusOrcamento.Ativo ? 'bg-fin-positive-soft text-fin-positive' : 'bg-fin-surface-2 text-fin-text-muted'}`}>
                   {o.statusOrcamento === StatusOrcamento.Ativo ? 'Ativo' : 'Encerrado'}
                 </span>
               </Card>

@@ -13,7 +13,7 @@ function isIconifyName(value: string) {
   return !!value && value.includes(':') && !value.startsWith('http')
 }
 
-const emptyForm: CategoriaRequest = { nome: '', cor: '#22c55e', urlIcone: '' }
+const emptyForm: CategoriaRequest = { nome: '', cor: '#2D5BE3', urlIcone: '' }
 
 export default function Categorias() {
   const [categorias, setCategorias] = useState<CategoriaResponse[]>([])
@@ -45,7 +45,7 @@ export default function Categorias() {
 
   function openEdit(c: CategoriaResponse) {
     setEditing(c)
-    setForm({ nome: c.nome ?? '', cor: c.cor ?? '#22c55e', urlIcone: c.urlIcone ?? '' })
+    setForm({ nome: c.nome ?? '', cor: c.cor ?? '#2D5BE3', urlIcone: c.urlIcone ?? '' })
     setError('')
     setModal(true)
   }
@@ -79,23 +79,23 @@ export default function Categorias() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Categorias</h1>
+        <h1 className="text-2xl font-bold text-fin-text-primary">Categorias</h1>
         <Button onClick={openNew}>+ Nova Categoria</Button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Carregando...</div>
+        <div className="text-center py-12 text-fin-text-muted">Carregando...</div>
       ) : categorias.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-4xl mb-3">🏷️</p>
-          <p className="text-gray-500">Nenhuma categoria cadastrada.</p>
+          <p className="text-fin-text-secondary">Nenhuma categoria cadastrada.</p>
           <Button className="mt-4" onClick={openNew}>Criar primeira categoria</Button>
         </Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {categorias.map((c) => (
             <Card key={c.id} className="flex items-center gap-4 p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white font-bold" style={{ backgroundColor: c.cor ?? '#9ca3af' }}>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white font-bold" style={{ backgroundColor: c.cor ?? 'var(--fin-text-muted)' }}>
                 {c.urlIcone && isIconifyName(c.urlIcone)
                   ? <Icon icon={c.urlIcone} width={20} height={20} color="white" />
                   : c.urlIcone
@@ -103,12 +103,12 @@ export default function Categorias() {
                   : c.nome?.[0]?.toUpperCase()}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-800 truncate">{c.nome}</p>
-                <p className="text-xs text-gray-400 font-mono">{c.cor}</p>
+                <p className="font-medium text-fin-text-primary truncate">{c.nome}</p>
+                <p className="text-xs text-fin-text-muted font-mono">{c.cor}</p>
               </div>
               <div className="flex gap-1 shrink-0">
-                <button onClick={() => openEdit(c)} className="rounded p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600">✏️</button>
-                <button onClick={() => handleDelete(c.id)} className="rounded p-1 hover:bg-red-50 text-gray-400 hover:text-red-600">🗑️</button>
+                <button onClick={() => openEdit(c)} className="rounded p-1 hover:bg-fin-surface-2 text-fin-text-muted hover:text-fin-text-primary">✏️</button>
+                <button onClick={() => handleDelete(c.id)} className="rounded p-1 hover:bg-fin-negative-soft text-fin-text-muted hover:text-fin-negative">🗑️</button>
               </div>
             </Card>
           ))}
@@ -120,10 +120,10 @@ export default function Categorias() {
           {error && <Alert type="error" message={error} />}
           <Input label="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} placeholder="Ex: Alimentação, Transporte..." required />
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Cor</label>
+            <label className="text-sm font-medium text-fin-text-primary">Cor</label>
             <div className="flex items-center gap-3">
-              <input type="color" value={form.cor} onChange={(e) => setForm((f) => ({ ...f, cor: e.target.value }))} className="h-10 w-16 cursor-pointer rounded border border-gray-300 p-0.5" />
-              <span className="text-sm font-mono text-gray-500">{form.cor}</span>
+              <input type="color" value={form.cor} onChange={(e) => setForm((f) => ({ ...f, cor: e.target.value }))} className="h-10 w-16 cursor-pointer rounded border border-fin-border p-0.5" />
+              <span className="text-sm font-mono text-fin-text-secondary">{form.cor}</span>
             </div>
           </div>
           <IconPicker

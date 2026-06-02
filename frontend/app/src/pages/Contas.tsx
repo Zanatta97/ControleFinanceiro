@@ -99,18 +99,18 @@ export default function Contas() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Contas</h1>
-          <p className="text-sm text-gray-500">Saldo total: <span className="font-semibold text-gray-800">{formatCurrency(saldoTotal)}</span></p>
+          <h1 className="text-2xl font-bold text-fin-text-primary">Contas</h1>
+          <p className="text-sm text-fin-text-secondary">Saldo total: <span className="font-semibold text-fin-text-primary">{formatCurrency(saldoTotal)}</span></p>
         </div>
         <Button onClick={openNew}>+ Nova Conta</Button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Carregando...</div>
+        <div className="text-center py-12 text-fin-text-muted">Carregando...</div>
       ) : contas.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-4xl mb-3">🏦</p>
-          <p className="text-gray-500">Nenhuma conta cadastrada.</p>
+          <p className="text-fin-text-secondary">Nenhuma conta cadastrada.</p>
           <Button className="mt-4" onClick={openNew}>Criar primeira conta</Button>
         </Card>
       ) : (
@@ -121,16 +121,16 @@ export default function Contas() {
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{tipoIcon[c.tipoConta]}</span>
                   <div>
-                    <p className="font-semibold text-gray-800">{c.nome}</p>
-                    <p className="text-xs text-gray-500">{tipoLabel[c.tipoConta]}</p>
+                    <p className="font-semibold text-fin-text-primary">{c.nome}</p>
+                    <p className="text-xs text-fin-text-muted">{tipoLabel[c.tipoConta]}</p>
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => openEdit(c)} className="rounded p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600">✏️</button>
-                  <button onClick={() => handleDelete(c.id)} className="rounded p-1 hover:bg-red-50 text-gray-400 hover:text-red-600">🗑️</button>
+                  <button onClick={() => openEdit(c)} className="rounded p-1 hover:bg-fin-surface-2 text-fin-text-muted hover:text-fin-text-primary">✏️</button>
+                  <button onClick={() => handleDelete(c.id)} className="rounded p-1 hover:bg-fin-negative-soft text-fin-text-muted hover:text-fin-negative">🗑️</button>
                 </div>
               </div>
-              <p className={`mt-4 text-2xl font-bold ${c.saldo >= 0 ? 'text-gray-900' : 'text-red-600'}`}>{formatCurrency(c.saldo)}</p>
+              <p className={`mt-4 text-2xl font-bold ${c.saldo >= 0 ? 'text-fin-text-primary' : 'text-fin-negative'}`}>{formatCurrency(c.saldo)}</p>
             </Card>
           ))}
         </div>

@@ -35,15 +35,15 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-fin-bg p-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <span className="text-5xl">💰</span>
-          <h1 className="mt-3 text-2xl font-bold text-gray-900">Controle Financeiro</h1>
-          <p className="mt-1 text-sm text-gray-500">Entre com sua conta</p>
+          <h1 className="mt-3 text-2xl font-bold text-fin-text-primary">Controle Financeiro</h1>
+          <p className="mt-1 text-sm text-fin-text-secondary">Entre com sua conta</p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="rounded-2xl border border-fin-border bg-fin-surface p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && <Alert type="error" message={error} />}
             <Input
@@ -67,9 +67,9 @@ export default function Login() {
               Entrar
             </Button>
           </form>
-          <p className="mt-5 text-center text-sm text-gray-500">
+          <p className="mt-5 text-center text-sm text-fin-text-secondary">
             Não tem conta?{' '}
-            <Link to="/register" className="font-medium text-green-600 hover:underline">
+            <Link to="/register" className="font-medium text-fin-brand hover:underline">
               Cadastre-se
             </Link>
           </p>

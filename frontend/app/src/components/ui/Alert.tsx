@@ -4,9 +4,9 @@ interface Props {
 }
 
 const styles = {
-  error: 'bg-red-50 border-red-200 text-red-700',
-  success: 'bg-green-50 border-green-200 text-green-700',
-  info: 'bg-blue-50 border-blue-200 text-blue-700',
+  error: 'bg-fin-negative-soft border-fin-negative text-fin-negative',
+  success: 'bg-fin-positive-soft border-fin-positive text-fin-positive',
+  info: 'bg-fin-brand-soft border-fin-brand text-fin-brand',
 }
 
 export default function Alert({ type, message }: Props) {

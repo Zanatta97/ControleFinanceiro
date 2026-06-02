@@ -32,21 +32,21 @@ export default function Admin() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Administração</h1>
-          <p className="text-sm text-gray-500">Gestão completa de usuários e ambientes do sistema.</p>
+          <h1 className="text-2xl font-bold text-fin-text-primary">Administração</h1>
+          <p className="text-sm text-fin-text-secondary">Gestão completa de usuários e ambientes do sistema.</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-fin-border">
         {(['usuarios', 'ambientes', 'logs'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-5 py-2.5 text-sm font-medium transition border-b-2 -mb-px ${
               tab === t
-                ? 'border-green-600 text-green-700'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-fin-brand text-fin-brand'
+                : 'border-transparent text-fin-text-secondary hover:text-fin-text-primary'
             }`}
           >
             {t === 'usuarios' ? 'Usuários' : t === 'ambientes' ? 'Ambientes' : 'Logs da API'}
@@ -130,19 +130,19 @@ function TabUsuarios() {
           placeholder="Buscar por nome ou e-mail..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="flex-1 max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="flex-1 max-w-sm rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
         />
-        <span className="text-sm text-gray-500">{filtrados.length} usuário(s)</span>
+        <span className="text-sm text-fin-text-secondary">{filtrados.length} usuário(s)</span>
       </div>
 
       {loading ? (
-        <div className="py-12 text-center text-gray-400">Carregando...</div>
+        <div className="py-12 text-center text-fin-text-muted">Carregando...</div>
       ) : (
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <tr className="border-b border-fin-border text-left text-xs font-medium uppercase tracking-wide text-fin-text-muted">
                   <th className="px-4 py-3">Usuário</th>
                   <th className="px-4 py-3">Roles</th>
                   <th className="px-4 py-3">Cadastro</th>
@@ -150,27 +150,27 @@ function TabUsuarios() {
                   <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-fin-border">
                 {filtrados.map((u) => (
-                  <tr key={u.id} className={`hover:bg-gray-50 transition ${u.bloqueado ? 'opacity-60' : ''}`}>
+                  <tr key={u.id} className={`hover:bg-fin-highlight-row transition ${u.bloqueado ? 'opacity-60' : ''}`}>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-gray-800">{u.nome ?? '—'}</p>
-                      <p className="text-xs text-gray-400">{u.email}</p>
+                      <p className="font-medium text-fin-text-primary">{u.nome ?? '—'}</p>
+                      <p className="text-xs text-fin-text-muted">{u.email}</p>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {u.roles.length === 0
-                          ? <span className="text-xs text-gray-400">Sem role</span>
+                          ? <span className="text-xs text-fin-text-muted">Sem role</span>
                           : u.roles.map((r) => (
-                            <span key={r} className={`rounded-full px-2 py-0.5 text-xs font-medium ${r === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>{r}</span>
+                            <span key={r} className={`rounded-full px-2 py-0.5 text-xs font-medium ${r === 'Admin' ? 'bg-fin-invest-soft text-fin-invest' : 'bg-fin-brand-soft text-fin-brand'}`}>{r}</span>
                           ))}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-fin-text-secondary">
                       {u.dtaCriacao ? new Date(u.dtaCriacao).toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge color={u.bloqueado ? '#dc2626' : '#16a34a'}>
+                      <Badge color={u.bloqueado ? 'var(--fin-negative)' : 'var(--fin-positive)'}>
                         {u.bloqueado ? 'Bloqueado' : 'Ativo'}
                       </Badge>
                     </td>
@@ -179,21 +179,21 @@ function TabUsuarios() {
                         <button
                           onClick={() => openModalRoles(u)}
                           title="Gerenciar roles"
-                          className="rounded px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 transition"
+                          className="rounded px-2 py-1 text-xs text-fin-invest hover:bg-fin-invest-soft transition"
                         >
                           Roles
                         </button>
                         <button
                           onClick={() => handleToggleBloqueio(u)}
                           title={u.bloqueado ? 'Desbloquear' : 'Bloquear'}
-                          className={`rounded px-2 py-1 text-xs transition ${u.bloqueado ? 'text-green-600 hover:bg-green-50' : 'text-orange-600 hover:bg-orange-50'}`}
+                          className={`rounded px-2 py-1 text-xs transition ${u.bloqueado ? 'text-fin-positive hover:bg-fin-positive-soft' : 'text-fin-warning hover:bg-fin-warning-soft'}`}
                         >
                           {u.bloqueado ? 'Desbloquear' : 'Bloquear'}
                         </button>
                         <button
                           onClick={() => handleDelete(u)}
                           title="Excluir usuário"
-                          className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 transition"
+                          className="rounded px-2 py-1 text-xs text-fin-negative hover:bg-fin-negative-soft transition"
                         >
                           Excluir
                         </button>
@@ -202,7 +202,7 @@ function TabUsuarios() {
                   </tr>
                 ))}
                 {filtrados.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Nenhum usuário encontrado.</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-fin-text-muted">Nenhum usuário encontrado.</td></tr>
                 )}
               </tbody>
             </table>
@@ -214,10 +214,10 @@ function TabUsuarios() {
       <Modal open={!!modalRoles} onClose={() => setModalRoles(null)} title={`Roles — ${modalRoles?.nome ?? modalRoles?.email}`} size="sm">
         <div className="space-y-4">
           {error && <Alert type="error" message={error} />}
-          <p className="text-sm text-gray-500">Selecione as roles do usuário:</p>
+          <p className="text-sm text-fin-text-secondary">Selecione as roles do usuário:</p>
           <div className="space-y-2">
             {roles.map((r) => (
-              <label key={r} className="flex items-center gap-3 cursor-pointer rounded-lg border px-4 py-3 hover:bg-gray-50 transition">
+              <label key={r} className="flex items-center gap-3 cursor-pointer rounded-lg border border-fin-border px-4 py-3 hover:bg-fin-surface-2 transition">
                 <input
                   type="checkbox"
                   checked={rolesForm.includes(r)}
@@ -225,9 +225,9 @@ function TabUsuarios() {
                     if (e.target.checked) setRolesForm((prev) => [...prev, r])
                     else setRolesForm((prev) => prev.filter((x) => x !== r))
                   }}
-                  className="h-4 w-4 rounded border-gray-300 text-green-600"
+                  className="h-4 w-4 rounded border-fin-border accent-fin-brand"
                 />
-                <span className={`text-sm font-medium ${r === 'Admin' ? 'text-purple-700' : 'text-blue-700'}`}>{r}</span>
+                <span className={`text-sm font-medium ${r === 'Admin' ? 'text-fin-invest' : 'text-fin-brand'}`}>{r}</span>
               </label>
             ))}
           </div>
@@ -283,31 +283,31 @@ function TabAmbientes() {
           placeholder="Buscar por nome..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="flex-1 max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="flex-1 max-w-sm rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
         />
-        <span className="text-sm text-gray-500">{filtrados.length} ambiente(s)</span>
+        <span className="text-sm text-fin-text-secondary">{filtrados.length} ambiente(s)</span>
       </div>
 
       {loading ? (
-        <div className="py-12 text-center text-gray-400">Carregando...</div>
+        <div className="py-12 text-center text-fin-text-muted">Carregando...</div>
       ) : (
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                <tr className="border-b border-fin-border text-left text-xs font-medium uppercase tracking-wide text-fin-text-muted">
                   <th className="px-4 py-3">Nome</th>
                   <th className="px-4 py-3">Membros</th>
                   <th className="px-4 py-3">Criado em</th>
                   <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-fin-border">
                 {filtrados.map((a) => (
-                  <tr key={a.id} className="hover:bg-gray-50 transition">
-                    <td className="px-4 py-3 font-medium text-gray-800">{a.nome}</td>
-                    <td className="px-4 py-3 text-gray-500">{a.membros?.length ?? 0}</td>
-                    <td className="px-4 py-3 text-gray-500">
+                  <tr key={a.id} className="hover:bg-fin-highlight-row transition">
+                    <td className="px-4 py-3 font-medium text-fin-text-primary">{a.nome}</td>
+                    <td className="px-4 py-3 text-fin-text-secondary">{a.membros?.length ?? 0}</td>
+                    <td className="px-4 py-3 text-fin-text-secondary">
                       {a.dataCriacao ? new Date(a.dataCriacao).toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="px-4 py-3">
@@ -315,14 +315,14 @@ function TabAmbientes() {
                         {(a.membros?.length ?? 0) > 0 && (
                           <button
                             onClick={() => setModalMembros(a)}
-                            className="rounded px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-50 transition"
+                            className="rounded px-2 py-1 text-xs text-fin-invest hover:bg-fin-invest-soft transition"
                           >
                             Membros
                           </button>
                         )}
                         <button
                           onClick={() => handleDelete(a)}
-                          className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 transition"
+                          className="rounded px-2 py-1 text-xs text-fin-negative hover:bg-fin-negative-soft transition"
                         >
                           Excluir
                         </button>
@@ -331,7 +331,7 @@ function TabAmbientes() {
                   </tr>
                 ))}
                 {filtrados.length === 0 && (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">Nenhum ambiente encontrado.</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-fin-text-muted">Nenhum ambiente encontrado.</td></tr>
                 )}
               </tbody>
             </table>
@@ -341,14 +341,20 @@ function TabAmbientes() {
 
       {/* Modal membros */}
       <Modal open={!!modalMembros} onClose={() => setModalMembros(null)} title={`Membros — ${modalMembros?.nome}`} size="md">
-        <div className="divide-y rounded-lg border max-h-80 overflow-y-auto">
+        <div className="divide-y divide-fin-border rounded-lg border border-fin-border max-h-80 overflow-y-auto">
           {modalMembros?.membros?.map((m) => (
             <div key={m.usuario?.id} className="flex items-center justify-between px-4 py-3">
               <div>
-                <p className="text-sm font-medium text-gray-800">{m.usuario?.nome}</p>
-                <p className="text-xs text-gray-500">{m.usuario?.email}</p>
+                <p className="text-sm font-medium text-fin-text-primary">{m.usuario?.nome}</p>
+                <p className="text-xs text-fin-text-secondary">{m.usuario?.email}</p>
               </div>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.role === 'Dono' ? 'bg-yellow-100 text-yellow-700' : m.role === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                m.role === 'Dono'
+                  ? 'bg-fin-warning-soft text-fin-warning'
+                  : m.role === 'Admin'
+                  ? 'bg-fin-invest-soft text-fin-invest'
+                  : 'bg-fin-surface-2 text-fin-text-muted'
+              }`}>
                 {m.role}
               </span>
             </div>
@@ -394,10 +400,10 @@ function TabLogs() {
   }
 
   function statusColor(code: number) {
-    if (code >= 500) return '#dc2626'
-    if (code >= 400) return '#f97316'
-    if (code >= 200) return '#16a34a'
-    return '#6b7280'
+    if (code >= 500) return 'var(--fin-negative)'
+    if (code >= 400) return 'var(--fin-warning)'
+    if (code >= 200) return 'var(--fin-positive)'
+    return 'var(--fin-text-muted)'
   }
 
   const { paginados, pagina, totalPaginas, irPara, total } = usePagination(logs, LOGS_POR_PAGINA)
@@ -411,38 +417,38 @@ function TabLogs() {
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500">Data início</label>
+            <label className="text-xs text-fin-text-muted">Data início</label>
             <input type="datetime-local" value={filtros.dataInicio ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, dataInicio: e.target.value }))}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500">Data fim</label>
+            <label className="text-xs text-fin-text-muted">Data fim</label>
             <input type="datetime-local" value={filtros.dataFim ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, dataFim: e.target.value }))}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500">Endpoint (path)</label>
+            <label className="text-xs text-fin-text-muted">Endpoint (path)</label>
             <input type="text" placeholder="Ex: /api/Transacao" value={filtros.path ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, path: e.target.value }))}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500">Status HTTP</label>
+            <label className="text-xs text-fin-text-muted">Status HTTP</label>
             <input type="number" placeholder="Ex: 400" value={filtros.statusCode ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, statusCode: e.target.value ? Number(e.target.value) : '' }))}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500">User ID</label>
+            <label className="text-xs text-fin-text-muted">User ID</label>
             <input type="text" placeholder="ID do usuário" value={filtros.userId ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, userId: e.target.value }))}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
           </div>
           <div className="flex items-end gap-2 col-span-2 lg:col-span-3">
-            <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-fin-text-secondary">
               <input type="checkbox" checked={filtros.apenasErros ?? false} onChange={(e) => setFiltros((f) => ({ ...f, apenasErros: e.target.checked }))}
-                className="h-4 w-4 rounded border-gray-300 text-green-600" />
+                className="h-4 w-4 rounded border-fin-border accent-fin-brand" />
               Apenas erros
             </label>
             <button onClick={load} disabled={loading}
-              className="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition">
+              className="rounded-lg bg-fin-brand px-4 py-1.5 text-sm font-medium text-white hover:bg-fin-brand-hover disabled:opacity-50 transition">
               {loading ? 'Buscando...' : 'Buscar'}
             </button>
           </div>
@@ -450,15 +456,15 @@ function TabLogs() {
       </Card>
 
       {logs.length === 0 && !loading && (
-        <p className="text-center text-sm text-gray-400 py-8">Aplique filtros e clique em Buscar.</p>
+        <p className="text-center text-sm text-fin-text-muted py-8">Aplique filtros e clique em Buscar.</p>
       )}
 
       {logs.length > 0 && (
         <Card className="flex flex-col">
           <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 420px)' }}>
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-white z-10">
-                <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+              <thead className="sticky top-0 bg-fin-surface z-10">
+                <tr className="border-b border-fin-border text-left text-xs font-medium uppercase tracking-wide text-fin-text-muted">
                   <th className="px-4 py-3">Timestamp</th>
                   <th className="px-4 py-3">Método</th>
                   <th className="px-4 py-3">Endpoint</th>
@@ -468,56 +474,56 @@ function TabLogs() {
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-fin-border">
                 {paginados.map((l) => (
                   <>
-                    <tr key={l.id} className={`hover:bg-gray-50 transition ${l.isError ? 'bg-red-50/40' : ''}`}>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                    <tr key={l.id} className={`hover:bg-fin-highlight-row transition ${l.isError ? 'bg-fin-negative-soft/40' : ''}`}>
+                      <td className="px-4 py-3 text-fin-text-secondary whitespace-nowrap">
                         {new Date(l.timestamp).toLocaleString('pt-BR')}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="rounded px-1.5 py-0.5 text-xs font-bold bg-gray-100 text-gray-700">{l.method}</span>
+                        <span className="rounded px-1.5 py-0.5 text-xs font-bold bg-fin-surface-2 text-fin-text-secondary">{l.method}</span>
                       </td>
-                      <td className="px-4 py-3 text-gray-700 max-w-xs truncate" title={l.path + (l.queryString ?? '')}>
-                        {l.path}{l.queryString && <span className="text-gray-400">{l.queryString}</span>}
+                      <td className="px-4 py-3 text-fin-text-primary max-w-xs truncate" title={l.path + (l.queryString ?? '')}>
+                        {l.path}{l.queryString && <span className="text-fin-text-muted">{l.queryString}</span>}
                       </td>
                       <td className="px-4 py-3">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold text-white" style={{ backgroundColor: statusColor(l.statusCode) }}>
                           {l.statusCode}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{l.elapsedMs}ms</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs max-w-[120px] truncate" title={l.userId ?? ''}>
+                      <td className="px-4 py-3 text-fin-text-secondary">{l.elapsedMs}ms</td>
+                      <td className="px-4 py-3 text-fin-text-secondary text-xs max-w-[120px] truncate" title={l.userId ?? ''}>
                         {l.userId ?? '—'}
                       </td>
                       <td className="px-4 py-3">
                         {(l.exceptionMessage || l.requestBody || l.responseBody) && (
                           <button onClick={() => setExpandido(expandido === l.id ? null : l.id)}
-                            className="text-xs text-indigo-600 hover:underline">
+                            className="text-xs text-fin-brand hover:underline">
                             {expandido === l.id ? 'Fechar' : 'Detalhes'}
                           </button>
                         )}
                       </td>
                     </tr>
                     {expandido === l.id && (
-                      <tr key={`${l.id}-detail`} className="bg-gray-50">
+                      <tr key={`${l.id}-detail`} className="bg-fin-surface-2">
                         <td colSpan={7} className="px-4 py-3 space-y-2">
                           {l.exceptionMessage && (
                             <div>
-                              <p className="text-xs font-semibold text-red-600 mb-1">Exceção</p>
-                              <pre className="text-xs text-red-700 bg-red-50 rounded p-2 overflow-x-auto whitespace-pre-wrap">{l.exceptionMessage}</pre>
+                              <p className="text-xs font-semibold text-fin-negative mb-1">Exceção</p>
+                              <pre className="text-xs text-fin-negative bg-fin-negative-soft rounded p-2 overflow-x-auto whitespace-pre-wrap">{l.exceptionMessage}</pre>
                             </div>
                           )}
                           {l.requestBody && (
                             <div>
-                              <p className="text-xs font-semibold text-gray-500 mb-1">Request Body</p>
-                              <pre className="text-xs text-gray-700 bg-white border rounded p-2 overflow-x-auto whitespace-pre-wrap max-h-40">{l.requestBody}</pre>
+                              <p className="text-xs font-semibold text-fin-text-muted mb-1">Request Body</p>
+                              <pre className="text-xs text-fin-text-primary bg-fin-surface border border-fin-border rounded p-2 overflow-x-auto whitespace-pre-wrap max-h-40">{l.requestBody}</pre>
                             </div>
                           )}
                           {l.responseBody && (
                             <div>
-                              <p className="text-xs font-semibold text-gray-500 mb-1">Response Body</p>
-                              <pre className="text-xs text-gray-700 bg-white border rounded p-2 overflow-x-auto whitespace-pre-wrap max-h-40">{l.responseBody}</pre>
+                              <p className="text-xs font-semibold text-fin-text-muted mb-1">Response Body</p>
+                              <pre className="text-xs text-fin-text-primary bg-fin-surface border border-fin-border rounded p-2 overflow-x-auto whitespace-pre-wrap max-h-40">{l.responseBody}</pre>
                             </div>
                           )}
                         </td>
