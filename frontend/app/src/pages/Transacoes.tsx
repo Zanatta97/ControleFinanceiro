@@ -46,18 +46,15 @@ export default function Transacoes() {
 
   async function load() {
     setLoading(true)
-    try {
-      const [t, c, cat] = await Promise.all([
-        listarDoAmbiente(),
-        listarContas(),
-        listarCategorias(),
-      ])
-      setTransacoes(t.data.dados ?? [])
-      setContas(c.data.dados ?? [])
-      setCategorias(cat.data.dados ?? [])
-    } finally {
-      setLoading(false)
-    }
+    const [t, c, cat] = await Promise.allSettled([
+      listarDoAmbiente(),
+      listarContas(),
+      listarCategorias(),
+    ])
+    if (t.status === 'fulfilled') setTransacoes(t.value.data.dados ?? [])
+    if (c.status === 'fulfilled') setContas(c.value.data.dados ?? [])
+    if (cat.status === 'fulfilled') setCategorias(cat.value.data.dados ?? [])
+    setLoading(false)
   }
 
   function openNew() {
