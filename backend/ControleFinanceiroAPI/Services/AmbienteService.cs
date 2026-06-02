@@ -127,6 +127,16 @@ namespace ControleFinanceiroAPI.Services
         {
             try
             {
+                // userId vazio indica deleção forçada por Admin do sistema
+                if (string.IsNullOrEmpty(userId))
+                {
+                    var alvo = await _repository.AmbienteRepository.GetByIdAsync(a => a.Id == id);
+                    if (alvo is null) return false;
+                    _repository.AmbienteRepository.Delete(alvo);
+                    await _repository.SaveChangesAsync();
+                    return true;
+                }
+
                 var solicitante = await _userManager.FindByIdAsync(userId)
                     ?? throw new KeyNotFoundException("Usuário não encontrado.");
 
