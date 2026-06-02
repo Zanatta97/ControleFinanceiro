@@ -14,7 +14,6 @@ namespace ControleFinanceiroAPI.DTO.Transacao
         [Required(ErrorMessage = "O campo Data é obrigatório")]
         public DateTime Data { get; set; }
         
-        [Required(ErrorMessage = "O campo Observação é obrigatório")]
         public string? Observacao { get; set; }
         
         [Required(ErrorMessage = "O campo Tipo de Transação é obrigatório")]
