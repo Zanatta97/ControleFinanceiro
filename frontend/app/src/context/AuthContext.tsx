@@ -7,6 +7,8 @@ interface AuthState {
   ambienteId: string | null
   nome: string | null
   email: string | null
+  userId: string | null
+  roles: string[]
 }
 
 interface AuthContextValue extends AuthState {
@@ -15,6 +17,7 @@ interface AuthContextValue extends AuthState {
   logout: () => void
   isAuthenticated: boolean
   hasAmbiente: boolean
+  isAdmin: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -22,21 +25,27 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 function parseTokenState(accessToken: string): Partial<AuthState> {
   try {
     const decoded = jwtDecode(accessToken)
+    const roleRaw = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ?? decoded['role'] ?? decoded['roles']
+    const roles: string[] = Array.isArray(roleRaw) ? roleRaw : roleRaw ? [roleRaw] : []
     return {
       ambienteId: decoded['ambiente_id'] ?? decoded['AmbienteId'] ?? decoded['ambienteId'] ?? null,
       nome: decoded['name'] ?? decoded['Nome'] ?? decoded['unique_name'] ?? null,
       email: decoded['email'] ?? decoded['Email'] ?? null,
+      userId: decoded['id'] ?? null,
+      roles,
     }
   } catch {
     return {}
   }
 }
 
+const EMPTY_STATE: AuthState = { accessToken: null, refreshToken: null, ambienteId: null, nome: null, email: null, userId: null, roles: [] }
+
 function loadInitialState(): AuthState {
   const accessToken = localStorage.getItem('accessToken')
   const refreshToken = localStorage.getItem('refreshToken')
-  if (!accessToken) return { accessToken: null, refreshToken: null, ambienteId: null, nome: null, email: null }
-  return { accessToken, refreshToken, ...parseTokenState(accessToken) }
+  if (!accessToken) return { ...EMPTY_STATE }
+  return { ...EMPTY_STATE, accessToken, refreshToken, ...parseTokenState(accessToken) }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -57,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
-    setState({ accessToken: null, refreshToken: null, ambienteId: null, nome: null, email: null })
+    setState({ ...EMPTY_STATE })
   }, [])
 
   return (
@@ -69,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         isAuthenticated: !!state.accessToken,
         hasAmbiente: !!state.ambienteId,
+        isAdmin: state.roles.includes('Admin'),
       }}
     >
       {children}

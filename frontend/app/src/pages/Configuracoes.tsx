@@ -11,7 +11,16 @@ import Modal from '../components/ui/Modal'
 import Alert from '../components/ui/Alert'
 
 export default function Configuracoes() {
-  const { setAmbienteToken, nome, email } = useAuth()
+  const { setAmbienteToken, nome, email, userId } = useAuth()
+
+  function roleNoAmbiente(a: AmbienteResponse): string | null {
+    return a.membros?.find((m) => m.usuario?.id === userId)?.role ?? null
+  }
+
+  function podeGerenciar(a: AmbienteResponse): boolean {
+    const role = roleNoAmbiente(a)
+    return role === 'Dono' || role === 'Admin'
+  }
   const navigate = useNavigate()
 
   // Logging
@@ -225,9 +234,13 @@ export default function Configuracoes() {
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="ghost" onClick={() => handleSelecionarAmbiente(a.id)}>Entrar</Button>
-                <Button size="sm" variant="ghost" onClick={() => setModalMembros(a)}>👥</Button>
-                <Button size="sm" variant="ghost" onClick={() => openEditAmbiente(a)}>✏️</Button>
-                <Button size="sm" variant="ghost" onClick={() => handleExcluirAmbiente(a.id)}>🗑️</Button>
+                {podeGerenciar(a) && (
+                  <>
+                    <Button size="sm" variant="ghost" onClick={() => setModalMembros(a)}>👥</Button>
+                    <Button size="sm" variant="ghost" onClick={() => openEditAmbiente(a)}>✏️</Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleExcluirAmbiente(a.id)}>🗑️</Button>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -250,16 +263,18 @@ export default function Configuracoes() {
       <Modal open={!!modalMembros} onClose={() => setModalMembros(null)} title={`Membros — ${modalMembros?.nome}`} size="md">
         <div className="space-y-4">
           {errorMembro && <Alert type="error" message={errorMembro} />}
-          <div className="flex gap-2">
-            <Input
-              placeholder="E-mail do novo membro..."
-              value={emailMembro}
-              onChange={(e) => setEmailMembro(e.target.value)}
-              className="flex-1"
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAdicionarMembro() }}
-            />
-            <Button onClick={handleAdicionarMembro} loading={addingMembro} size="sm">Adicionar</Button>
-          </div>
+          {modalMembros && podeGerenciar(modalMembros) && (
+            <div className="flex gap-2">
+              <Input
+                placeholder="E-mail do novo membro..."
+                value={emailMembro}
+                onChange={(e) => setEmailMembro(e.target.value)}
+                className="flex-1"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAdicionarMembro() }}
+              />
+              <Button onClick={handleAdicionarMembro} loading={addingMembro} size="sm">Adicionar</Button>
+            </div>
+          )}
           <div className="divide-y max-h-64 overflow-y-auto rounded-lg border">
             {modalMembros?.membros?.length === 0 && <p className="px-4 py-3 text-sm text-gray-400">Nenhum membro.</p>}
             {modalMembros?.membros?.map((m) => (
@@ -270,7 +285,7 @@ export default function Configuracoes() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-400 bg-gray-100 rounded px-2 py-0.5">{m.role}</span>
-                  {m.usuario?.id && (
+                  {modalMembros && podeGerenciar(modalMembros) && m.usuario?.id && m.usuario.id !== userId && (
                     <button onClick={() => handleRemoverMembro(modalMembros.id, m.usuario!.id!)} className="text-xs text-red-500 hover:text-red-700">Remover</button>
                   )}
                 </div>
