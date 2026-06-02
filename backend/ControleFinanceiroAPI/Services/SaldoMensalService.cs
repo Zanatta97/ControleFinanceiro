@@ -66,29 +66,31 @@ namespace ControleFinanceiroAPI.Services
         public async Task CalcularSaldoInicialAsync(Guid ambienteId, int mes, int ano)
         {
             var mesInicio = new DateOnly(ano, mes, 1);
+
+            var (mesAnterior, anoAnterior) = mes == 1 ? (12, ano - 1) : (mes - 1, ano);
+
             var contas = await _repository.ContaRepository.GetAllByAmbienteAsync(ambienteId);
+            var saldosMesAnterior = await _repository.SaldoMensalRepository
+                .GetAllByAmbienteAsync(ambienteId, new DateOnly(anoAnterior, mesAnterior, 1));
 
             foreach (var conta in contas)
             {
-                // Retroage a partir do saldo atual:
-                // SaldoInicial(M) = conta.Saldo
-                //   - Σreceitas com MesCompetencia >= M
-                //   + Σdespesas com MesCompetencia >= M
-                var transacoesPosteriores = await _repository.TransacaoRepository
-                    .GetAPartirDeMesCompetenciaAsync(ambienteId, conta.Id, mesInicio);
+                var saldoAnterior = saldosMesAnterior.FirstOrDefault(s => s.ContaId == conta.Id);
+                var transacoes = await _repository.TransacaoRepository
+                    .GetByMesCompetenciaEContaAsync(ambienteId, conta.Id, mesAnterior, anoAnterior);
 
-                var lista = transacoesPosteriores.ToList();
-                var receitasPost = lista.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
-                var despesasPost = lista.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
+                var lista = transacoes.ToList();
+                var entradas = lista.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
+                var saidas = lista.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
 
-                var saldoInicial = conta.Saldo - receitasPost + despesasPost;
+                var saldoFinalAnterior = (saldoAnterior?.SaldoInicial ?? 0) + entradas - saidas;
 
                 _repository.SaldoMensalRepository.AddOrUpdate(new SaldoMensalConta
                 {
                     ContaId = conta.Id,
                     AmbienteId = ambienteId,
                     Mes = mesInicio,
-                    SaldoInicial = saldoInicial
+                    SaldoInicial = saldoFinalAnterior
                 });
             }
 
