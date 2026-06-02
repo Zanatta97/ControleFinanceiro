@@ -1,5 +1,5 @@
 import api from './client'
-import type { ApiResponse, AmbienteResponse } from '../types/api'
+import type { ApiResponse, AmbienteResponse, ApiLogResponse } from '../types/api'
 
 export interface UsuarioAdmin {
   id: string
@@ -33,3 +33,16 @@ export const listarAmbientes = () =>
 
 export const excluirAmbiente = (id: string) =>
   api.delete<ApiResponse<null>>(`/Admin/ambientes/${id}`)
+
+export interface LogFiltros {
+  dataInicio?: string
+  dataFim?: string
+  userId?: string
+  path?: string
+  statusCode?: number | ''
+  apenasErros?: boolean
+  limite?: number
+}
+
+export const listarLogs = (filtros: LogFiltros = {}) =>
+  api.get<ApiResponse<ApiLogResponse[]>>('/Logs', { params: filtros })

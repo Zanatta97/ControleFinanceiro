@@ -16,7 +16,7 @@ import Admin from './pages/Admin'
 const qc = new QueryClient()
 
 function AppRoutes() {
-  const { isAuthenticated, hasAmbiente } = useAuth()
+  const { isAuthenticated, hasAmbiente, ambienteId } = useAuth()
 
   if (!isAuthenticated) {
     return (
@@ -39,7 +39,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route element={<Layout key={ambienteId} />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/contas" element={<Contas />} />
         <Route path="/categorias" element={<Categorias />} />

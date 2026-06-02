@@ -4,17 +4,17 @@ import { useAuth } from '../context/AuthContext'
 import {
   listarUsuarios, listarRoles, atribuirRoles,
   bloquearUsuario, desbloquearUsuario, excluirUsuario,
-  listarAmbientes, excluirAmbiente,
-  type UsuarioAdmin,
+  listarAmbientes, excluirAmbiente, listarLogs,
+  type UsuarioAdmin, type LogFiltros,
 } from '../api/admin'
-import type { AmbienteResponse } from '../types/api'
+import type { AmbienteResponse, ApiLogResponse } from '../types/api'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Alert from '../components/ui/Alert'
 import Modal from '../components/ui/Modal'
 import Badge from '../components/ui/Badge'
 
-type Tab = 'usuarios' | 'ambientes'
+type Tab = 'usuarios' | 'ambientes' | 'logs'
 
 export default function Admin() {
   const { isAdmin } = useAuth()
@@ -37,7 +37,7 @@ export default function Admin() {
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-gray-200">
-        {(['usuarios', 'ambientes'] as Tab[]).map((t) => (
+        {(['usuarios', 'ambientes', 'logs'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -47,12 +47,12 @@ export default function Admin() {
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            {t === 'usuarios' ? 'Usuários' : 'Ambientes'}
+            {t === 'usuarios' ? 'Usuários' : t === 'ambientes' ? 'Ambientes' : 'Logs da API'}
           </button>
         ))}
       </div>
 
-      {tab === 'usuarios' ? <TabUsuarios /> : <TabAmbientes />}
+      {tab === 'usuarios' ? <TabUsuarios /> : tab === 'ambientes' ? <TabAmbientes /> : <TabLogs />}
     </div>
   )
 }
@@ -354,5 +354,179 @@ function TabAmbientes() {
         </div>
       </Modal>
     </>
+  )
+}
+
+/* ─────────────────────── Tab Logs ─────────────────────── */
+
+function TabLogs() {
+  const [logs, setLogs] = useState<ApiLogResponse[]>([])
+  const [loading, setLoading] = useState(false)
+  const [expandido, setExpandido] = useState<number | null>(null)
+  const [filtros, setFiltros] = useState<LogFiltros>({
+    dataInicio: '',
+    dataFim: '',
+    userId: '',
+    path: '',
+    statusCode: '',
+    apenasErros: false,
+    limite: 100,
+  })
+
+  async function load() {
+    setLoading(true)
+    try {
+      const params: LogFiltros = { ...filtros }
+      if (!params.dataInicio) delete params.dataInicio
+      if (!params.dataFim) delete params.dataFim
+      if (!params.userId) delete params.userId
+      if (!params.path) delete params.path
+      if (!params.statusCode) delete params.statusCode
+      const { data } = await listarLogs(params)
+      setLogs(data.dados ?? [])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function statusColor(code: number) {
+    if (code >= 500) return '#dc2626'
+    if (code >= 400) return '#f97316'
+    if (code >= 200) return '#16a34a'
+    return '#6b7280'
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Filtros */}
+      <Card className="p-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">Data início</label>
+            <input type="datetime-local" value={filtros.dataInicio ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, dataInicio: e.target.value }))}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">Data fim</label>
+            <input type="datetime-local" value={filtros.dataFim ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, dataFim: e.target.value }))}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">Endpoint (path)</label>
+            <input type="text" placeholder="Ex: /api/Transacao" value={filtros.path ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, path: e.target.value }))}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">Status HTTP</label>
+            <input type="number" placeholder="Ex: 400" value={filtros.statusCode ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, statusCode: e.target.value ? Number(e.target.value) : '' }))}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">User ID</label>
+            <input type="text" placeholder="ID do usuário" value={filtros.userId ?? ''} onChange={(e) => setFiltros((f) => ({ ...f, userId: e.target.value }))}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">Limite</label>
+            <input type="number" min={1} max={500} value={filtros.limite ?? 100} onChange={(e) => setFiltros((f) => ({ ...f, limite: Number(e.target.value) || 100 }))}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
+          <div className="flex items-end gap-2 col-span-2">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+              <input type="checkbox" checked={filtros.apenasErros ?? false} onChange={(e) => setFiltros((f) => ({ ...f, apenasErros: e.target.checked }))}
+                className="h-4 w-4 rounded border-gray-300 text-green-600" />
+              Apenas erros
+            </label>
+            <button onClick={load} disabled={loading}
+              className="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition">
+              {loading ? 'Buscando...' : 'Buscar'}
+            </button>
+          </div>
+        </div>
+      </Card>
+
+      {logs.length === 0 && !loading && (
+        <p className="text-center text-sm text-gray-400 py-8">Aplique filtros e clique em Buscar.</p>
+      )}
+
+      {logs.length > 0 && (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                  <th className="px-4 py-3">Timestamp</th>
+                  <th className="px-4 py-3">Método</th>
+                  <th className="px-4 py-3">Endpoint</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Tempo</th>
+                  <th className="px-4 py-3">Usuário</th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {logs.map((l) => (
+                  <>
+                    <tr key={l.id} className={`hover:bg-gray-50 transition ${l.isError ? 'bg-red-50/40' : ''}`}>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                        {new Date(l.timestamp).toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded px-1.5 py-0.5 text-xs font-bold bg-gray-100 text-gray-700">{l.method}</span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700 max-w-xs truncate" title={l.path + (l.queryString ?? '')}>
+                        {l.path}{l.queryString && <span className="text-gray-400">{l.queryString}</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full px-2 py-0.5 text-xs font-semibold text-white" style={{ backgroundColor: statusColor(l.statusCode) }}>
+                          {l.statusCode}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">{l.elapsedMs}ms</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs max-w-[120px] truncate" title={l.userId ?? ''}>
+                        {l.userId ?? '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        {(l.exceptionMessage || l.requestBody || l.responseBody) && (
+                          <button onClick={() => setExpandido(expandido === l.id ? null : l.id)}
+                            className="text-xs text-indigo-600 hover:underline">
+                            {expandido === l.id ? 'Fechar' : 'Detalhes'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {expandido === l.id && (
+                      <tr key={`${l.id}-detail`} className="bg-gray-50">
+                        <td colSpan={7} className="px-4 py-3 space-y-2">
+                          {l.exceptionMessage && (
+                            <div>
+                              <p className="text-xs font-semibold text-red-600 mb-1">Exceção</p>
+                              <pre className="text-xs text-red-700 bg-red-50 rounded p-2 overflow-x-auto whitespace-pre-wrap">{l.exceptionMessage}</pre>
+                            </div>
+                          )}
+                          {l.requestBody && (
+                            <div>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">Request Body</p>
+                              <pre className="text-xs text-gray-700 bg-white border rounded p-2 overflow-x-auto whitespace-pre-wrap max-h-40">{l.requestBody}</pre>
+                            </div>
+                          )}
+                          {l.responseBody && (
+                            <div>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">Response Body</p>
+                              <pre className="text-xs text-gray-700 bg-white border rounded p-2 overflow-x-auto whitespace-pre-wrap max-h-40">{l.responseBody}</pre>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-4 py-3 border-t text-xs text-gray-400">{logs.length} registro(s)</div>
+        </Card>
+      )}
+    </div>
   )
 }
