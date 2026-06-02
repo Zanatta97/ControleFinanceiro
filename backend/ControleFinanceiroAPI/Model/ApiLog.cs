@@ -7,7 +7,7 @@ namespace ControleFinanceiroAPI.Model
         public int Id { get; set; }
 
         // Momento exato em que o request foi recebido (UTC para evitar problemas de fuso horário)
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; set; } = DateTime.Now;
 
         // Método HTTP: GET, POST, PUT, DELETE, etc.
         public string Method { get; set; } = string.Empty;

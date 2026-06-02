@@ -6,7 +6,7 @@ import type { OrcamentoResponse, OrcamentoRequest, CategoriaResponse, OrcamentoS
 import { StatusOrcamento } from '../types/api'
 import { formatCurrency, formatDate } from '../utils/format'
 import Button from '../components/ui/Button'
-import Modal from '../components/ui/Modal'
+import Drawer from '../components/ui/Drawer'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Card from '../components/ui/Card'
@@ -186,12 +186,12 @@ export default function Orcamentos() {
         </div>
       )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Orçamento' : 'Novo Orçamento'} size="lg">
+      <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Orçamento' : 'Novo Orçamento'}>
         <div className="space-y-4">
           {error && <Alert type="error" message={error} />}
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} placeholder="Ex: Alimentação Mensal" className="col-span-2" required />
-            <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Opcional..." className="col-span-2" />
+          <div className="grid grid-cols-1 gap-4">
+            <Input label="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} placeholder="Ex: Alimentação Mensal" required />
+            <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Opcional..." />
             <Input label="Valor Limite" type="number" step="0.01" min="0" value={form.valorLimite} onChange={(e) => setForm((f) => ({ ...f, valorLimite: parseFloat(e.target.value) || 0 }))} />
             <Input label="Data Limite" type="datetime-local" value={form.dataLimite} onChange={(e) => setForm((f) => ({ ...f, dataLimite: e.target.value }))} />
             <Select label="Categoria" value={form.categoriaId} onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))} options={categorias.map((c) => ({ value: c.id, label: c.nome ?? '' }))} />
@@ -202,7 +202,7 @@ export default function Orcamentos() {
             <Button onClick={handleSave} loading={saving}>Salvar</Button>
           </div>
         </div>
-      </Modal>
+      </Drawer>
     </div>
   )
 }

@@ -38,15 +38,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("user-ambientes")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<AmbienteResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAllByUsuario()
         {
             var userId = User.GetUserId();
             var ambientes = await _service.GetAllByUsuarioAsync(userId);
-
-            if (!ambientes.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<AmbienteResponseDTO>>.ErrorResponse("Nenhum ambiente encontrado.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<AmbienteResponseDTO>>.SuccessResponse(ambientes.ToDTOList()));

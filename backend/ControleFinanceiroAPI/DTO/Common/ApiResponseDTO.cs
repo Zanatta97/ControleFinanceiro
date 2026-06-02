@@ -23,7 +23,7 @@ namespace ControleFinanceiroAPI.DTO.Common
                 StatusCode = statusCode,
                 Success = true,
                 StatusMessage = statusMessage,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.Now,
                 Dados = data
             };
         }
@@ -35,7 +35,7 @@ namespace ControleFinanceiroAPI.DTO.Common
                 StatusCode = statusCode,
                 Success = false,
                 ErrorMessage = errorMessage,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             };
         }
     }

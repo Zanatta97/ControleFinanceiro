@@ -23,7 +23,7 @@ function parseTokenState(accessToken: string): Partial<AuthState> {
   try {
     const decoded = jwtDecode(accessToken)
     return {
-      ambienteId: decoded['AmbienteId'] ?? decoded['ambienteId'] ?? null,
+      ambienteId: decoded['ambiente_id'] ?? decoded['AmbienteId'] ?? decoded['ambienteId'] ?? null,
       nome: decoded['name'] ?? decoded['Nome'] ?? decoded['unique_name'] ?? null,
       email: decoded['email'] ?? decoded['Email'] ?? null,
     }

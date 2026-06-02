@@ -38,15 +38,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("ambiente")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAllByAmbiente()
         {
             var ambienteId = User.GetAmbienteAtivo();
             var orcamentos = await _service.GetAllByAmbienteAsync(ambienteId);
-
-            if (!orcamentos.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>.ErrorResponse("Nenhum orçamento encontrado.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>.SuccessResponse(orcamentos.ToDTOList()));
@@ -54,15 +49,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("status/{status}")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByStatus(StatusOrcamento status)
         {
             var ambienteId = User.GetAmbienteAtivo();
             var orcamentos = await _service.GetByStatusAsync(ambienteId, status);
-
-            if (!orcamentos.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>.ErrorResponse("Nenhum orçamento encontrado para o status informado.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>.SuccessResponse(orcamentos.ToDTOList()));

@@ -37,15 +37,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("ambiente")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<CategoriaResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAllByAmbiente()
         {
             var ambienteId = User.GetAmbienteAtivo();
             var categorias = await _service.GetAllByAmbienteAsync(ambienteId);
-
-            if (!categorias.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<CategoriaResponseDTO>>.ErrorResponse("Nenhuma categoria encontrada.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<CategoriaResponseDTO>>.SuccessResponse(categorias.ToDTOList()));

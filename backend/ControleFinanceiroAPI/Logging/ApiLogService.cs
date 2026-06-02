@@ -32,7 +32,7 @@ namespace ControleFinanceiroAPI.Logging
 
                 var log = new ApiLog
                 {
-                    Timestamp = DateTime.UtcNow,
+                    Timestamp = DateTime.Now,
                     Method = context.Request.Method,
                     Path = context.Request.Path,
                     QueryString = context.Request.QueryString.Value,
