@@ -39,10 +39,7 @@ function parseTokenState(accessToken: string): Partial<AuthState> {
   }
 }
 
-const EMPTY_STATE: AuthState = {
-  accessToken: null, refreshToken: null, ambienteId: null,
-  nome: null, email: null, userId: null, roles: [],
-}
+const EMPTY_STATE: AuthState = { accessToken: null, refreshToken: null, ambienteId: null, nome: null, email: null, userId: null, roles: [] }
 
 function loadInitialState(): AuthState {
   const accessToken = localStorage.getItem('accessToken')
