@@ -94,7 +94,7 @@ namespace ControleFinanceiroAPI.Services
                 {
                     new Claim(ClaimTypes.Name, user.UserName!),
                     new Claim(ClaimTypes.Email, user.Email!),
-                    new Claim("id", user.UserName!),
+                    new Claim("id", user.Id),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 

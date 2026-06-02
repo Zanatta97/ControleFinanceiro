@@ -4,7 +4,7 @@ import type { ContaResponse, ContaRequest } from '../types/api'
 import { TipoConta } from '../types/api'
 import { formatCurrency } from '../utils/format'
 import Button from '../components/ui/Button'
-import Modal from '../components/ui/Modal'
+import Drawer from '../components/ui/Drawer'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Card from '../components/ui/Card'
@@ -136,7 +136,7 @@ export default function Contas() {
         </div>
       )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Conta' : 'Nova Conta'}>
+      <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Conta' : 'Nova Conta'}>
         <div className="space-y-4">
           {error && <Alert type="error" message={error} />}
           <Input label="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} placeholder="Ex: Nubank, Bradesco..." required />
@@ -158,7 +158,7 @@ export default function Contas() {
             <Button onClick={handleSave} loading={saving}>Salvar</Button>
           </div>
         </div>
-      </Modal>
+      </Drawer>
     </div>
   )
 }

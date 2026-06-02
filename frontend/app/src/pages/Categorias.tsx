@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react'
+import { Icon } from '@iconify/react'
 import { listarDoAmbiente, criar, atualizar, excluir } from '../api/categoria'
 import type { CategoriaResponse, CategoriaRequest } from '../types/api'
 import Button from '../components/ui/Button'
-import Modal from '../components/ui/Modal'
+import Drawer from '../components/ui/Drawer'
 import Input from '../components/ui/Input'
 import Card from '../components/ui/Card'
 import Alert from '../components/ui/Alert'
+import IconPicker from '../components/ui/IconPicker'
+
+function isIconifyName(value: string) {
+  return !!value && value.includes(':') && !value.startsWith('http')
+}
 
 const emptyForm: CategoriaRequest = { nome: '', cor: '#22c55e', urlIcone: '' }
 
@@ -90,7 +96,11 @@ export default function Categorias() {
           {categorias.map((c) => (
             <Card key={c.id} className="flex items-center gap-4 p-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white font-bold" style={{ backgroundColor: c.cor ?? '#9ca3af' }}>
-                {c.urlIcone ? <img src={c.urlIcone} alt="" className="h-5 w-5" /> : c.nome?.[0]?.toUpperCase()}
+                {c.urlIcone && isIconifyName(c.urlIcone)
+                  ? <Icon icon={c.urlIcone} width={20} height={20} color="white" />
+                  : c.urlIcone
+                  ? <img src={c.urlIcone} alt="" className="h-5 w-5" />
+                  : c.nome?.[0]?.toUpperCase()}
               </span>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-800 truncate">{c.nome}</p>
@@ -105,7 +115,7 @@ export default function Categorias() {
         </div>
       )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Categoria' : 'Nova Categoria'}>
+      <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Categoria' : 'Nova Categoria'}>
         <div className="space-y-4">
           {error && <Alert type="error" message={error} />}
           <Input label="Nome" value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} placeholder="Ex: Alimentação, Transporte..." required />
@@ -116,13 +126,17 @@ export default function Categorias() {
               <span className="text-sm font-mono text-gray-500">{form.cor}</span>
             </div>
           </div>
-          <Input label="URL do Ícone (opcional)" value={form.urlIcone ?? ''} onChange={(e) => setForm((f) => ({ ...f, urlIcone: e.target.value }))} placeholder="https://..." />
+          <IconPicker
+            value={form.urlIcone ?? ''}
+            onChange={(icon) => setForm((f) => ({ ...f, urlIcone: icon }))}
+            previewColor={form.cor}
+          />
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setModal(false)}>Cancelar</Button>
             <Button onClick={handleSave} loading={saving}>Salvar</Button>
           </div>
         </div>
-      </Modal>
+      </Drawer>
     </div>
   )
 }

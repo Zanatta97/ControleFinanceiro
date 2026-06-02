@@ -34,7 +34,9 @@ dotnet ef migrations add <NomeDaMigration>
 dotnet ef migrations remove
 ```
 
-A API sobe em `http://localhost:5284`. O banco de dados é o SQL Server LocalDB (`ControleFinanceiro`).
+A API sobe em `http://localhost:5284` (perfil `http`) ou `https://localhost:7234` (perfil `https`, padrão do Scalar/v1.json). O banco de dados é o SQL Server LocalDB (`ControleFinanceiro`).
+
+O front-end Vite proxia `/api` para `https://localhost:7234` — rode o backend com o perfil `https` (ou `dotnet run --launch-profile https`).
 
 ## Arquitetura
 
@@ -79,6 +81,17 @@ backend/ControleFinanceiroAPI/
 └── Repositories/     # Repository<T>, implementações concretas, UnityOfWork
 ```
 
+## Ambientes
+
+`Ambiente` é o conceito de espaço financeiro compartilhável (ex: pessoal, família, empresa). Cada usuário pode pertencer a vários ambientes.
+
+**Fluxo de troca de ambiente:**
+1. Após o login, o JWT ainda **não tem** claim de ambiente.
+2. Chamar `POST /api/Ambiente/selecionar/{id}` retorna um novo `TokenDTO` (accessToken + refreshToken) com o ambiente embutido no claim.
+3. A partir daí, todas as requisições de Conta/Categoria/Transação/Orçamento operam sobre o ambiente selecionado.
+
+O front-end deve armazenar o ambiente ativo e trocar o token ao selecionar outro ambiente.
+
 ## O que já está implementado
 - Models, Enums, DbContext, Migrations
 - DTOs (Request/Response) para todas as entidades + DTOMapper
@@ -87,10 +100,10 @@ backend/ControleFinanceiroAPI/
 - ApiResponseDTO (wrapper padrão)
 - PaginationParameters (usando X.PagedList)
 - ErrorHandlingMiddleware + RequestLoggingMiddleware
-- LogsController (ativar/desativar logging em runtime)
+- LogsController (`POST /api/logs/ativar`, `POST /api/logs/desativar`, `GET /api/logs/status`)
+- Services para todas as entidades
+- Controllers completos (Auth, Ambiente, Conta, Categoria, Transacao, Orcamento, Relatorio)
+- Endpoints de Relatórios (resumo mensal, extrato por conta, gasto por categoria, evolução mensal, status de orçamentos)
 
 ## Próximos Passos (ver PLANEJAMENTO.md)
-- Camada de Services (lógica de negócio)
-- Controllers de CRUD para as entidades
-- Endpoints de autenticação JWT
-- Endpoints especiais (extratos, resumos, orçamentos)
+- Front-end React (Issue #18 — branch `feature/issue-frontend-react`)

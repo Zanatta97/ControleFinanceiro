@@ -58,11 +58,16 @@ namespace ControleFinanceiroAPI.Services
         public async Task<Ambiente> AddAsync(Ambiente ambiente, string userId)
         {
             ArgumentNullException.ThrowIfNull(ambiente, nameof(ambiente));
+
+            var user = await _userManager.FindByIdAsync(userId)
+                ?? throw new KeyNotFoundException("Usuário não encontrado.");
+
             try
             {
                 ambiente.Id = Guid.NewGuid();
-                ambiente.UsuarioId = userId;
-                ambiente.DataCriacao = DateTime.UtcNow;
+                ambiente.UsuarioId = user.Id;
+                ambiente.Usuario = user;
+                ambiente.DataCriacao = DateTime.Now;
 
                 _repository.AmbienteRepository.Add(ambiente);
 
@@ -70,7 +75,7 @@ namespace ControleFinanceiroAPI.Services
                 _repository.AmbienteRepository.AddMembro(new AmbienteMembro
                 {
                     AmbienteId = ambiente.Id,
-                    UsuarioId = userId,
+                    UsuarioId = user.Id,
                     Role = "Dono"
                 });
 
@@ -89,7 +94,7 @@ namespace ControleFinanceiroAPI.Services
             ArgumentNullException.ThrowIfNull(ambiente, nameof(ambiente));
             try
             {
-                var solicitante = await _userManager.FindByNameAsync(userId)
+                var solicitante = await _userManager.FindByIdAsync(userId)
                     ?? throw new KeyNotFoundException("Usuário não encontrado.");
 
                 var isAdmin = await _userManager.IsInRoleAsync(solicitante, "Admin");
@@ -122,7 +127,7 @@ namespace ControleFinanceiroAPI.Services
         {
             try
             {
-                var solicitante = await _userManager.FindByNameAsync(userId)
+                var solicitante = await _userManager.FindByIdAsync(userId)
                     ?? throw new KeyNotFoundException("Usuário não encontrado.");
 
                 var isAdmin = await _userManager.IsInRoleAsync(solicitante, "Admin");
@@ -153,7 +158,7 @@ namespace ControleFinanceiroAPI.Services
         {
             try
             {
-                var solicitante = await _userManager.FindByNameAsync(solicitanteUserId)
+                var solicitante = await _userManager.FindByIdAsync(solicitanteUserId)
                     ?? throw new KeyNotFoundException("Usuário solicitante não encontrado.");
 
                 var isAdmin = await _userManager.IsInRoleAsync(solicitante, "Admin");
@@ -239,7 +244,7 @@ namespace ControleFinanceiroAPI.Services
                 ?? throw new UnauthorizedAccessException("Você não é membro deste ambiente.");
 
             // Atualiza o ambiente ativo do usuário no banco
-            var user = await _userManager.FindByNameAsync(userId)
+            var user = await _userManager.FindByIdAsync(userId)
                 ?? throw new KeyNotFoundException("Usuário não encontrado.");
 
             user.AmbienteAtivoId = ambienteId;
@@ -251,7 +256,7 @@ namespace ControleFinanceiroAPI.Services
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
-                new Claim("id", user.UserName!),
+                new Claim("id", user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim("ambiente_id", ambienteId.ToString())
             };

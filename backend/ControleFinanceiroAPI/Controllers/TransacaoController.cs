@@ -38,15 +38,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("ambiente")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAllByAmbiente()
         {
             var ambienteId = User.GetAmbienteAtivo();
             var transacoes = await _service.GetAllByAmbienteAsync(ambienteId);
-
-            if (!transacoes.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.ErrorResponse("Nenhuma transação encontrada.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.SuccessResponse(transacoes.ToDTOList()));
@@ -54,15 +49,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("conta/{contaId}")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByConta(Guid contaId)
         {
             var ambienteId = User.GetAmbienteAtivo();
             var transacoes = await _service.GetByContaAsync(contaId, ambienteId);
-
-            if (!transacoes.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.ErrorResponse("Nenhuma transação encontrada para esta conta.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.SuccessResponse(transacoes.ToDTOList()));
@@ -70,15 +60,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("periodo")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByPeriodo([FromQuery] DateTime inicio, [FromQuery] DateTime fim)
         {
             var ambienteId = User.GetAmbienteAtivo();
             var transacoes = await _service.GetByPeriodoAsync(ambienteId, inicio, fim);
-
-            if (!transacoes.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.ErrorResponse("Nenhuma transação encontrada no período informado.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.SuccessResponse(transacoes.ToDTOList()));
@@ -86,15 +71,10 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpGet("tipo/{tipo}")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByTipo(TipoTransacao tipo)
         {
             var ambienteId = User.GetAmbienteAtivo();
             var transacoes = await _service.GetByTipoAsync(ambienteId, tipo);
-
-            if (!transacoes.Any())
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.ErrorResponse("Nenhuma transação encontrada para o tipo informado.", StatusCodes.Status404NotFound));
 
             return StatusCode(StatusCodes.Status200OK,
                 ApiResponseDTO<IEnumerable<TransacaoResponseDTO>>.SuccessResponse(transacoes.ToDTOList()));

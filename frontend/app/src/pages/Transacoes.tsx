@@ -6,7 +6,7 @@ import type { TransacaoResponse, TransacaoRequest, ContaResponse, CategoriaRespo
 import { TipoTransacao } from '../types/api'
 import { formatCurrency, formatDate } from '../utils/format'
 import Button from '../components/ui/Button'
-import Modal from '../components/ui/Modal'
+import Drawer from '../components/ui/Drawer'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Card from '../components/ui/Card'
@@ -184,11 +184,11 @@ export default function Transacoes() {
         </Card>
       )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Transação' : 'Nova Transação'} size="lg">
+      <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Transação' : 'Nova Transação'}>
         <div className="space-y-4">
           {error && <Alert type="error" message={error} />}
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." className="col-span-2" required />
+          <div className="grid grid-cols-1 gap-4">
+            <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." required />
             <Select
               label="Tipo"
               value={form.tipoTransacao}
@@ -220,14 +220,12 @@ export default function Transacoes() {
               type="datetime-local"
               value={form.data}
               onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))}
-              className="col-span-2"
             />
             <Input
               label="Observação"
               value={form.observacao}
               onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value }))}
               placeholder="Opcional..."
-              className="col-span-2"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -235,7 +233,7 @@ export default function Transacoes() {
             <Button onClick={handleSave} loading={saving}>Salvar</Button>
           </div>
         </div>
-      </Modal>
+      </Drawer>
     </div>
   )
 }
