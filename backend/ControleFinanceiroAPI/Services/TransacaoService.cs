@@ -67,6 +67,24 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        public async Task<IEnumerable<Transacao>> AddManyAsync(IEnumerable<Transacao> transacoes)
+        {
+            var lista = transacoes.ToList();
+            ArgumentNullException.ThrowIfNull(lista, nameof(transacoes));
+            try
+            {
+                foreach (var t in lista)
+                    _repository.TransacaoRepository.Add(t);
+                await _repository.SaveChangesAsync();
+                return lista;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ocorreu um erro ao adicionar as transações parceladas");
+                throw;
+            }
+        }
+
         public async Task<Transacao> UpdateAsync(Guid id, Transacao transacao, Guid ambienteId)
         {
             ArgumentNullException.ThrowIfNull(transacao, nameof(transacao));
@@ -83,6 +101,7 @@ namespace ControleFinanceiroAPI.Services
                 transacaoExistente.TipoTransacao = transacao.TipoTransacao;
                 transacaoExistente.CategoriaId = transacao.CategoriaId;
                 transacaoExistente.ContaId = transacao.ContaId;
+                transacaoExistente.MesCompetencia = transacao.MesCompetencia;
 
                 _repository.TransacaoRepository.Update(transacaoExistente);
                 await _repository.SaveChangesAsync();
