@@ -86,6 +86,17 @@ namespace ControleFinanceiroAPI
             // DbContext via IServiceScopeFactory (não depende de nenhum serviço Scoped diretamente).
             builder.Services.AddSingleton<IApiLogService, ApiLogService>();
 
+            // CORS: origens permitidas configuradas via appsettings / variável de ambiente do App Service
+            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
 
             var app = builder.Build();
 
@@ -112,6 +123,8 @@ namespace ControleFinanceiroAPI
             // e devolver um JSON padronizado (ApiResponseDTO) antes de subir para o middleware de log.
             app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseMiddleware<ErrorHandlingMiddleware>();
+
+            app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
             app.UseAuthorization();
