@@ -67,6 +67,19 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize]
+        [Route("alterar-senha")]
+        public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaDTO dto)
+        {
+            var userId = User.FindFirstValue("id");
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var resultado = await _service.AlterarSenha(userId, dto);
+            return StatusCode(resultado.StatusCode, resultado);
+        }
+
+        [HttpPost]
         [Route("refresh-token")]
         public async Task<IActionResult> RefreshToken(TokenDTO tokenDTO)
         {
