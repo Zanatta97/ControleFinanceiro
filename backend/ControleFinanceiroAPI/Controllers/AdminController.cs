@@ -17,15 +17,26 @@ namespace ControleFinanceiroAPI.Controllers
         private readonly UserManager<Usuario> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IAmbienteService _ambienteService;
+        private readonly IUsuarioService _usuarioService;
 
         public AdminController(
             UserManager<Usuario> userManager,
             RoleManager<IdentityRole> roleManager,
-            IAmbienteService ambienteService)
+            IAmbienteService ambienteService,
+            IUsuarioService usuarioService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _ambienteService = ambienteService;
+            _usuarioService = usuarioService;
+        }
+
+        [HttpPost("usuarios")]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status201Created)]
+        public async Task<IActionResult> CriarUsuario([FromBody] UsuarioRegisterDTO dto)
+        {
+            var resultado = await _usuarioService.Register(dto);
+            return StatusCode(resultado.StatusCode, resultado);
         }
 
         [HttpGet("usuarios")]

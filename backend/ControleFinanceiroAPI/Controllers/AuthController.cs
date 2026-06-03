@@ -56,6 +56,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UsuarioRegisterDTO dto)
         {

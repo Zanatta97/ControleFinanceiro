@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import {
   listarUsuarios, listarRoles, atribuirRoles,
   bloquearUsuario, desbloquearUsuario, excluirUsuario,
-  listarAmbientes, excluirAmbiente, listarLogs,
-  type UsuarioAdmin, type LogFiltros,
+  criarUsuario, listarAmbientes, excluirAmbiente, listarLogs,
+  type UsuarioAdmin, type CriarUsuarioRequest, type LogFiltros,
 } from '../api/admin'
 import type { AmbienteResponse, ApiLogResponse } from '../types/api'
 import Card from '../components/ui/Card'
@@ -61,6 +61,8 @@ export default function Admin() {
 
 /* ─────────────────────── Tab Usuários ─────────────────────── */
 
+const NOVO_USUARIO_INICIAL: CriarUsuarioRequest = { nome: '', email: '', senha: '', confirmacaoSenha: '' }
+
 function TabUsuarios() {
   const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([])
   const [roles, setRoles] = useState<string[]>([])
@@ -70,6 +72,10 @@ function TabUsuarios() {
   const [rolesForm, setRolesForm] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [busca, setBusca] = useState('')
+  const [modalNovo, setModalNovo] = useState(false)
+  const [novoForm, setNovoForm] = useState<CriarUsuarioRequest>(NOVO_USUARIO_INICIAL)
+  const [novoError, setNovoError] = useState('')
+  const [criando, setCriando] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -114,6 +120,31 @@ function TabUsuarios() {
     finally { setSaving(false) }
   }
 
+  function abrirModalNovo() {
+    setNovoForm(NOVO_USUARIO_INICIAL)
+    setNovoError('')
+    setModalNovo(true)
+  }
+
+  async function handleCriarUsuario() {
+    if (novoForm.senha !== novoForm.confirmacaoSenha) {
+      setNovoError('As senhas não coincidem.')
+      return
+    }
+    setCriando(true)
+    setNovoError('')
+    try {
+      await criarUsuario(novoForm)
+      setModalNovo(false)
+      await load()
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { errorMessage?: string } } })?.response?.data?.errorMessage
+      setNovoError(msg || 'Erro ao criar usuário.')
+    } finally {
+      setCriando(false)
+    }
+  }
+
   const filtrados = usuarios.filter((u) =>
     busca === '' ||
     u.nome?.toLowerCase().includes(busca.toLowerCase()) ||
@@ -133,6 +164,7 @@ function TabUsuarios() {
           className="flex-1 max-w-sm rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
         />
         <span className="text-sm text-fin-text-secondary">{filtrados.length} usuário(s)</span>
+        <Button onClick={abrirModalNovo}>+ Novo usuário</Button>
       </div>
 
       {loading ? (
@@ -234,6 +266,59 @@ function TabUsuarios() {
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" onClick={() => setModalRoles(null)}>Cancelar</Button>
             <Button onClick={handleSalvarRoles} loading={saving}>Salvar</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal Novo Usuário */}
+      <Modal open={modalNovo} onClose={() => setModalNovo(false)} title="Novo usuário" size="sm">
+        <div className="space-y-4">
+          {novoError && <Alert type="error" message={novoError} />}
+          <div className="space-y-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-fin-text-muted">Nome</label>
+              <input
+                type="text"
+                value={novoForm.nome}
+                onChange={(e) => setNovoForm((f) => ({ ...f, nome: e.target.value }))}
+                placeholder="Nome completo"
+                className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-fin-text-muted">E-mail</label>
+              <input
+                type="email"
+                value={novoForm.email}
+                onChange={(e) => setNovoForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="email@exemplo.com"
+                className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-fin-text-muted">Senha</label>
+              <input
+                type="password"
+                value={novoForm.senha}
+                onChange={(e) => setNovoForm((f) => ({ ...f, senha: e.target.value }))}
+                placeholder="••••••••"
+                className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-fin-text-muted">Confirmar senha</label>
+              <input
+                type="password"
+                value={novoForm.confirmacaoSenha}
+                onChange={(e) => setNovoForm((f) => ({ ...f, confirmacaoSenha: e.target.value }))}
+                placeholder="••••••••"
+                className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="secondary" onClick={() => setModalNovo(false)}>Cancelar</Button>
+            <Button onClick={handleCriarUsuario} loading={criando}>Criar usuário</Button>
           </div>
         </div>
       </Modal>
