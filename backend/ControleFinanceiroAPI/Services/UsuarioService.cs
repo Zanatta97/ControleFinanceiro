@@ -218,5 +218,24 @@ namespace ControleFinanceiroAPI.Services
             return ApiResponseDTO<object>.SuccessResponse("Token revogado com sucesso");
 
         }
+
+        public async Task<ApiResponseDTO<object>> AlterarSenha(string userId, AlterarSenhaDTO dto)
+        {
+            if (dto.NovaSenha != dto.ConfirmacaoNovaSenha)
+                return ApiResponseDTO<object>.ErrorResponse("A nova senha e a confirmação não coincidem.", StatusCodes.Status400BadRequest);
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return ApiResponseDTO<object>.ErrorResponse("Usuário não encontrado.", StatusCodes.Status404NotFound);
+
+            var result = await _userManager.ChangePasswordAsync(user, dto.SenhaAtual, dto.NovaSenha);
+            if (!result.Succeeded)
+            {
+                var erro = result.Errors.FirstOrDefault()?.Description ?? "Erro ao alterar a senha.";
+                return ApiResponseDTO<object>.ErrorResponse(erro, StatusCodes.Status400BadRequest);
+            }
+
+            return ApiResponseDTO<object>.SuccessResponse("Senha alterada com sucesso.");
+        }
     }
 }

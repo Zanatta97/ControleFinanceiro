@@ -12,3 +12,12 @@ export const refreshToken = (data: TokenDTO) =>
 
 export const revokeToken = (username: string) =>
   api.post(`/Auth/revoke/${username}`)
+
+export interface AlterarSenhaRequest {
+  senhaAtual: string
+  novaSenha: string
+  confirmacaoNovaSenha: string
+}
+
+export const alterarSenha = (data: AlterarSenhaRequest) =>
+  api.post<ApiResponse<null>>('/Auth/alterar-senha', data)

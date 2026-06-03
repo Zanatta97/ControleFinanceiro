@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getStatus, ativar, desativar } from '../api/logs'
 import { listarDoUsuario, selecionarAmbiente, criar as criarAmbiente, atualizar as atualizarAmbiente, excluir as excluirAmbiente, adicionarMembro, removerMembro } from '../api/ambiente'
+import { alterarSenha, type AlterarSenhaRequest } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import type { AmbienteResponse } from '../types/api'
@@ -22,6 +23,37 @@ export default function Configuracoes() {
     return role === 'Dono' || role === 'Admin'
   }
   const navigate = useNavigate()
+
+  // Alterar Senha
+  const SENHA_INICIAL: AlterarSenhaRequest = { senhaAtual: '', novaSenha: '', confirmacaoNovaSenha: '' }
+  const [senhaForm, setSenhaForm] = useState<AlterarSenhaRequest>(SENHA_INICIAL)
+  const [salvandoSenha, setSalvandoSenha] = useState(false)
+  const [senhaError, setSenhaError] = useState('')
+  const [senhaSuccess, setSenhaSuccess] = useState('')
+
+  async function handleAlterarSenha() {
+    setSenhaError('')
+    setSenhaSuccess('')
+    if (!senhaForm.senhaAtual || !senhaForm.novaSenha || !senhaForm.confirmacaoNovaSenha) {
+      setSenhaError('Preencha todos os campos.')
+      return
+    }
+    if (senhaForm.novaSenha !== senhaForm.confirmacaoNovaSenha) {
+      setSenhaError('A nova senha e a confirmação não coincidem.')
+      return
+    }
+    setSalvandoSenha(true)
+    try {
+      await alterarSenha(senhaForm)
+      setSenhaSuccess('Senha alterada com sucesso!')
+      setSenhaForm(SENHA_INICIAL)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { errorMessage?: string } } })?.response?.data?.errorMessage
+      setSenhaError(msg || 'Erro ao alterar a senha.')
+    } finally {
+      setSalvandoSenha(false)
+    }
+  }
 
   // Logging
   const [logAtivo, setLogAtivo] = useState<boolean | null>(null)
@@ -176,6 +208,43 @@ export default function Configuracoes() {
           <div>
             <p className="font-semibold text-fin-text-primary">{nome ?? 'Usuário'}</p>
             <p className="text-sm text-fin-text-secondary">{email ?? ''}</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Alterar Senha */}
+      <Card>
+        <div className="border-b border-fin-border px-6 py-4">
+          <h2 className="font-semibold text-fin-text-primary">Alterar Senha</h2>
+          <p className="text-xs text-fin-text-muted mt-0.5">Recomendado trocar a senha padrão no primeiro acesso.</p>
+        </div>
+        <div className="px-6 py-5 space-y-4 max-w-sm">
+          {senhaError && <Alert type="error" message={senhaError} />}
+          {senhaSuccess && <Alert type="success" message={senhaSuccess} />}
+          <Input
+            label="Senha atual"
+            type="password"
+            value={senhaForm.senhaAtual}
+            onChange={(e) => setSenhaForm((f) => ({ ...f, senhaAtual: e.target.value }))}
+            placeholder="••••••••"
+          />
+          <Input
+            label="Nova senha"
+            type="password"
+            value={senhaForm.novaSenha}
+            onChange={(e) => setSenhaForm((f) => ({ ...f, novaSenha: e.target.value }))}
+            placeholder="••••••••"
+          />
+          <Input
+            label="Confirmar nova senha"
+            type="password"
+            value={senhaForm.confirmacaoNovaSenha}
+            onChange={(e) => setSenhaForm((f) => ({ ...f, confirmacaoNovaSenha: e.target.value }))}
+            placeholder="••••••••"
+            onKeyDown={(e) => { if (e.key === 'Enter') handleAlterarSenha() }}
+          />
+          <div className="flex justify-end">
+            <Button onClick={handleAlterarSenha} loading={salvandoSenha}>Alterar senha</Button>
           </div>
         </div>
       </Card>

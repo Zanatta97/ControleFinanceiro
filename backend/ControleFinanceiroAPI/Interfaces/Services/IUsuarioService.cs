@@ -18,5 +18,6 @@ namespace ControleFinanceiroAPI.Interfaces.Services
         Task<ApiResponseDTO<object>> Register([FromBody] UsuarioRegisterDTO dto);
         Task<ApiResponseDTO<object>> RefreshToken(TokenDTO tokenDTO);
         Task<ApiResponseDTO<object>> Revoke(string username);
+        Task<ApiResponseDTO<object>> AlterarSenha(string userId, AlterarSenhaDTO dto);
     }
 }

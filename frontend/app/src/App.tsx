@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Layout from './components/Layout'
 import Login from './pages/Login'
-import Register from './pages/Register'
 import SelecionarAmbiente from './pages/SelecionarAmbiente'
 import Dashboard from './pages/Dashboard'
 import Contas from './pages/Contas'
@@ -23,7 +22,6 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )

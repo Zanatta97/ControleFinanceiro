@@ -56,6 +56,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] UsuarioRegisterDTO dto)
         {
@@ -63,6 +64,19 @@ namespace ControleFinanceiroAPI.Controllers
 
             return StatusCode(resultado.StatusCode, resultado);
 
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("alterar-senha")]
+        public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaDTO dto)
+        {
+            var userId = User.FindFirstValue("id");
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var resultado = await _service.AlterarSenha(userId, dto);
+            return StatusCode(resultado.StatusCode, resultado);
         }
 
         [HttpPost]

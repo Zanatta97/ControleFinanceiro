@@ -10,6 +10,16 @@ export interface UsuarioAdmin {
   roles: string[]
 }
 
+export interface CriarUsuarioRequest {
+  nome: string
+  email: string
+  senha: string
+  confirmacaoSenha: string
+}
+
+export const criarUsuario = (data: CriarUsuarioRequest) =>
+  api.post<ApiResponse<null>>('/Admin/usuarios', data)
+
 export const listarUsuarios = () =>
   api.get<ApiResponse<UsuarioAdmin[]>>('/Admin/usuarios')
 
