@@ -269,14 +269,16 @@ Enums → Models → DbContext → Migration → DTOs
 
 | Tela | Status |
 |---|---|
-| Login / Cadastro | [ ] |
-| Seleção de ambiente (pós-login) | [ ] |
-| Dashboard (resumo financeiro) | [ ] |
-| Contas (CRUD + extrato) | [ ] |
-| Categorias (CRUD) | [ ] |
-| Transações (listagem paginada + CRUD) | [ ] |
-| Orçamentos (CRUD + progresso) | [ ] |
-| Configurações (troca de ambiente + toggle de log) | [ ] |
+| Login / Cadastro | [x] |
+| Seleção de ambiente (pós-login) | [x] |
+| Dashboard (resumo financeiro) | [x] |
+| Contas (CRUD + extrato) | [x] |
+| Categorias (CRUD) | [x] |
+| Transações (listagem paginada + CRUD) | [x] |
+| Orçamentos (CRUD + progresso) | [x] |
+| Configurações (troca de ambiente + toggle de log) | [x] |
+| Administração (gestão de usuários/ambientes) | [x] |
+| Troca de senha | [x] |
 
 ### Componentes especiais
 
