@@ -1,5 +1,6 @@
 ﻿using ControleFinanceiroAPI.DTO.Common;
 using ControleFinanceiroAPI.DTO.Usuario;
+using ControleFinanceiroAPI.Filters;
 using ControleFinanceiroAPI.Interfaces.Services;
 using ControleFinanceiroAPI.Model;
 using Microsoft.AspNetCore.Authentication;
@@ -20,10 +21,21 @@ namespace ControleFinanceiroAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUsuarioService _service;
+        private readonly IDemoService _demoService;
 
-        public AuthController(IUsuarioService service)
+        public AuthController(IUsuarioService service, IDemoService demoService)
         {
             _service = service;
+            _demoService = demoService;
+        }
+
+        [HttpPost]
+        [Route("demo")]
+        public async Task<IActionResult> LoginDemo()
+        {
+            var resultado = await _demoService.LoginDemoAsync();
+
+            return StatusCode(resultado.StatusCode, resultado);
         }
 
         [HttpPost]
@@ -68,6 +80,7 @@ namespace ControleFinanceiroAPI.Controllers
 
         [HttpPost]
         [Authorize]
+        [BloquearDemo]
         [Route("alterar-senha")]
         public async Task<IActionResult> AlterarSenha([FromBody] AlterarSenhaDTO dto)
         {

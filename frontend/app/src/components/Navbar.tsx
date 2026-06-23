@@ -6,7 +6,7 @@ import { selecionarAmbiente, listarDoUsuario, criar, buscarPorId } from '../api/
 import type { AmbienteResponse } from '../types/api'
 
 export default function Navbar() {
-  const { nome, email, nomeAmbiente, ambienteId, logout, setAmbienteToken } = useAuth()
+  const { nome, email, nomeAmbiente, ambienteId, isDemo, logout, setAmbienteToken } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [ambientes, setAmbientes] = useState<AmbienteResponse[]>([])
@@ -124,13 +124,17 @@ export default function Navbar() {
 
             {showDropdown && (
               <div className="absolute right-0 mt-1 w-48 rounded-xl border border-fin-border bg-fin-surface shadow-lg z-20">
-                <button
-                  onClick={handleTrocarAmbiente}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-fin-text-primary hover:bg-fin-ghost-hover"
-                >
-                  🔄 Gerenciar Ambientes
-                </button>
-                <hr className="border-fin-border" />
+                {!isDemo && (
+                  <>
+                    <button
+                      onClick={handleTrocarAmbiente}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-fin-text-primary hover:bg-fin-ghost-hover"
+                    >
+                      🔄 Gerenciar Ambientes
+                    </button>
+                    <hr className="border-fin-border" />
+                  </>
+                )}
                 <button
                   onClick={handleLogout}
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-fin-negative hover:bg-fin-negative-soft"

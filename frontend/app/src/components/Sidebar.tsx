@@ -11,7 +11,10 @@ const links = [
 ]
 
 export default function Sidebar() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isDemo } = useAuth()
+
+  // No modo demonstração, Configurações fica indisponível (só os cadastros)
+  const visibleLinks = isDemo ? links.filter((l) => l.to !== '/configuracoes') : links
 
   return (
     <aside className="flex h-full w-56 flex-col border-r border-fin-border bg-fin-surface">
@@ -20,7 +23,7 @@ export default function Sidebar() {
         <span className="font-bold text-fin-text-primary text-sm">Controle Financeiro</span>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {links.map((l) => (
+        {visibleLinks.map((l) => (
           <NavLink
             key={l.to}
             to={l.to}

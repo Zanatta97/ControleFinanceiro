@@ -290,3 +290,41 @@ Enums → Models → DbContext → Migration → DTOs
 - Configurar proxy no `vite.config.ts`: `/api` → `http://localhost:5284`
 - Todas as respostas seguem `ApiResponseDTO<T>` — sempre ler `sucesso`, `dados`, `mensagem`
 - Após login, obrigatório selecionar um ambiente antes de acessar dados financeiros
+
+---
+
+## Segurança para Repositório Público
+
+**Implementado.** A `JWT:SecretKey` deixou de ser secreta no repositório:
+
+- O `appsettings.json` versionado contém apenas uma **chave de desenvolvimento pública** (≥ 32 chars, usada só no LocalDB).
+- Em produção, a chave real fica na variável de ambiente `JWT__SecretKey` do Azure App Service e **sobrepõe** a do arquivo.
+- A chave antiga (vazada no histórico) foi **rotacionada** no Azure, ficando inútil — por isso não foi necessário reescrever o histórico do git.
+- Connection string de produção vive nas App Settings do Azure (não está no repositório).
+
+---
+
+## Modo Demonstração
+
+**Implementado.** Permite explorar o sistema com dados de exemplo sem cadastro, mantendo o ambiente sempre enxuto (controle de custo no Azure).
+
+### Preparação manual (uma vez, por ambiente)
+- Role `Demo`, usuário `demo@demo.com` e Ambiente "Demonstração" criados à mão (produção e testes).
+- O usuário demo tem **apenas** a Role `Demo` e o ambiente demo como `AmbienteAtivoId`.
+
+### Como funciona
+| Componente | Papel |
+|---|---|
+| `POST /api/Auth/demo` (`AllowAnonymous`) | Loga o usuário demo (credenciais no servidor via `Demo:Email`/`Demo:Senha`) e retorna token **já com o ambiente selecionado**. |
+| `DemoService` | Orquestra o login, o reset diário e a recriação dos dados de exemplo. |
+| `DemoStateManager` (Singleton) | Guarda em memória a data do último reset — sem migration. Em cold start, reseta na primeira visita. |
+| `[BloquearDemo]` (filtro) | Retorna 403 para a Role `Demo` em endpoints sensíveis: troca de senha, mutações de Ambiente e toggle de logs. |
+
+### Reset diário (sem serviço de background)
+- Disparado **no login demo**: se ainda não houve reset no dia, apaga todos os dados do ambiente (`Transacao → Orcamento → SaldoMensalConta → Conta → Categoria`) e **recria** contas, categorias, transações e orçamentos de exemplo.
+- Decisão: como as entidades não têm timestamp de criação, o controle de "novo dia" é feito em memória (`DemoStateManager`), não inferido pelos dados.
+
+### Frontend
+- `AuthContext.isDemo` derivado da Role `Demo`.
+- Botão **"Acessar Demonstração"** na tela de Login → `POST /api/Auth/demo` → vai direto ao Dashboard.
+- Tela de **Configurações** e **Administração** ocultas e com rota bloqueada quando `isDemo` (só os cadastros ficam acessíveis).

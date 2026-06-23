@@ -2,6 +2,7 @@ using ControleFinanceiroAPI.Common.Extensions;
 using ControleFinanceiroAPI.DTO.Ambiente;
 using ControleFinanceiroAPI.DTO.Common;
 using ControleFinanceiroAPI.DTO.Usuario;
+using ControleFinanceiroAPI.Filters;
 using ControleFinanceiroAPI.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -73,6 +74,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPost]
+        [BloquearDemo]
         [ProducesResponseType(typeof(ApiResponseDTO<AmbienteResponseDTO>), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] AmbienteRequestDTO dto)
         {
@@ -84,6 +86,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [BloquearDemo]
         [ProducesResponseType(typeof(ApiResponseDTO<AmbienteResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update(Guid id, [FromBody] AmbienteRequestDTO dto)
         {
@@ -95,6 +98,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [BloquearDemo]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id)
@@ -111,6 +115,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPost("{id}/membros")]
+        [BloquearDemo]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         public async Task<IActionResult> AdicionarMembro(Guid id, [FromQuery] string membroEmail)
         {
@@ -122,6 +127,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpDelete("{id}/membros/{membroId}")]
+        [BloquearDemo]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         public async Task<IActionResult> RemoverMembro(Guid id, string membroId)
         {
@@ -133,6 +139,7 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         [HttpPut("{id}/dono")]
+        [BloquearDemo]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         public async Task<IActionResult> AtribuirDono(Guid id, [FromQuery] string membroId)
         {
