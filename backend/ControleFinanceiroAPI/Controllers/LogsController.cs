@@ -1,6 +1,7 @@
 using ControleFinanceiroAPI.Context;
 using ControleFinanceiroAPI.DTO.Common;
 using ControleFinanceiroAPI.DTO.Admin;
+using ControleFinanceiroAPI.Filters;
 using ControleFinanceiroAPI.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,7 @@ namespace ControleFinanceiroAPI.Controllers
         // Ativa o log completo: a partir deste request, todos os requests e respostas
         // passarão a ser gravados no banco.
         [HttpPost("ativar")]
+        [BloquearDemo]
         public IActionResult AtivarLog()
         {
             _logSettingsManager.Ativar();
@@ -45,6 +47,7 @@ namespace ControleFinanceiroAPI.Controllers
         // Desativa o log completo: volta ao comportamento padrão,
         // gravando apenas requests que resultaram em erro (status >= 400).
         [HttpPost("desativar")]
+        [BloquearDemo]
         public IActionResult DesativarLog()
         {
             _logSettingsManager.Desativar();

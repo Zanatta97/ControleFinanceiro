@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login as apiLogin } from '../api/auth'
+import { login as apiLogin, demoLogin as apiDemoLogin } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -12,7 +12,27 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const [error, setError] = useState('')
+
+  async function handleDemo() {
+    setError('')
+    setDemoLoading(true)
+    try {
+      const { data } = await apiDemoLogin()
+      if (data.success && data.dados?.token && data.dados.refreshToken) {
+        login(data.dados.token, data.dados.refreshToken)
+        navigate('/')
+      } else {
+        setError(data.errorMessage || 'Não foi possível acessar a demonstração.')
+      }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { errorMessage?: string } } })?.response?.data?.errorMessage
+      setError(msg || 'Erro ao acessar a demonstração. Tente novamente.')
+    } finally {
+      setDemoLoading(false)
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -67,6 +87,25 @@ export default function Login() {
               Entrar
             </Button>
           </form>
+
+          <div className="mt-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-fin-border" />
+            <span className="text-xs text-fin-text-muted">ou</span>
+            <div className="h-px flex-1 bg-fin-border" />
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleDemo}
+            loading={demoLoading}
+            className="w-full mt-4"
+          >
+            🚀 Acessar Demonstração
+          </Button>
+          <p className="mt-2 text-center text-xs text-fin-text-muted">
+            Explore o sistema com dados de exemplo, sem precisar de cadastro.
+          </p>
         </div>
       </div>
     </div>

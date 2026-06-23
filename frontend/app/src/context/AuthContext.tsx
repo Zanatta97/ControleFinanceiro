@@ -19,6 +19,7 @@ interface AuthContextValue extends AuthState {
   isAuthenticated: boolean
   hasAmbiente: boolean
   isAdmin: boolean
+  isDemo: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -84,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!state.accessToken,
         hasAmbiente: !!state.ambienteId,
         isAdmin: state.roles.includes('Admin'),
+        isDemo: state.roles.includes('Demo'),
       }}
     >
       {children}

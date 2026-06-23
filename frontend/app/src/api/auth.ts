@@ -4,6 +4,9 @@ import type { ApiResponse, TokenDTO, LoginTokenDTO, UsuarioLoginRequest, Usuario
 export const login = (data: UsuarioLoginRequest) =>
   api.post<ApiResponse<LoginTokenDTO>>('/Auth/login', data)
 
+export const demoLogin = () =>
+  api.post<ApiResponse<LoginTokenDTO>>('/Auth/demo')
+
 export const register = (data: UsuarioRegisterRequest) =>
   api.post<ApiResponse<null>>('/Auth/register', data)
 
