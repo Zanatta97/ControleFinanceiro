@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Icon } from '@iconify/react'
 import { login as apiLogin, demoLogin as apiDemoLogin } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
@@ -58,7 +59,9 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-fin-bg p-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="text-5xl">💰</span>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] bg-fin-brand text-white">
+            <Icon icon="lucide:dollar-sign" width={26} height={26} />
+          </div>
           <h1 className="mt-3 text-2xl font-bold text-fin-text-primary">Controle Financeiro</h1>
           <p className="mt-1 text-sm text-fin-text-secondary">Entre com sua conta</p>
         </div>
@@ -101,7 +104,8 @@ export default function Login() {
             loading={demoLoading}
             className="w-full mt-4"
           >
-            🚀 Acessar Demonstração
+            <Icon icon="lucide:play-circle" width={16} height={16} />
+            Acessar demonstração
           </Button>
           <p className="mt-2 text-center text-xs text-fin-text-muted">
             Explore o sistema com dados de exemplo, sem precisar de cadastro.

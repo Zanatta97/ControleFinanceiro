@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Icon } from '@iconify/react'
 import { listarDoUsuario, selecionarAmbiente, criar as criarAmbiente } from '../api/ambiente'
 import { useAuth } from '../context/AuthContext'
 import type { AmbienteResponse } from '../types/api'
@@ -72,7 +73,9 @@ export default function SelecionarAmbiente() {
     <div className="flex min-h-screen items-center justify-center bg-fin-bg p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <span className="text-5xl">🏠</span>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] bg-fin-brand text-white">
+            <Icon icon="lucide:layers" width={26} height={26} />
+          </div>
           <h1 className="mt-3 text-2xl font-bold text-fin-text-primary">Selecionar Ambiente</h1>
           <p className="mt-1 text-sm text-fin-text-secondary">Escolha o ambiente financeiro para acessar</p>
         </div>

@@ -1,13 +1,16 @@
 import { useEffect, type ReactNode } from 'react'
+import { Icon } from '@iconify/react'
 
 interface Props {
   open: boolean
   onClose: () => void
   title: string
   children: ReactNode
+  /** Rodapé fixo (ex.: botões Cancelar/Salvar). No mobile fica colado embaixo. */
+  footer?: ReactNode
 }
 
-export default function Drawer({ open, onClose, title, children }: Props) {
+export default function Drawer({ open, onClose, title, children, footer }: Props) {
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -24,34 +27,49 @@ export default function Drawer({ open, onClose, title, children }: Props) {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop (apenas no desktop; no mobile o painel ocupa a tela toda) */}
       <div
-        className={`fixed inset-0 z-40 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-40 hidden transition-opacity duration-300 md:block ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         style={{ backgroundColor: 'var(--fin-overlay)' }}
         onClick={onClose}
       />
 
-      {/* Painel */}
+      {/* Painel — tela cheia no mobile, painel lateral 420px no desktop */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-fin-surface shadow-2xl transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed inset-0 z-50 flex flex-col bg-fin-surface transition-transform duration-300 md:inset-y-0 md:left-auto md:right-0 md:w-full md:max-w-[420px] md:shadow-2xl ${open ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* Cabeçalho */}
-        <div className="flex shrink-0 items-center justify-between border-b border-fin-border px-6 py-4">
-          <h2 className="text-lg font-semibold text-fin-text-primary">{title}</h2>
+        <div className="flex flex-none items-center justify-between border-b border-fin-border px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              aria-label="Voltar"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-fin-text-muted transition hover:bg-fin-surface-2 md:hidden"
+            >
+              <Icon icon="lucide:chevron-left" width={22} height={22} />
+            </button>
+            <h2 className="text-lg font-semibold text-fin-text-primary">{title}</h2>
+          </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-fin-text-muted hover:bg-fin-surface-2 transition"
+            aria-label="Fechar"
+            className="hidden h-9 w-9 items-center justify-center rounded-lg text-fin-text-muted transition hover:bg-fin-surface-2 md:flex"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <Icon icon="lucide:x" width={20} height={20} />
           </button>
         </div>
 
         {/* Conteúdo com scroll */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
           {children}
         </div>
+
+        {/* Rodapé fixo */}
+        {footer && (
+          <div className="flex flex-none items-center gap-2 border-t border-fin-border px-4 py-3.5 sm:justify-end sm:px-6">
+            {footer}
+          </div>
+        )}
       </div>
     </>
   )

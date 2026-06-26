@@ -14,6 +14,7 @@ import Alert from '../components/ui/Alert'
 import Modal from '../components/ui/Modal'
 import Badge from '../components/ui/Badge'
 import Pagination from '../components/ui/Pagination'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { usePagination } from '../hooks/usePagination'
 
 type Tab = 'usuarios' | 'ambientes' | 'logs'
@@ -29,7 +30,7 @@ export default function Admin() {
   const [tab, setTab] = useState<Tab>('usuarios')
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-fin-text-primary">Administração</h1>
@@ -76,6 +77,8 @@ function TabUsuarios() {
   const [novoForm, setNovoForm] = useState<CriarUsuarioRequest>(NOVO_USUARIO_INICIAL)
   const [novoError, setNovoError] = useState('')
   const [criando, setCriando] = useState(false)
+  const [usuarioToDelete, setUsuarioToDelete] = useState<UsuarioAdmin | null>(null)
+  const [deletingUsuario, setDeletingUsuario] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -95,12 +98,15 @@ function TabUsuarios() {
     } catch { setError('Erro ao alterar status do usuário.') }
   }
 
-  async function handleDelete(u: UsuarioAdmin) {
-    if (!confirm(`Excluir permanentemente o usuário "${u.nome ?? u.email}"? Esta ação não pode ser desfeita.`)) return
+  async function handleDelete() {
+    if (!usuarioToDelete) return
+    setDeletingUsuario(true)
     try {
-      await excluirUsuario(u.id)
+      await excluirUsuario(usuarioToDelete.id)
+      setUsuarioToDelete(null)
       await load()
     } catch { setError('Erro ao excluir usuário.') }
+    finally { setDeletingUsuario(false) }
   }
 
   function openModalRoles(u: UsuarioAdmin) {
@@ -223,7 +229,7 @@ function TabUsuarios() {
                           {u.bloqueado ? 'Desbloquear' : 'Bloquear'}
                         </button>
                         <button
-                          onClick={() => handleDelete(u)}
+                          onClick={() => setUsuarioToDelete(u)}
                           title="Excluir usuário"
                           className="rounded px-2 py-1 text-xs text-fin-negative hover:bg-fin-negative-soft transition"
                         >
@@ -322,6 +328,17 @@ function TabUsuarios() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={!!usuarioToDelete}
+        variant="delete"
+        title="Excluir usuário"
+        message={<>Excluir permanentemente o usuário <strong className="text-fin-text-primary">{usuarioToDelete?.nome ?? usuarioToDelete?.email}</strong>? Esta ação não pode ser desfeita.</>}
+        confirmLabel="Excluir"
+        loading={deletingUsuario}
+        onConfirm={handleDelete}
+        onClose={() => setUsuarioToDelete(null)}
+      />
     </>
   )
 }
@@ -334,6 +351,8 @@ function TabAmbientes() {
   const [error, setError] = useState('')
   const [modalMembros, setModalMembros] = useState<AmbienteResponse | null>(null)
   const [busca, setBusca] = useState('')
+  const [ambienteToDelete, setAmbienteToDelete] = useState<AmbienteResponse | null>(null)
+  const [deletingAmbiente, setDeletingAmbiente] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -346,12 +365,15 @@ function TabAmbientes() {
     finally { setLoading(false) }
   }
 
-  async function handleDelete(a: AmbienteResponse) {
-    if (!confirm(`Excluir o ambiente "${a.nome}"? Todos os dados (contas, transações, categorias) serão perdidos.`)) return
+  async function handleDelete() {
+    if (!ambienteToDelete) return
+    setDeletingAmbiente(true)
     try {
-      await excluirAmbiente(a.id)
+      await excluirAmbiente(ambienteToDelete.id)
+      setAmbienteToDelete(null)
       await load()
     } catch { setError('Erro ao excluir ambiente.') }
+    finally { setDeletingAmbiente(false) }
   }
 
   const filtrados = ambientes.filter((a) =>
@@ -406,7 +428,7 @@ function TabAmbientes() {
                           </button>
                         )}
                         <button
-                          onClick={() => handleDelete(a)}
+                          onClick={() => setAmbienteToDelete(a)}
                           className="rounded px-2 py-1 text-xs text-fin-negative hover:bg-fin-negative-soft transition"
                         >
                           Excluir
@@ -446,6 +468,17 @@ function TabAmbientes() {
           ))}
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={!!ambienteToDelete}
+        variant="delete"
+        title="Excluir ambiente"
+        message={<>Excluir o ambiente <strong className="text-fin-text-primary">{ambienteToDelete?.nome}</strong>? Todos os dados (contas, transações, categorias) serão perdidos.</>}
+        confirmLabel="Excluir"
+        loading={deletingAmbiente}
+        onConfirm={handleDelete}
+        onClose={() => setAmbienteToDelete(null)}
+      />
     </>
   )
 }

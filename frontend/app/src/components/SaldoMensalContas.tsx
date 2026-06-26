@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
+import { Icon } from '@iconify/react'
 import { getSaldoMensal, salvarSaldoInicial, calcularSaldoInicial, type SaldoMensalContaResponse } from '../api/saldoMensal'
 import { formatCurrency } from '../utils/format'
 import Card from './ui/Card'
 import Button from './ui/Button'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 interface Props {
   mes: number
@@ -15,6 +17,11 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
   const [calculando, setCalculando] = useState(false)
   const [editando, setEditando] = useState<string | null>(null)
   const [valorEdit, setValorEdit] = useState('')
+
+  // Confirmações
+  const [confirmSaldo, setConfirmSaldo] = useState<{ contaId: string; nome: string; atual: number; novo: number } | null>(null)
+  const [salvandoSaldo, setSalvandoSaldo] = useState(false)
+  const [confirmCalcular, setConfirmCalcular] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -31,6 +38,7 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
   useEffect(() => { load() }, [load])
 
   async function handleCalcular() {
+    setConfirmCalcular(false)
     setCalculando(true)
     try {
       const { data } = await calcularSaldoInicial(mes, ano)
@@ -45,14 +53,24 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
     setValorEdit(String(saldoAtual))
   }
 
-  async function confirmEdit(contaId: string) {
+  // Abre o diálogo de confirmação (Atual → Novo) ao invés de salvar direto.
+  function requestSaveEdit(conta: SaldoMensalContaResponse) {
     const valor = parseFloat(valorEdit.replace(',', '.'))
     if (isNaN(valor)) { setEditando(null); return }
+    if (valor === conta.saldoInicial) { setEditando(null); return }
+    setConfirmSaldo({ contaId: conta.contaId, nome: conta.nomeConta ?? 'conta', atual: conta.saldoInicial, novo: valor })
+  }
+
+  async function confirmSaveSaldo() {
+    if (!confirmSaldo) return
+    setSalvandoSaldo(true)
     try {
-      await salvarSaldoInicial(contaId, mes, ano, valor)
+      await salvarSaldoInicial(confirmSaldo.contaId, mes, ano, confirmSaldo.novo)
+      setConfirmSaldo(null)
+      setEditando(null)
       await load()
     } finally {
-      setEditando(null)
+      setSalvandoSaldo(false)
     }
   }
 
@@ -67,7 +85,7 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
           <h2 className="font-semibold text-fin-text-primary">Saldo das Contas</h2>
           <p className="text-xs text-fin-text-muted mt-0.5">Clique no saldo inicial para editar manualmente.</p>
         </div>
-        <Button size="sm" variant="secondary" onClick={handleCalcular} loading={calculando}>
+        <Button size="sm" variant="secondary" onClick={() => setConfirmCalcular(true)} loading={calculando}>
           Calcular saldo inicial
         </Button>
       </div>
@@ -95,7 +113,7 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
                   {/* Saldo inicial — editável */}
                   <td className="px-5 py-3 text-right">
                     {editando === d.contaId ? (
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
                         <input
                           autoFocus
                           type="number"
@@ -103,24 +121,28 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
                           value={valorEdit}
                           onChange={(e) => setValorEdit(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter') confirmEdit(d.contaId)
+                            if (e.key === 'Enter') requestSaveEdit(d)
                             if (e.key === 'Escape') setEditando(null)
                           }}
-                          className="w-28 rounded border border-fin-brand bg-fin-surface text-fin-text-primary px-2 py-0.5 text-right text-sm focus:outline-none focus:shadow-fin-focus"
+                          className="w-[104px] rounded-[7px] border-[1.5px] border-fin-brand bg-fin-surface px-2 py-1 text-right font-fin-mono text-sm text-fin-text-primary focus:outline-none focus:shadow-fin-focus"
                         />
-                        <button onClick={() => confirmEdit(d.contaId)} className="text-fin-positive hover:text-fin-positive-hover text-xs font-medium">✓</button>
-                        <button onClick={() => setEditando(null)} className="text-fin-text-muted hover:text-fin-text-secondary text-xs">✕</button>
+                        <button onClick={() => requestSaveEdit(d)} title="Salvar" className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-fin-brand text-white transition hover:bg-fin-brand-hover">
+                          <Icon icon="lucide:check" width={14} height={14} />
+                        </button>
+                        <button onClick={() => setEditando(null)} title="Cancelar" className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-fin-border text-fin-text-muted transition hover:bg-fin-surface-2">
+                          <Icon icon="lucide:x" width={13} height={13} />
+                        </button>
                       </div>
                     ) : (
                       <button
                         onClick={() => startEdit(d.contaId, d.saldoInicial)}
-                        className="group flex items-center justify-end gap-1 w-full text-right hover:text-fin-brand transition"
+                        className="group inline-flex items-center justify-end gap-1.5 rounded-[7px] border border-transparent px-1.5 py-1 font-fin-mono text-sm transition hover:border-fin-border hover:bg-fin-surface-2"
                         title="Clique para editar"
                       >
                         <span className={d.saldoInicial !== 0 ? 'text-fin-text-secondary' : 'text-fin-text-muted'}>
                           {formatCurrency(d.saldoInicial)}
                         </span>
-                        <span className="text-fin-text-muted group-hover:text-fin-brand text-xs">✏</span>
+                        <Icon icon="lucide:pencil" width={12} height={12} className="text-fin-text-muted group-hover:text-fin-brand" />
                       </button>
                     )}
                   </td>
@@ -144,6 +166,45 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
           )}
         </div>
       )}
+
+      {/* Confirmação de alteração do saldo inicial (Atual → Novo) */}
+      <ConfirmDialog
+        open={!!confirmSaldo}
+        variant="info"
+        title="Alterar saldo inicial"
+        confirmLabel="Salvar"
+        loading={salvandoSaldo}
+        onConfirm={confirmSaveSaldo}
+        onClose={() => { setConfirmSaldo(null); setEditando(null) }}
+        message={
+          <>
+            Confirma o novo saldo inicial da conta <strong className="text-fin-text-primary">{confirmSaldo?.nome}</strong> para {mes}/{ano}?
+            <div className="mt-4 flex items-center gap-3 rounded-[11px] bg-fin-surface-2 p-3.5">
+              <div className="flex-1">
+                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-fin-text-muted">Atual</p>
+                <p className="mt-1 font-fin-mono text-[15px] text-fin-text-secondary">{formatCurrency(confirmSaldo?.atual ?? 0)}</p>
+              </div>
+              <Icon icon="lucide:arrow-right" width={20} height={20} className="text-fin-text-muted" />
+              <div className="flex-1">
+                <p className="text-[10.5px] font-semibold uppercase tracking-wide text-fin-brand">Novo</p>
+                <p className="mt-1 font-fin-mono text-[15px] font-medium text-fin-text-primary">{formatCurrency(confirmSaldo?.novo ?? 0)}</p>
+              </div>
+            </div>
+          </>
+        }
+      />
+
+      {/* Confirmação antes de recalcular o saldo inicial */}
+      <ConfirmDialog
+        open={confirmCalcular}
+        variant="warning"
+        title="Calcular saldo inicial"
+        message="Isso recalcula o saldo inicial de todas as contas a partir das transações e sobrescreve valores ajustados manualmente. Deseja continuar?"
+        confirmLabel="Calcular"
+        loading={calculando}
+        onConfirm={handleCalcular}
+        onClose={() => setConfirmCalcular(false)}
+      />
     </Card>
   )
 }

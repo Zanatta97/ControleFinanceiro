@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Icon } from '@iconify/react'
 import { getStatus, ativar, desativar } from '../api/logs'
 import { listarDoUsuario, selecionarAmbiente, criar as criarAmbiente, atualizar as atualizarAmbiente, excluir as excluirAmbiente, adicionarMembro, removerMembro } from '../api/ambiente'
 import { alterarSenha, type AlterarSenhaRequest } from '../api/auth'
@@ -10,6 +11,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
 import Alert from '../components/ui/Alert'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 
 export default function Configuracoes() {
   const { setAmbienteToken, nome, email, userId } = useAuth()
@@ -74,6 +76,11 @@ export default function Configuracoes() {
   const [emailMembro, setEmailMembro] = useState('')
   const [addingMembro, setAddingMembro] = useState(false)
   const [errorMembro, setErrorMembro] = useState('')
+
+  // Confirmações de exclusão
+  const [ambToDelete, setAmbToDelete] = useState<AmbienteResponse | null>(null)
+  const [membroToRemove, setMembroToRemove] = useState<{ ambienteId: string; membroId: string; nome: string } | null>(null)
+  const [confirmLoading, setConfirmLoading] = useState(false)
 
   useEffect(() => {
     carregarLogStatus()
@@ -159,10 +166,16 @@ export default function Configuracoes() {
     }
   }
 
-  async function handleExcluirAmbiente(id: string) {
-    if (!confirm('Excluir este ambiente? Todos os dados serão perdidos.')) return
-    await excluirAmbiente(id)
-    await carregarAmbientes()
+  async function handleExcluirAmbiente() {
+    if (!ambToDelete) return
+    setConfirmLoading(true)
+    try {
+      await excluirAmbiente(ambToDelete.id)
+      setAmbToDelete(null)
+      await carregarAmbientes()
+    } finally {
+      setConfirmLoading(false)
+    }
   }
 
   async function handleAdicionarMembro() {
@@ -183,17 +196,24 @@ export default function Configuracoes() {
     }
   }
 
-  async function handleRemoverMembro(ambienteId: string, membroId: string) {
-    if (!confirm('Remover este membro?')) return
-    await removerMembro(ambienteId, membroId)
-    await carregarAmbientes()
-    const { data } = await listarDoUsuario()
-    const atualizado = (data.dados ?? []).find((a) => a.id === ambienteId)
-    setModalMembros(atualizado ?? null)
+  async function handleRemoverMembro() {
+    if (!membroToRemove) return
+    const { ambienteId, membroId } = membroToRemove
+    setConfirmLoading(true)
+    try {
+      await removerMembro(ambienteId, membroId)
+      setMembroToRemove(null)
+      await carregarAmbientes()
+      const { data } = await listarDoUsuario()
+      const atualizado = (data.dados ?? []).find((a) => a.id === ambienteId)
+      setModalMembros(atualizado ?? null)
+    } finally {
+      setConfirmLoading(false)
+    }
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="flex max-w-3xl flex-col gap-6">
       <h1 className="text-2xl font-bold text-fin-text-primary">Configurações</h1>
 
       {/* Perfil */}
@@ -260,10 +280,11 @@ export default function Configuracoes() {
             {loadingLog ? (
               <p className="text-sm text-fin-text-muted">Verificando status...</p>
             ) : (
-              <p className="text-sm text-fin-text-primary">
+              <p className="flex items-center gap-1.5 text-sm text-fin-text-primary">
                 Status atual:{' '}
-                <span className={`font-semibold ${logAtivo ? 'text-fin-positive' : 'text-fin-text-muted'}`}>
-                  {logAtivo ? '🟢 Ativo' : '⚫ Inativo'}
+                <span className={`inline-flex items-center gap-1.5 font-semibold ${logAtivo ? 'text-fin-positive' : 'text-fin-text-muted'}`}>
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: logAtivo ? 'var(--fin-positive)' : 'var(--fin-text-muted)' }} />
+                  {logAtivo ? 'Ativo' : 'Inativo'}
                 </span>
               </p>
             )}
@@ -305,9 +326,15 @@ export default function Configuracoes() {
                 <Button size="sm" variant="ghost" onClick={() => handleSelecionarAmbiente(a.id)}>Entrar</Button>
                 {podeGerenciar(a) && (
                   <>
-                    <Button size="sm" variant="ghost" onClick={() => setModalMembros(a)}>👥</Button>
-                    <Button size="sm" variant="ghost" onClick={() => openEditAmbiente(a)}>✏️</Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleExcluirAmbiente(a.id)}>🗑️</Button>
+                    <button onClick={() => setModalMembros(a)} title="Membros" className="flex h-8 w-8 items-center justify-center rounded-lg text-fin-text-muted transition hover:bg-fin-surface-2 hover:text-fin-text-primary">
+                      <Icon icon="lucide:users" width={15} height={15} />
+                    </button>
+                    <button onClick={() => openEditAmbiente(a)} title="Editar" className="flex h-8 w-8 items-center justify-center rounded-lg text-fin-text-muted transition hover:bg-fin-surface-2 hover:text-fin-text-primary">
+                      <Icon icon="lucide:pencil" width={15} height={15} />
+                    </button>
+                    <button onClick={() => setAmbToDelete(a)} title="Excluir" className="flex h-8 w-8 items-center justify-center rounded-lg text-fin-text-muted transition hover:bg-fin-negative-soft hover:text-fin-negative">
+                      <Icon icon="lucide:trash-2" width={15} height={15} />
+                    </button>
                   </>
                 )}
               </div>
@@ -355,7 +382,7 @@ export default function Configuracoes() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-fin-text-secondary bg-fin-surface-2 rounded px-2 py-0.5">{m.role}</span>
                   {modalMembros && podeGerenciar(modalMembros) && m.usuario?.id && m.usuario.id !== userId && (
-                    <button onClick={() => handleRemoverMembro(modalMembros.id, m.usuario!.id!)} className="text-xs text-fin-negative hover:text-fin-negative-hover">Remover</button>
+                    <button onClick={() => setMembroToRemove({ ambienteId: modalMembros.id, membroId: m.usuario!.id!, nome: m.usuario?.nome ?? m.usuario?.email ?? 'membro' })} className="text-xs text-fin-negative hover:text-fin-negative-hover">Remover</button>
                   )}
                 </div>
               </div>
@@ -363,6 +390,28 @@ export default function Configuracoes() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={!!ambToDelete}
+        variant="delete"
+        title="Excluir ambiente"
+        message={<>Excluir o ambiente <strong className="text-fin-text-primary">{ambToDelete?.nome}</strong>? Todos os dados (contas, transações, categorias) serão perdidos.</>}
+        confirmLabel="Excluir"
+        loading={confirmLoading}
+        onConfirm={handleExcluirAmbiente}
+        onClose={() => setAmbToDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={!!membroToRemove}
+        variant="warning"
+        title="Remover membro"
+        message={<>Remover <strong className="text-fin-text-primary">{membroToRemove?.nome}</strong> deste ambiente?</>}
+        confirmLabel="Remover"
+        loading={confirmLoading}
+        onConfirm={handleRemoverMembro}
+        onClose={() => setMembroToRemove(null)}
+      />
     </div>
   )
 }

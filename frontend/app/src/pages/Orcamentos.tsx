@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Icon } from '@iconify/react'
 import { listarDoAmbiente, criar, atualizar, excluir } from '../api/orcamento'
 import { listarDoAmbiente as listarCategorias } from '../api/categoria'
 import { statusOrcamentos } from '../api/relatorio'
@@ -11,6 +12,7 @@ import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Card from '../components/ui/Card'
 import Alert from '../components/ui/Alert'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 
 const statusOptions = [
   { value: StatusOrcamento.Ativo, label: 'Ativo' },
@@ -39,6 +41,8 @@ export default function Orcamentos() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [filtro, setFiltro] = useState<'todos' | 'ativos'>('ativos')
+  const [toDelete, setToDelete] = useState<OrcamentoResponse | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -97,10 +101,16 @@ export default function Orcamentos() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Excluir este orçamento?')) return
-    await excluir(id)
-    await load()
+  async function handleDelete() {
+    if (!toDelete) return
+    setDeleting(true)
+    try {
+      await excluir(toDelete.id)
+      setToDelete(null)
+      await load()
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const filtrados = filtro === 'ativos'
@@ -112,10 +122,13 @@ export default function Orcamentos() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-fin-text-primary">Orçamentos</h1>
-        <Button onClick={openNew}>+ Novo Orçamento</Button>
+        <h1 className="text-[22px] font-bold text-fin-text-primary">Orçamentos</h1>
+        <Button onClick={openNew}>
+          <Icon icon="lucide:plus" width={16} height={16} />
+          Novo orçamento
+        </Button>
       </div>
 
       <div className="flex gap-2">
@@ -134,48 +147,54 @@ export default function Orcamentos() {
         <div className="text-center py-12 text-fin-text-muted">Carregando...</div>
       ) : filtrados.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-4xl mb-3">📋</p>
+          <Icon icon="lucide:target" width={40} height={40} className="mx-auto mb-3 text-fin-text-muted" />
           <p className="text-fin-text-secondary">Nenhum orçamento encontrado.</p>
           <Button className="mt-4" onClick={openNew}>Criar primeiro orçamento</Button>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {filtrados.map((o) => {
             const st = getStatus(o.id)
             const pct = st ? Math.min(st.percentual, 100) : 0
             const color = pct >= 90 ? 'var(--fin-negative)' : pct >= 70 ? 'var(--fin-warning)' : 'var(--fin-positive)'
+            const ativo = o.statusOrcamento === StatusOrcamento.Ativo
             return (
-              <Card key={o.id} className="p-5">
-                <div className="flex items-start justify-between mb-3">
+              <Card key={o.id} className="p-[18px]">
+                <div className="mb-3 flex items-start justify-between">
                   <div>
                     <p className="font-semibold text-fin-text-primary">{o.nome}</p>
-                    <p className="text-xs text-fin-text-muted">{st?.nomeCategoria ?? categorias.find(c => c.id === o.categoriaId)?.nome ?? '-'}</p>
+                    <p className="text-[11.5px] text-fin-text-muted">{st?.nomeCategoria ?? categorias.find(c => c.id === o.categoriaId)?.nome ?? '-'}</p>
                   </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => openEdit(o)} className="rounded p-1 hover:bg-fin-surface-2 text-fin-text-muted">✏️</button>
-                    <button onClick={() => handleDelete(o.id)} className="rounded p-1 hover:bg-fin-negative-soft text-fin-text-muted hover:text-fin-negative">🗑️</button>
+                  <div className="flex gap-0.5">
+                    <button onClick={() => openEdit(o)} title="Editar" className="flex h-7 w-7 items-center justify-center rounded-[7px] text-fin-text-muted transition hover:bg-fin-surface-2 hover:text-fin-text-primary">
+                      <Icon icon="lucide:pencil" width={15} height={15} />
+                    </button>
+                    <button onClick={() => setToDelete(o)} title="Excluir" className="flex h-7 w-7 items-center justify-center rounded-[7px] text-fin-text-muted transition hover:bg-fin-negative-soft hover:text-fin-negative">
+                      <Icon icon="lucide:trash-2" width={15} height={15} />
+                    </button>
                   </div>
                 </div>
 
-                {st && (
+                {st ? (
                   <>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-fin-text-secondary">{formatCurrency(st.valorGasto)}</span>
+                    <div className="mb-1.5 flex justify-between text-[12.5px]">
+                      <span className="font-fin-mono text-fin-text-secondary">{formatCurrency(st.valorGasto)}</span>
                       <span className="text-fin-text-muted">de {formatCurrency(st.valorLimite)}</span>
                     </div>
-                    <div className="h-2 rounded-full bg-fin-surface-2">
-                      <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
+                    <div className="h-2 overflow-hidden rounded-[5px] bg-fin-surface-2">
+                      <div className="h-2 rounded-[5px] transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
                     </div>
-                    <p className="mt-1 text-xs text-fin-text-muted">{pct.toFixed(1)}% utilizado</p>
+                    <p className="mt-[7px] text-[11.5px] text-fin-text-muted">{pct.toFixed(1).replace('.', ',')}% utilizado · vence {formatDate(o.dataLimite)}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-fin-text-secondary">Limite: <span className="font-fin-mono">{formatCurrency(o.valorLimite)}</span></p>
+                    <p className="mt-[7px] text-[11.5px] text-fin-text-muted">Vence em {formatDate(o.dataLimite)}</p>
                   </>
                 )}
-                {!st && (
-                  <p className="text-sm text-fin-text-secondary">Limite: {formatCurrency(o.valorLimite)}</p>
-                )}
 
-                <p className="mt-2 text-xs text-fin-text-muted">Vence em {formatDate(o.dataLimite)}</p>
-                <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${o.statusOrcamento === StatusOrcamento.Ativo ? 'bg-fin-positive-soft text-fin-positive' : 'bg-fin-surface-2 text-fin-text-muted'}`}>
-                  {o.statusOrcamento === StatusOrcamento.Ativo ? 'Ativo' : 'Encerrado'}
+                <span className={`mt-[9px] inline-block rounded-full px-[9px] py-0.5 text-[11px] font-semibold ${ativo ? 'bg-fin-positive-soft text-fin-positive' : 'bg-fin-surface-2 text-fin-text-muted'}`}>
+                  {ativo ? 'Ativo' : 'Encerrado'}
                 </span>
               </Card>
             )
@@ -183,7 +202,17 @@ export default function Orcamentos() {
         </div>
       )}
 
-      <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Orçamento' : 'Novo Orçamento'}>
+      <Drawer
+        open={modal}
+        onClose={() => setModal(false)}
+        title={editing ? 'Editar Orçamento' : 'Novo Orçamento'}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setModal(false)} className="hidden sm:inline-flex">Cancelar</Button>
+            <Button onClick={handleSave} loading={saving} className="flex-1 sm:flex-none">Salvar</Button>
+          </>
+        }
+      >
         <div className="space-y-4">
           {error && <Alert type="error" message={error} />}
           <div className="grid grid-cols-1 gap-4">
@@ -194,12 +223,19 @@ export default function Orcamentos() {
             <Select label="Categoria" value={form.categoriaId} onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))} options={categorias.map((c) => ({ value: c.id, label: c.nome ?? '' }))} />
             <Select label="Status" value={form.statusOrcamento} onChange={(e) => setForm((f) => ({ ...f, statusOrcamento: Number(e.target.value) as StatusOrcamento }))} options={statusOptions} />
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" onClick={() => setModal(false)}>Cancelar</Button>
-            <Button onClick={handleSave} loading={saving}>Salvar</Button>
-          </div>
         </div>
       </Drawer>
+
+      <ConfirmDialog
+        open={!!toDelete}
+        variant="delete"
+        title="Excluir orçamento"
+        message={<>Tem certeza que deseja excluir o orçamento <strong className="text-fin-text-primary">{toDelete?.nome}</strong>?</>}
+        confirmLabel="Excluir"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onClose={() => setToDelete(null)}
+      />
     </div>
   )
 }
