@@ -90,3 +90,25 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* Animações dos overlays do protótipo (modal, drawer, diálogos) */
+@keyframes finFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes finPop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes finSlide {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+
+@layer utilities {
+  .animate-fin-fade { animation: finFade 0.18s ease; }
+  .animate-fin-pop { animation: finPop 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
+  .animate-fin-slide { animation: finSlide 0.26s cubic-bezier(0.22, 1, 0.36, 1); }
+}

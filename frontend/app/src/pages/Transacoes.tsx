@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { Icon } from '@iconify/react'
 import { listarDoAmbiente, criar, atualizar, excluir } from '../api/transacao'
 import { listarDoAmbiente as listarContas } from '../api/conta'
 import { listarDoAmbiente as listarCategorias } from '../api/categoria'
@@ -12,9 +13,9 @@ import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Card from '../components/ui/Card'
 import Toast from '../components/ui/Toast'
-import Badge from '../components/ui/Badge'
 import CurrencyInput from '../components/ui/CurrencyInput'
 import Pagination from '../components/ui/Pagination'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { usePagination } from '../hooks/usePagination'
 
 const tipoOptions = [
@@ -88,6 +89,10 @@ export default function Transacoes() {
   // Ordenação
   const [sortField, setSortField] = useState<SortField>('data')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  // Exclusão
+  const [toDelete, setToDelete] = useState<TransacaoResponse | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -169,10 +174,16 @@ export default function Transacoes() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Excluir esta transação?')) return
-    await excluir(id)
-    await load()
+  async function handleDelete() {
+    if (!toDelete) return
+    setDeleting(true)
+    try {
+      await excluir(toDelete.id)
+      setToDelete(null)
+      await load()
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const filtradas = useMemo(() => {
@@ -224,19 +235,30 @@ export default function Transacoes() {
       {error && <Toast message={error} onClose={() => setError('')} />}
 
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-fin-text-primary">Transações</h1>
-        <Button onClick={openNew}>+ Nova Transação</Button>
+        <h1 className="text-[22px] font-bold text-fin-text-primary">Transações</h1>
+        <Button onClick={openNew}>
+          <Icon icon="lucide:plus" width={16} height={16} />
+          Nova transação
+        </Button>
       </div>
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 items-end">
         <div className="flex gap-1">
-          {(['todos', 'Receita', 'Despesa'] as const).map((f) => (
-            <button key={f} onClick={() => setFiltroTipo(f)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${filtroTipo === f ? 'bg-fin-brand text-white' : 'bg-fin-surface border border-fin-border text-fin-text-secondary hover:bg-fin-surface-2'}`}>
-              {f === 'todos' ? 'Todas' : f === 'Receita' ? '📈 Receitas' : '📉 Despesas'}
-            </button>
-          ))}
+          {(['todos', 'Receita', 'Despesa'] as const).map((f) => {
+            const active = filtroTipo === f
+            const activeCls = f === 'Receita'
+              ? 'bg-fin-positive-soft text-fin-positive border-fin-positive-soft'
+              : f === 'Despesa'
+              ? 'bg-fin-negative-soft text-fin-negative border-fin-negative-soft'
+              : 'bg-fin-brand text-white border-fin-brand'
+            return (
+              <button key={f} onClick={() => setFiltroTipo(f)}
+                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${active ? activeCls : 'bg-fin-surface border-fin-border text-fin-text-secondary hover:bg-fin-surface-2'}`}>
+                {f === 'todos' ? 'Todas' : f === 'Receita' ? 'Receitas' : 'Despesas'}
+              </button>
+            )
+          })}
         </div>
         <div className="flex flex-col gap-0.5">
           <label className="text-xs text-fin-text-muted">Competência</label>
@@ -271,7 +293,7 @@ export default function Transacoes() {
         <div className="text-center py-12 text-fin-text-muted">Carregando...</div>
       ) : filtradas.length === 0 ? (
         <Card className="p-12 text-center">
-          <p className="text-4xl mb-3">💸</p>
+          <Icon icon="lucide:arrow-left-right" width={40} height={40} className="mx-auto mb-3 text-fin-text-muted" />
           <p className="text-fin-text-secondary">Nenhuma transação encontrada.</p>
           <Button className="mt-4" onClick={openNew}>Registrar primeira transação</Button>
         </Card>
@@ -306,14 +328,18 @@ export default function Transacoes() {
                     </td>
                     <td className="px-4 py-3 text-fin-text-muted">{formatDate(t.data)}</td>
                     <td className="px-4 py-3 text-right">
-                      <Badge color={t.tipoTransacao === TipoTransacao.Receita ? 'var(--fin-positive)' : 'var(--fin-negative)'}>
-                        {`${t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}${formatCurrency(t.valor)}`}
-                      </Badge>
+                      <span className="font-fin-mono font-medium" style={{ color: t.tipoTransacao === TipoTransacao.Receita ? 'var(--fin-positive)' : 'var(--fin-negative)' }}>
+                        {t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}{formatCurrency(t.valor)}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-1 justify-end">
-                        <button onClick={() => openEdit(t)} className="rounded p-1 hover:bg-fin-surface-2 text-fin-text-muted hover:text-fin-text-primary">✏️</button>
-                        <button onClick={() => handleDelete(t.id)} className="rounded p-1 hover:bg-fin-negative-soft text-fin-text-muted hover:text-fin-negative">🗑️</button>
+                      <div className="flex gap-0.5 justify-end">
+                        <button onClick={() => openEdit(t)} title="Editar" className="flex h-7 w-7 items-center justify-center rounded-[7px] text-fin-text-muted transition hover:bg-fin-surface-2 hover:text-fin-text-primary">
+                          <Icon icon="lucide:pencil" width={15} height={15} />
+                        </button>
+                        <button onClick={() => setToDelete(t)} title="Excluir" className="flex h-7 w-7 items-center justify-center rounded-[7px] text-fin-text-muted transition hover:bg-fin-negative-soft hover:text-fin-negative">
+                          <Icon icon="lucide:trash-2" width={15} height={15} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -325,7 +351,19 @@ export default function Transacoes() {
         </Card>
       )}
 
-      <Drawer open={modal} onClose={() => setModal(false)} title={editing ? 'Editar Transação' : 'Nova Transação'}>
+      <Drawer
+        open={modal}
+        onClose={() => setModal(false)}
+        title={editing ? 'Editar Transação' : 'Nova Transação'}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setModal(false)} className="hidden sm:inline-flex">Cancelar</Button>
+            <Button onClick={handleSave} loading={saving} className="flex-1 sm:flex-none">
+              {parcelas > 1 ? `Criar ${parcelas} parcelas` : 'Salvar'}
+            </Button>
+          </>
+        }
+      >
         <div className="space-y-4">
           <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." required />
           <Select label="Tipo" value={form.tipoTransacao}
@@ -365,15 +403,19 @@ export default function Transacoes() {
           <Input label="Observação" value={form.observacao ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, observacao: e.target.value || null }))}
             placeholder={parcelas > 1 ? 'Opcional — será adicionada após o número da parcela' : 'Opcional...'} />
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" onClick={() => setModal(false)}>Cancelar</Button>
-            <Button onClick={handleSave} loading={saving}>
-              {parcelas > 1 ? `Criar ${parcelas} parcelas` : 'Salvar'}
-            </Button>
-          </div>
         </div>
       </Drawer>
+
+      <ConfirmDialog
+        open={!!toDelete}
+        variant="delete"
+        title="Excluir transação"
+        message={<>Tem certeza que deseja excluir a transação <strong className="text-fin-text-primary">{toDelete?.descricao || '—'}</strong>?</>}
+        confirmLabel="Excluir"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onClose={() => setToDelete(null)}
+      />
     </div>
   )
 }
