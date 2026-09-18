@@ -54,6 +54,7 @@ namespace ControleFinanceiroAPI.Services
         public async Task<Transacao> AddAsync(Transacao transacao)
         {
             ArgumentNullException.ThrowIfNull(transacao, nameof(transacao));
+            await ValidarContaDestinoAsync(transacao, transacao.AmbienteId);
             try
             {
                 _repository.TransacaoRepository.Add(transacao);
@@ -71,6 +72,8 @@ namespace ControleFinanceiroAPI.Services
         {
             var lista = transacoes.ToList();
             ArgumentNullException.ThrowIfNull(lista, nameof(transacoes));
+            foreach (var t in lista)
+                await ValidarContaDestinoAsync(t, t.AmbienteId);
             try
             {
                 foreach (var t in lista)
@@ -88,6 +91,7 @@ namespace ControleFinanceiroAPI.Services
         public async Task<Transacao> UpdateAsync(Guid id, Transacao transacao, Guid ambienteId)
         {
             ArgumentNullException.ThrowIfNull(transacao, nameof(transacao));
+            await ValidarContaDestinoAsync(transacao, ambienteId);
             try
             {
                 var transacaoExistente = await _repository.TransacaoRepository.GetByIdAsync(t => t.Id == id && t.AmbienteId == ambienteId);
@@ -101,6 +105,7 @@ namespace ControleFinanceiroAPI.Services
                 transacaoExistente.TipoTransacao = transacao.TipoTransacao;
                 transacaoExistente.CategoriaId = transacao.CategoriaId;
                 transacaoExistente.ContaId = transacao.ContaId;
+                transacaoExistente.ContaDestinoId = transacao.ContaDestinoId;
                 transacaoExistente.MesCompetencia = transacao.MesCompetencia;
 
                 _repository.TransacaoRepository.Update(transacaoExistente);
@@ -131,6 +136,33 @@ namespace ControleFinanceiroAPI.Services
                 _logger.LogError(ex, "Ocorreu um erro ao deletar a transação");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Garante a coerência entre TipoTransacao e ContaDestinoId:
+        /// Transferencia exige conta destino diferente da origem e do mesmo ambiente;
+        /// Receita e Despesa não podem ter conta destino.
+        /// </summary>
+        private async Task ValidarContaDestinoAsync(Transacao transacao, Guid? ambienteId)
+        {
+            if (transacao.TipoTransacao != TipoTransacao.Transferencia)
+            {
+                if (transacao.ContaDestinoId.HasValue)
+                    throw new InvalidOperationException("Conta de destino só pode ser informada em transferências.");
+                return;
+            }
+
+            if (!transacao.ContaDestinoId.HasValue || transacao.ContaDestinoId.Value == Guid.Empty)
+                throw new InvalidOperationException("Transferência exige uma conta de destino.");
+
+            if (transacao.ContaDestinoId.Value == transacao.ContaId)
+                throw new InvalidOperationException("A conta de destino deve ser diferente da conta de origem.");
+
+            var contaDestinoId = transacao.ContaDestinoId.Value;
+            var contaDestino = await _repository.ContaRepository
+                .GetByIdReadOnlyAsync(c => c.Id == contaDestinoId && c.AmbienteId == ambienteId);
+            if (contaDestino is null)
+                throw new KeyNotFoundException("Conta de destino não encontrada neste ambiente.");
         }
     }
 }

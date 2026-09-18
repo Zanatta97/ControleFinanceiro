@@ -25,6 +25,9 @@ namespace ControleFinanceiroAPI.DTO.Transacao
         [Required(ErrorMessage = "O campo Conta é obrigatório")]
         public Guid ContaId { get; set; }
 
+        // Obrigatória quando TipoTransacao == Transferencia; deve ficar nula em Receita e Despesa.
+        public Guid? ContaDestinoId { get; set; }
+
         [Required(ErrorMessage = "O campo Mês de Competência é obrigatório")]
         public DateOnly MesCompetencia { get; set; }
 

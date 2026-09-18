@@ -11,6 +11,8 @@ export interface ApiResponse<T> {
 export enum TipoTransacao {
   Receita = 1,
   Despesa = 2,
+  // Movimenta valor entre duas contas do ambiente (ex.: pagamento de fatura). Não é receita nem despesa.
+  Transferencia = 3,
 }
 
 // Espelha backend/ControleFinanceiroAPI/Enums/TipoConta.cs — os valores precisam ser idênticos.
@@ -114,6 +116,7 @@ export interface TransacaoRequest {
   tipoTransacao: TipoTransacao
   categoriaId: string
   contaId: string
+  contaDestinoId: string | null  // obrigatório só em Transferência
   mesCompetencia: string  // YYYY-MM-DD (dia 1 do mês)
   parcelas: number
 }
@@ -129,6 +132,8 @@ export interface TransacaoResponse {
   categoriaNome: string | null
   contaId: string
   contaNome: string | null
+  contaDestinoId: string | null
+  contaDestinoNome: string | null  // preenchido só nas listagens
   usuarioId: string | null
   mesCompetencia: string | null  // YYYY-MM-DD
 }

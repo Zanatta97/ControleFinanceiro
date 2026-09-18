@@ -21,7 +21,30 @@ import { usePagination } from '../hooks/usePagination'
 const tipoOptions = [
   { value: TipoTransacao.Receita, label: 'Receita' },
   { value: TipoTransacao.Despesa, label: 'Despesa' },
+  { value: TipoTransacao.Transferencia, label: 'Transferência' },
 ]
+
+type FiltroTipo = 'todos' | 'Receita' | 'Despesa' | 'Transferencia'
+
+const filtroTipoMap: Record<Exclude<FiltroTipo, 'todos'>, TipoTransacao> = {
+  Receita: TipoTransacao.Receita,
+  Despesa: TipoTransacao.Despesa,
+  Transferencia: TipoTransacao.Transferencia,
+}
+
+const filtroTipoLabel: Record<FiltroTipo, string> = {
+  todos: 'Todas',
+  Receita: 'Receitas',
+  Despesa: 'Despesas',
+  Transferencia: 'Transferências',
+}
+
+const filtroTipoActiveCls: Record<FiltroTipo, string> = {
+  todos: 'bg-fin-brand text-white border-fin-brand',
+  Receita: 'bg-fin-positive-soft text-fin-positive border-fin-positive-soft',
+  Despesa: 'bg-fin-negative-soft text-fin-negative border-fin-negative-soft',
+  Transferencia: 'bg-fin-surface-2 text-fin-text-primary border-fin-border',
+}
 
 type SortField = 'descricao' | 'categoriaNome' | 'contaNome' | 'mesCompetencia' | 'data' | 'valor'
 type SortDir = 'asc' | 'desc'
@@ -52,6 +75,7 @@ function emptyForm(contas: ContaResponse[], categorias: CategoriaResponse[]): Tr
     tipoTransacao: TipoTransacao.Despesa,
     categoriaId: categorias[0]?.id ?? '',
     contaId: contas[0]?.id ?? '',
+    contaDestinoId: null,
     mesCompetencia: monthToDateOnly(currentMonth()),
     parcelas: 1,
   }
@@ -81,7 +105,7 @@ export default function Transacoes() {
   const [error, setError] = useState('')
 
   // Filtros
-  const [filtroTipo, setFiltroTipo] = useState<'todos' | 'Receita' | 'Despesa'>('todos')
+  const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>('todos')
   const [filtroMes, setFiltroMes] = useState('')
   const [filtroCategoria, setFiltroCategoria] = useState('')
   const [filtroConta, setFiltroConta] = useState('')
@@ -135,6 +159,7 @@ export default function Transacoes() {
       tipoTransacao: t.tipoTransacao,
       categoriaId: t.categoriaId,
       contaId: t.contaId,
+      contaDestinoId: t.contaDestinoId ?? null,
       mesCompetencia: monthToDateOnly(mes),
       parcelas: 1,
     })
@@ -151,11 +176,16 @@ export default function Transacoes() {
     if (!form.descricao.trim()) { setError('Descrição é obrigatória.'); return }
     if (!form.contaId) { setError('Selecione uma conta.'); return }
     if (!form.categoriaId) { setError('Selecione uma categoria.'); return }
+    const isTransferencia = form.tipoTransacao === TipoTransacao.Transferencia
+    // Espelha a validação do backend: destino só existe em transferência, e nunca igual à origem.
+    if (isTransferencia && !form.contaDestinoId) { setError('Selecione a conta de destino.'); return }
+    if (isTransferencia && form.contaDestinoId === form.contaId) { setError('A conta de destino deve ser diferente da conta de origem.'); return }
     setSaving(true)
     setError('')
     try {
-      const payload = {
+      const payload: TransacaoRequest = {
         ...form,
+        contaDestinoId: isTransferencia ? form.contaDestinoId : null,
         data: new Date(form.data).toISOString(),
         observacao: form.observacao?.trim() || null,
       }
@@ -188,13 +218,11 @@ export default function Transacoes() {
 
   const filtradas = useMemo(() => {
     let list = transacoes.filter((t) => {
-      if (filtroTipo !== 'todos') {
-        const tipo = filtroTipo === 'Receita' ? TipoTransacao.Receita : TipoTransacao.Despesa
-        if (t.tipoTransacao !== tipo) return false
-      }
+      if (filtroTipo !== 'todos' && t.tipoTransacao !== filtroTipoMap[filtroTipo]) return false
       if (filtroMes && t.mesCompetencia?.slice(0, 7) !== filtroMes) return false
       if (filtroCategoria && t.categoriaId !== filtroCategoria) return false
-      if (filtroConta && t.contaId !== filtroConta) return false
+      // Transferência aparece tanto na conta de origem quanto na de destino.
+      if (filtroConta && t.contaId !== filtroConta && t.contaDestinoId !== filtroConta) return false
       return true
     })
 
@@ -217,6 +245,7 @@ export default function Transacoes() {
 
   const { paginados, pagina, totalPaginas, irPara, total } = usePagination(filtradas, ITENS_POR_PAGINA)
   const parcelas = form.parcelas ?? 1
+  const isFormTransferencia = form.tipoTransacao === TipoTransacao.Transferencia
 
   function ThSort({ field, label, className = '' }: { field: SortField; label: string; className?: string }) {
     return (
@@ -245,17 +274,12 @@ export default function Transacoes() {
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 items-end">
         <div className="flex gap-1">
-          {(['todos', 'Receita', 'Despesa'] as const).map((f) => {
+          {(['todos', 'Receita', 'Despesa', 'Transferencia'] as const).map((f) => {
             const active = filtroTipo === f
-            const activeCls = f === 'Receita'
-              ? 'bg-fin-positive-soft text-fin-positive border-fin-positive-soft'
-              : f === 'Despesa'
-              ? 'bg-fin-negative-soft text-fin-negative border-fin-negative-soft'
-              : 'bg-fin-brand text-white border-fin-brand'
             return (
               <button key={f} onClick={() => setFiltroTipo(f)}
-                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${active ? activeCls : 'bg-fin-surface border-fin-border text-fin-text-secondary hover:bg-fin-surface-2'}`}>
-                {f === 'todos' ? 'Todas' : f === 'Receita' ? 'Receitas' : 'Despesas'}
+                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${active ? filtroTipoActiveCls[f] : 'bg-fin-surface border-fin-border text-fin-text-secondary hover:bg-fin-surface-2'}`}>
+                {filtroTipoLabel[f]}
               </button>
             )
           })}
@@ -313,14 +337,23 @@ export default function Transacoes() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-fin-border">
-                {paginados.map((t) => (
+                {paginados.map((t) => {
+                  const isTransferencia = t.tipoTransacao === TipoTransacao.Transferencia
+                  return (
                   <tr key={t.id} className="hover:bg-fin-highlight-row transition">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-fin-text-primary">{t.descricao || '—'}</p>
+                      <p className="flex items-center gap-1.5 font-medium text-fin-text-primary">
+                        {isTransferencia && <Icon icon="lucide:arrow-left-right" width={14} height={14} className="shrink-0 text-fin-text-muted" aria-label="Transferência" />}
+                        {t.descricao || '—'}
+                      </p>
                       {t.observacao && <p className="text-xs text-fin-text-muted">{t.observacao}</p>}
                     </td>
                     <td className="px-4 py-3 text-fin-text-secondary">{t.categoriaNome || '—'}</td>
-                    <td className="px-4 py-3 text-fin-text-secondary">{t.contaNome || '—'}</td>
+                    <td className="px-4 py-3 text-fin-text-secondary">
+                      {isTransferencia
+                        ? <>{t.contaNome || '—'} <span className="text-fin-text-muted">→</span> {t.contaDestinoNome || '—'}</>
+                        : t.contaNome || '—'}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-fin-brand-soft px-2 py-0.5 text-xs font-medium text-fin-brand">
                         {formatMesCompetencia(t.mesCompetencia)}
@@ -328,9 +361,14 @@ export default function Transacoes() {
                     </td>
                     <td className="px-4 py-3 text-fin-text-muted">{formatDate(t.data)}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className="font-fin-mono font-medium" style={{ color: t.tipoTransacao === TipoTransacao.Receita ? 'var(--fin-positive)' : 'var(--fin-negative)' }}>
-                        {t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}{formatCurrency(t.valor)}
-                      </span>
+                      {isTransferencia ? (
+                        // Transferência não é entrada nem saída do ambiente: visual neutro, sem sinal.
+                        <span className="font-fin-mono font-medium text-fin-text-secondary">{formatCurrency(t.valor)}</span>
+                      ) : (
+                        <span className="font-fin-mono font-medium" style={{ color: t.tipoTransacao === TipoTransacao.Receita ? 'var(--fin-positive)' : 'var(--fin-negative)' }}>
+                          {t.tipoTransacao === TipoTransacao.Receita ? '+' : '-'}{formatCurrency(t.valor)}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-0.5 justify-end">
@@ -343,7 +381,8 @@ export default function Transacoes() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -367,12 +406,28 @@ export default function Transacoes() {
         <div className="space-y-4">
           <Input label="Descrição" value={form.descricao} onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))} placeholder="Ex: Mercado, Salário..." required />
           <Select label="Tipo" value={form.tipoTransacao}
-            onChange={(e) => setForm((f) => ({ ...f, tipoTransacao: Number(e.target.value) as TipoTransacao }))}
+            onChange={(e) => {
+              const tipo = Number(e.target.value) as TipoTransacao
+              // Receita/Despesa não têm destino: limpa para o backend receber null.
+              setForm((f) => ({ ...f, tipoTransacao: tipo, contaDestinoId: tipo === TipoTransacao.Transferencia ? f.contaDestinoId : null }))
+            }}
             options={tipoOptions} />
           <CurrencyInput label="Valor (R$)" value={form.valor} onChange={(v) => setForm((f) => ({ ...f, valor: v }))} />
-          <Select label="Conta" value={form.contaId}
-            onChange={(e) => setForm((f) => ({ ...f, contaId: e.target.value }))}
+          <Select label={isFormTransferencia ? 'Conta de origem' : 'Conta'} id="conta" value={form.contaId}
+            onChange={(e) => {
+              const contaId = e.target.value
+              // Se a nova origem coincidir com o destino, o destino deixa de ser válido.
+              setForm((f) => ({ ...f, contaId, contaDestinoId: f.contaDestinoId === contaId ? null : f.contaDestinoId }))
+            }}
             options={contas.map((c) => ({ value: c.id, label: c.nome }))} />
+          {isFormTransferencia && (
+            <Select label="Conta de destino" value={form.contaDestinoId ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, contaDestinoId: e.target.value || null }))}
+              options={[
+                { value: '', label: 'Selecione a conta de destino' },
+                ...contas.filter((c) => c.id !== form.contaId).map((c) => ({ value: c.id, label: c.nome })),
+              ]} />
+          )}
           <Select label="Categoria" value={form.categoriaId}
             onChange={(e) => setForm((f) => ({ ...f, categoriaId: e.target.value }))}
             options={categorias.map((c) => ({ value: c.id, label: c.nome ?? '' }))} />
