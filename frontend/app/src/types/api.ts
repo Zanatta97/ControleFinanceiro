@@ -178,6 +178,8 @@ export interface ResumoFinanceiroResponse {
   ano: number
   totalReceitas: number
   totalDespesas: number
+  despesasCartao: number
+  despesasOutras: number
   saldo: number
 }
 
@@ -186,6 +188,8 @@ export interface EvolucaoMensalItemDTO {
   nomeMes: string
   totalReceitas: number
   totalDespesas: number
+  despesasCartao: number
+  despesasOutras: number
   saldo: number
 }
 

@@ -24,7 +24,12 @@ namespace ControleFinanceiroAPI.Services
             // Transferência (ex.: pagamento de fatura) só move dinheiro entre contas:
             // não é receita nem despesa, por isso os filtros abaixo a deixam de fora.
             var receitas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
-            var despesas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
+            var despesasMes = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).ToList();
+
+            // Despesa em conta do tipo cartão de crédito vai para DespesasCartao; o resto, para DespesasOutras
+            var despesasCartao = despesasMes.Where(t => t.Conta?.TipoConta == TipoConta.CartaoCredito).Sum(t => t.Valor);
+            var despesasOutras = despesasMes.Where(t => t.Conta?.TipoConta != TipoConta.CartaoCredito).Sum(t => t.Valor);
+            var despesas = despesasCartao + despesasOutras;
 
             return new ResumoFinanceiroResponseDTO
             {
@@ -32,6 +37,8 @@ namespace ControleFinanceiroAPI.Services
                 Ano = ano,
                 TotalReceitas = receitas,
                 TotalDespesas = despesas,
+                DespesasCartao = despesasCartao,
+                DespesasOutras = despesasOutras,
                 Saldo = receitas - despesas
             };
         }
@@ -70,7 +77,10 @@ namespace ControleFinanceiroAPI.Services
             {
                 var doMes = transacoes.Where(t => t.MesCompetencia.Month == mes && t.MesCompetencia.Year == ano).ToList();
                 var receitas = doMes.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
-                var despesas = doMes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
+                var despesasMes = doMes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).ToList();
+                var despesasCartao = despesasMes.Where(t => t.Conta?.TipoConta == TipoConta.CartaoCredito).Sum(t => t.Valor);
+                var despesasOutras = despesasMes.Where(t => t.Conta?.TipoConta != TipoConta.CartaoCredito).Sum(t => t.Valor);
+                var despesas = despesasCartao + despesasOutras;
 
                 return new EvolucaoMensalItemDTO
                 {
@@ -78,6 +88,8 @@ namespace ControleFinanceiroAPI.Services
                     NomeMes = CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat.GetMonthName(mes),
                     TotalReceitas = receitas,
                     TotalDespesas = despesas,
+                    DespesasCartao = despesasCartao,
+                    DespesasOutras = despesasOutras,
                     Saldo = receitas - despesas
                 };
             }).ToList();
