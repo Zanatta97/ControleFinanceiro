@@ -1,5 +1,5 @@
+using ControleFinanceiroAPI.Common.Extensions;
 using ControleFinanceiroAPI.DTO.SaldoMensal;
-using ControleFinanceiroAPI.Enums;
 using ControleFinanceiroAPI.Interfaces.Repositories;
 using ControleFinanceiroAPI.Interfaces.Services;
 using ControleFinanceiroAPI.Model;
@@ -29,8 +29,8 @@ namespace ControleFinanceiroAPI.Services
                 var transacoes = await _repository.TransacaoRepository.GetByMesCompetenciaEContaAsync(ambienteId, conta.Id, mes, ano);
                 var lista = transacoes.ToList();
 
-                var entradas = lista.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
-                var saidas = lista.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
+                // Transferência: saída na conta de origem, entrada na conta de destino
+                var (entradas, saidas) = lista.CalcularMovimentoDaConta(conta.Id);
                 var saldoInicial = saldoSalvo?.SaldoInicial ?? 0;
                 var saldoFinal = saldoInicial + entradas - saidas;
 
@@ -80,8 +80,7 @@ namespace ControleFinanceiroAPI.Services
                     .GetByMesCompetenciaEContaAsync(ambienteId, conta.Id, mesAnterior, anoAnterior);
 
                 var lista = transacoes.ToList();
-                var entradas = lista.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
-                var saidas = lista.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
+                var (entradas, saidas) = lista.CalcularMovimentoDaConta(conta.Id);
 
                 var saldoFinalAnterior = (saldoAnterior?.SaldoInicial ?? 0) + entradas - saidas;
 

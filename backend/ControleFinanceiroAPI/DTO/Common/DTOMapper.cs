@@ -193,6 +193,7 @@ namespace ControleFinanceiroAPI.DTO.Common
                 TipoTransacao = dto.TipoTransacao,
                 CategoriaId = dto.CategoriaId,
                 ContaId = dto.ContaId,
+                ContaDestinoId = dto.ContaDestinoId,
                 AmbienteId = ambienteId,
                 UsuarioId = userId,
                 MesCompetencia = mesCompetencia
@@ -214,6 +215,8 @@ namespace ControleFinanceiroAPI.DTO.Common
                 CategoriaNome = entity.Categoria?.Nome,
                 ContaId = entity.ContaId,
                 ContaNome = entity.Conta?.Nome,
+                ContaDestinoId = entity.ContaDestinoId,
+                ContaDestinoNome = entity.ContaDestino?.Nome,
                 UsuarioId = entity.UsuarioId,
                 MesCompetencia = entity.MesCompetencia
             };

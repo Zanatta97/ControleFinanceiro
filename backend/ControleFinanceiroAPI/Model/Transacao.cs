@@ -15,6 +15,11 @@ namespace ControleFinanceiroAPI.Model
         public Categoria? Categoria { get; set; }
         public Guid ContaId { get; set; }
         public Conta? Conta { get; set; }
+
+        // Preenchida só quando TipoTransacao == Transferencia: é a conta que recebe o valor
+        // (ex.: o cartão de crédito no pagamento da fatura). Receita e Despesa deixam nulo.
+        public Guid? ContaDestinoId { get; set; }
+        public Conta? ContaDestino { get; set; }
         public string? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
         public Guid? AmbienteId { get; set; }

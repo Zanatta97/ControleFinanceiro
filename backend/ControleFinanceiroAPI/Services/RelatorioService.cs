@@ -1,3 +1,4 @@
+using ControleFinanceiroAPI.Common.Extensions;
 using ControleFinanceiroAPI.DTO.Common;
 using ControleFinanceiroAPI.DTO.Relatorio;
 using ControleFinanceiroAPI.Enums;
@@ -20,6 +21,8 @@ namespace ControleFinanceiroAPI.Services
         {
             var transacoes = await _repository.TransacaoRepository.GetByMesCompetenciaAsync(ambienteId, mes, ano);
 
+            // Transferência (ex.: pagamento de fatura) só move dinheiro entre contas:
+            // não é receita nem despesa, por isso os filtros abaixo a deixam de fora.
             var receitas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
             var despesas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
 
@@ -126,8 +129,8 @@ namespace ControleFinanceiroAPI.Services
             var transacoes = await _repository.TransacaoRepository.GetByContaAndPeriodoAsync(contaId, ambienteId, dataInicio, dataFim);
             var lista = transacoes.ToList();
 
-            var entradas = lista.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
-            var saidas = lista.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor);
+            // No extrato a transferência conta: saída na origem, entrada no destino
+            var (entradas, saidas) = lista.CalcularMovimentoDaConta(contaId);
 
             return new ExtratoContaResponseDTO
             {

@@ -44,6 +44,23 @@ namespace ControleFinanceiroAPI.Context
                 .WithMany()               // Usuario não tem coleção de volta para "ambientes que criei"
                 .HasForeignKey(a => a.UsuarioId) // a FK que fica na tabela Ambiente é UsuarioId
                 .OnDelete(DeleteBehavior.Restrict); // se tentar deletar o usuário criador, o banco bloqueia (evita órfãos)
+
+            // Relacionamento 3: Transacao → Conta (origem) e Transacao → ContaDestino
+            // Declarados explicitamente porque são duas navegações para a mesma entidade.
+            builder.Entity<Transacao>()
+                .HasOne(t => t.Conta)
+                .WithMany()
+                .HasForeignKey(t => t.ContaId)
+                .OnDelete(DeleteBehavior.Cascade); // mantém o comportamento atual da conta de origem
+
+            // Restrict evita "multiple cascade paths" no SQL Server (Conta já apaga Transacao via ContaId).
+            // Na prática: uma conta que é destino de alguma transferência não pode ser excluída
+            // enquanto essa transferência existir.
+            builder.Entity<Transacao>()
+                .HasOne(t => t.ContaDestino)
+                .WithMany()
+                .HasForeignKey(t => t.ContaDestinoId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

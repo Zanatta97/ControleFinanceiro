@@ -14,6 +14,8 @@ namespace ControleFinanceiroAPI.DTO.Transacao
         public string? CategoriaNome { get; set; }
         public Guid ContaId { get; set; }
         public string? ContaNome { get; set; }
+        public Guid? ContaDestinoId { get; set; }
+        public string? ContaDestinoNome { get; set; }
         public string? UsuarioId { get; set; }
         public DateOnly MesCompetencia { get; set; }
     }

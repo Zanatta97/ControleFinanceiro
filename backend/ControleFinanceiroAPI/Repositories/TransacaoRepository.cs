@@ -26,7 +26,10 @@ namespace ControleFinanceiroAPI.Repositories
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Include(t => t.Conta)
-                .Where(t => t.ContaId == contaId && t.AmbienteId == ambienteId && t.Data >= inicio && t.Data <= fim)
+                .Include(t => t.ContaDestino)
+                // Transferência aparece no extrato da origem (saída) e no da conta destino (entrada)
+                .Where(t => (t.ContaId == contaId || t.ContaDestinoId == contaId)
+                         && t.AmbienteId == ambienteId && t.Data >= inicio && t.Data <= fim)
                 .OrderByDescending(t => t.Data)
                 .ToListAsync();
         }
@@ -37,6 +40,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Include(t => t.Conta)
+                .Include(t => t.ContaDestino)
                 .Where(t => t.AmbienteId == ambienteId
                          && t.MesCompetencia.Month == mes
                          && t.MesCompetencia.Year == ano)
@@ -50,7 +54,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Where(t => t.AmbienteId == ambienteId
-                         && t.ContaId == contaId
+                         && (t.ContaId == contaId || t.ContaDestinoId == contaId)
                          && t.MesCompetencia.Month == mes
                          && t.MesCompetencia.Year == ano)
                 .ToListAsync();
@@ -61,7 +65,7 @@ namespace ControleFinanceiroAPI.Repositories
             return await _context.Transacoes
                 .AsNoTracking()
                 .Where(t => t.AmbienteId == ambienteId
-                         && t.ContaId == contaId
+                         && (t.ContaId == contaId || t.ContaDestinoId == contaId)
                          && t.MesCompetencia >= mesInicio)
                 .ToListAsync();
         }
@@ -72,6 +76,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Include(t => t.Conta)
+                .Include(t => t.ContaDestino)
                 .Where(t => t.AmbienteId == ambienteId && t.Data >= inicio && t.Data <= fim)
                 .OrderByDescending(t => t.Data)
                 .ToListAsync();
@@ -83,6 +88,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Include(t => t.Conta)
+                .Include(t => t.ContaDestino)
                 .Where(t => t.AmbienteId == ambienteId && t.TipoTransacao == tipo)
                 .OrderByDescending(t => t.Data)
                 .ToListAsync();
@@ -94,6 +100,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .AsNoTracking()
                 .Include(t => t.Categoria)
                 .Include(t => t.Conta)
+                .Include(t => t.ContaDestino)
                 .Where(c => c.AmbienteId == ambienteId)
                 .ToListAsync();
         }
