@@ -1,10 +1,10 @@
 import api from './client'
-import type { ApiResponse } from '../types/api'
+import type { ApiResponse, TipoConta } from '../types/api'
 
 export interface SaldoMensalContaResponse {
   contaId: string
   nomeConta: string | null
-  tipoConta: number
+  tipoConta: TipoConta
   saldoInicial: number
   totalEntradas: number
   totalSaidas: number

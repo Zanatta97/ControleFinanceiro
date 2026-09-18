@@ -15,23 +15,23 @@ import ConfirmDialog from '../components/ui/ConfirmDialog'
 const tipoOptions = [
   { value: TipoConta.Corrente, label: 'Conta Corrente' },
   { value: TipoConta.Poupanca, label: 'Poupança' },
-  { value: TipoConta.Carteira, label: 'Carteira' },
-  { value: TipoConta.Cartao, label: 'Cartão' },
+  { value: TipoConta.Investimento, label: 'Investimento' },
+  { value: TipoConta.CartaoCredito, label: 'Cartão de Crédito' },
 ]
 
 const tipoLabel: Record<TipoConta, string> = {
   [TipoConta.Corrente]: 'Corrente',
   [TipoConta.Poupanca]: 'Poupança',
-  [TipoConta.Carteira]: 'Carteira',
-  [TipoConta.Cartao]: 'Cartão',
+  [TipoConta.Investimento]: 'Investimento',
+  [TipoConta.CartaoCredito]: 'Cartão de Crédito',
 }
 
 // Ícone (Lucide) + cores por tipo de conta.
 const tipoStyle: Record<TipoConta, { icon: string; cor: string; soft: string }> = {
   [TipoConta.Corrente]: { icon: 'lucide:landmark', cor: 'var(--fin-brand)', soft: 'var(--fin-brand-soft)' },
   [TipoConta.Poupanca]: { icon: 'lucide:piggy-bank', cor: 'var(--fin-positive)', soft: 'var(--fin-positive-soft)' },
-  [TipoConta.Carteira]: { icon: 'lucide:wallet', cor: 'var(--fin-warning)', soft: 'var(--fin-warning-soft)' },
-  [TipoConta.Cartao]: { icon: 'lucide:credit-card', cor: 'var(--fin-invest)', soft: 'var(--fin-invest-soft)' },
+  [TipoConta.Investimento]: { icon: 'lucide:trending-up', cor: 'var(--fin-invest)', soft: 'var(--fin-invest-soft)' },
+  [TipoConta.CartaoCredito]: { icon: 'lucide:credit-card', cor: 'var(--fin-warning)', soft: 'var(--fin-warning-soft)' },
 }
 
 const emptyForm: ContaRequest = { nome: '', tipoConta: TipoConta.Corrente, saldo: 0 }

@@ -13,11 +13,12 @@ export enum TipoTransacao {
   Despesa = 2,
 }
 
+// Espelha backend/ControleFinanceiroAPI/Enums/TipoConta.cs — os valores precisam ser idênticos.
 export enum TipoConta {
-  Corrente = 0,
-  Poupanca = 1,
-  Carteira = 2,
-  Cartao = 3,
+  Corrente = 1,
+  Poupanca = 2,
+  Investimento = 3,
+  CartaoCredito = 4,
 }
 
 export enum StatusOrcamento {
