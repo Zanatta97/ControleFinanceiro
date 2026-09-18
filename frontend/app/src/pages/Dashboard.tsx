@@ -115,6 +115,12 @@ export default function Dashboard() {
   const deltaDespesas = delta(resumo?.totalDespesas ?? 0, mesAnt?.totalDespesas)
   const deltaSaldo = delta(resumo?.saldo ?? 0, mesAnt?.saldo)
 
+  // Quebra das despesas: cartão de crédito x demais contas.
+  const totalDespesas = resumo?.totalDespesas ?? 0
+  const despesasCartao = resumo?.despesasCartao ?? 0
+  const despesasOutras = resumo?.despesasOutras ?? 0
+  const pctCartao = totalDespesas > 0 ? (despesasCartao / totalDespesas) * 100 : 0
+
   const totalGasto = categorias.reduce((acc, c) => acc + c.totalGasto, 0)
   const orcamentosAtivos = orcamentos
     .filter((o) => new Date(o.dataLimite) >= new Date(ano, mes - 1, 1))
@@ -185,6 +191,30 @@ export default function Dashboard() {
               </div>
               <p className="mt-3 font-fin-mono text-[22px] font-medium text-fin-text-primary">{formatCurrency(resumo?.totalDespesas ?? 0)}</p>
               <DeltaChip pct={deltaDespesas} lowerIsBetter mesAnterior={mesAntLabel} />
+
+              {/* Quebra: cartão de crédito x contas */}
+              <div className="mt-3 border-t border-fin-border pt-3">
+                <div className="flex h-[5px] overflow-hidden rounded-[3px] bg-fin-surface-2">
+                  {totalDespesas > 0 && (
+                    <>
+                      <div className="h-full bg-fin-invest" style={{ width: `${pctCartao}%` }} />
+                      <div className="h-full bg-fin-brand" style={{ width: `${100 - pctCartao}%` }} />
+                    </>
+                  )}
+                </div>
+                <div className="mt-2.5 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 flex-none rounded-[2px] bg-fin-invest" />
+                    <span className="flex-1 text-[12px] text-fin-text-secondary">Cartão de crédito</span>
+                    <span className="font-fin-mono text-[11.5px] text-fin-text-primary">{formatCurrency(despesasCartao)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 flex-none rounded-[2px] bg-fin-brand" />
+                    <span className="flex-1 text-[12px] text-fin-text-secondary">Contas</span>
+                    <span className="font-fin-mono text-[11.5px] text-fin-text-primary">{formatCurrency(despesasOutras)}</span>
+                  </div>
+                </div>
+              </div>
             </Card>
 
             {/* Saldo do mês (destacado) */}
