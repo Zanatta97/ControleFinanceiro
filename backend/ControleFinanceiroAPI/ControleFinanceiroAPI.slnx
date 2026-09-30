@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../ControleFinanceiroAPI.Tests/ControleFinanceiroAPI.Tests.csproj" Id="a67984a0-2334-4f04-aca0-007e6c315000" />
   <Project Path="ControleFinanceiroAPI.csproj" />
 </Solution>
