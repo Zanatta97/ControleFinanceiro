@@ -111,4 +111,44 @@
   .animate-fin-fade { animation: finFade 0.18s ease; }
   .animate-fin-pop { animation: finPop 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
   .animate-fin-slide { animation: finSlide 0.26s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* Barra de rolagem fina e discreta, que acompanha o tema (claro/escuro).
+     Firefox e Chrome 121+ usam scrollbar-width/scrollbar-color; Safari e
+     Chromium antigos usam os pseudo-elementos ::-webkit-scrollbar. */
+  .scrollbar-fino {
+    scrollbar-width: thin;
+    scrollbar-color: var(--fin-border) transparent;
+  }
+  .scrollbar-fino:hover {
+    scrollbar-color: var(--fin-text-muted) transparent;
+  }
+  .scrollbar-fino::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .scrollbar-fino::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-fino::-webkit-scrollbar-thumb {
+    background-color: var(--fin-border);
+    border-radius: 9999px;
+  }
+  .scrollbar-fino:hover::-webkit-scrollbar-thumb {
+    background-color: var(--fin-text-muted);
+  }
+  .scrollbar-fino::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  /* Degradê nas bordas de uma linha com rolagem horizontal, indicando que há
+     mais conteúdo. As classes -esquerda/-direita são ligadas pelo hook
+     useRolagemHorizontal conforme a posição da rolagem. */
+  .fade-rolagem {
+    --fade-esquerda: 0px;
+    --fade-direita: 0px;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-esquerda), #000 calc(100% - var(--fade-direita)), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-esquerda), #000 calc(100% - var(--fade-direita)), transparent 100%);
+  }
+  .fade-rolagem-esquerda { --fade-esquerda: 28px; }
+  .fade-rolagem-direita { --fade-direita: 28px; }
 }
