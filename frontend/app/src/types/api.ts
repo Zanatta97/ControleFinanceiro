@@ -336,8 +336,10 @@ export interface CompraParceladaAtiva {
   valorParcela: number
   parcelaAtual: number  // 0 quando a compra ainda não começou
   totalParcelas: number
-  parcelasRestantes: number
-  valorRestante: number
+  parcelasRestantes: number  // lançadas + projetadas
+  // Quantas das parcelasRestantes não estão lançadas e foram inferidas da última "Parcela N/M" registrada
+  parcelasProjetadas: number
+  valorRestante: number  // inclui as parcelas projetadas
   ultimaCompetencia: string  // YYYY-MM-DD
 }
 
@@ -360,6 +362,8 @@ export interface ProjecaoConta {
   saidasLancadas: number
   fixosEstimados: number
   recebimentosEstimados: number
+  // Parcelas do mês alvo ainda não lançadas nesta conta (já descontadas do saldo final e somadas à fatura)
+  parcelasProjetadas: number
   saldoFinalPrevisto: number
   // Só para cartão de crédito
   faturaPrevista: number | null
@@ -370,7 +374,8 @@ export interface ProjecaoProximoMesResponse {
   ano: number
   receitasPrevistas: number
   despesasPrevistas: number
-  totalParcelas: number
+  totalParcelas: number  // lançadas + projetadas
+  parcelasProjetadas: number  // parte de totalParcelas ainda não lançada
   resultadoPrevisto: number
   saldoPrevisto: number
   contas: ProjecaoConta[]

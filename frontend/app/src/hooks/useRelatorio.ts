@@ -16,11 +16,23 @@ interface Opcoes<T> {
   vazio?: (dados: T) => boolean
 }
 
-type RespostaErro = { response?: { status?: number; data?: { errorMessage?: string } } }
+type RespostaErro = { response?: { status?: number; data?: unknown } }
+
+const MENSAGEM_ROTA_INEXISTENTE = 'Relatório indisponível na API. Verifique se o backend está atualizado.'
+
+/** Mensagem do corpo quando ele é um ApiResponse com `errorMessage` preenchido; null caso contrário. */
+function mensagemApiResponse(data: unknown): string | null {
+  if (data == null || typeof data !== 'object' || !('errorMessage' in data)) return null
+  const { errorMessage } = data as Partial<ApiResponse<unknown>>
+  return typeof errorMessage === 'string' && errorMessage.trim() !== '' ? errorMessage : null
+}
 
 /**
  * Busca de um relatório com os estados carregando, vazio e erro.
- * 404 vira "vazio": vários relatórios respondem assim quando não há despesa no período.
+ * 404 só vira "vazio" quando o corpo é um ApiResponse com `errorMessage` (ex.: "Nenhuma despesa
+ * encontrada no período."): é assim que o backend responde a período sem dados. 404 sem esse corpo
+ * significa rota inexistente (ex.: backend desatualizado, sem o endpoint) e vira erro — tratá-lo como
+ * "sem dados" esconderia o problema.
  * `chave` resume os parâmetros da chamada; a busca roda de novo sempre que ela muda.
  */
 export function useRelatorio<T>(
@@ -59,9 +71,9 @@ export function useRelatorio<T>(
       .catch((err: unknown) => {
         if (!ativo) return
         const { response } = err as RespostaErro
-        const mensagem = response?.data?.errorMessage || null
+        const mensagem = mensagemApiResponse(response?.data)
         if (response?.status === 404) {
-          setEstado({ status: 'vazio', mensagem })
+          setEstado(mensagem ? { status: 'vazio', mensagem } : { status: 'erro', mensagem: MENSAGEM_ROTA_INEXISTENTE })
           return
         }
         setEstado({ status: 'erro', mensagem: mensagem ?? 'Não foi possível carregar o relatório.' })

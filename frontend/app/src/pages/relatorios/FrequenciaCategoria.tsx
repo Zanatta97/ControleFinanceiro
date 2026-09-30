@@ -37,7 +37,7 @@ export default function FrequenciaCategoria() {
               </div>
 
               <Secao titulo="Frequência e ticket médio por categoria" descricao={descricaoFiltro(filtro)}>
-                <div className="overflow-x-auto">
+                <div className="scrollbar-fino overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>

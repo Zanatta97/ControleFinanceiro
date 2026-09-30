@@ -201,7 +201,7 @@ export function GraficoBarras({ series, itens, altura = 160, formatar }: Grafico
           ))}
         </div>
       )}
-      <div className="overflow-x-auto">
+      <div className="scrollbar-fino overflow-x-auto">
         <div className="flex min-w-[520px] items-end gap-2" style={{ height: altura }}>
           {itens.map((item) => (
             <div

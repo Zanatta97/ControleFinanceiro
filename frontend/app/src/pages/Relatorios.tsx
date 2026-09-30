@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, Navigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
+import { useRolagemHorizontal } from '../hooks/useRolagemHorizontal'
 import { abaPadrao, abas, grupos } from './relatorios/abas'
 import type { SelecaoCategorias } from './relatorios/utils'
 import PorCategoria from './relatorios/PorCategoria'
@@ -25,6 +26,22 @@ export default function Relatorios() {
   const [selecao, setSelecao] = useState<SelecaoCategorias>({ fixas: [], recebimento: [] })
 
   const aba = abas.find((a) => a.slug === slug)
+
+  const rolagemGrupos = useRolagemHorizontal<HTMLDivElement>(aba?.grupo)
+  const rolagemSubabas = useRolagemHorizontal<HTMLElement>(aba?.grupo)
+  const refGrupos = rolagemGrupos.ref
+  const refSubabas = rolagemSubabas.ref
+
+  // Mantém o grupo e a subaba ativos visíveis quando a linha rola na horizontal
+  // (troca de subaba ou abertura por link direto)
+  useEffect(() => {
+    for (const linha of [refGrupos.current, refSubabas.current]) {
+      linha
+        ?.querySelector<HTMLElement>('[aria-current="page"]')
+        ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    }
+  }, [aba?.slug, refGrupos, refSubabas])
+
   // /relatorios sem subaba, ou com uma subaba que não existe, cai na primeira
   if (!aba) return <Navigate to={`/relatorios/${abaPadrao}`} replace />
 
@@ -55,28 +72,34 @@ export default function Relatorios() {
       </div>
 
       {/* Grupos: levam à primeira subaba do grupo */}
-      <div className="flex gap-1 overflow-x-auto rounded-[11px] border border-fin-border bg-fin-surface p-1">
-        {grupos.map((g) => {
-          const ativo = g.id === aba.grupo
-          const primeira = abas.find((a) => a.grupo === g.id)!
-          return (
-            <Link
-              key={g.id}
-              to={`/relatorios/${primeira.slug}`}
-              aria-current={ativo ? 'page' : undefined}
-              className={`flex flex-none items-center gap-2 whitespace-nowrap rounded-[8px] px-3 py-2 text-[13px] font-semibold transition-colors ${
-                ativo ? 'bg-fin-brand-soft text-fin-brand' : 'text-fin-text-secondary hover:bg-fin-surface-2'
-              }`}
-            >
-              <Icon icon={g.icone} width={16} height={16} />
-              {g.rotulo}
-            </Link>
-          )
-        })}
+      <div className="rounded-[11px] border border-fin-border bg-fin-surface p-1">
+        <div ref={refGrupos} className={`scrollbar-fino flex gap-1 overflow-x-auto ${rolagemGrupos.classeFade}`}>
+          {grupos.map((g) => {
+            const ativo = g.id === aba.grupo
+            const primeira = abas.find((a) => a.grupo === g.id)!
+            return (
+              <Link
+                key={g.id}
+                to={`/relatorios/${primeira.slug}`}
+                aria-current={ativo ? 'page' : undefined}
+                className={`flex flex-none items-center gap-2 whitespace-nowrap rounded-[8px] px-3 py-2 text-[13px] font-semibold transition-colors ${
+                  ativo ? 'bg-fin-brand-soft text-fin-brand' : 'text-fin-text-secondary hover:bg-fin-surface-2'
+                }`}
+              >
+                <Icon icon={g.icone} width={16} height={16} />
+                {g.rotulo}
+              </Link>
+            )
+          })}
+        </div>
       </div>
 
       {/* Subabas do grupo ativo */}
-      <nav aria-label="Relatórios" className="-mt-1 flex gap-1 overflow-x-auto border-b border-fin-border">
+      <nav
+        ref={refSubabas}
+        aria-label="Relatórios"
+        className={`scrollbar-fino -mt-1 flex gap-1 overflow-x-auto border-b border-fin-border ${rolagemSubabas.classeFade}`}
+      >
         {abasDoGrupo.map((a) => (
           <NavLink
             key={a.slug}

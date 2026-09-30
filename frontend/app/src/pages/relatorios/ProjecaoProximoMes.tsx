@@ -26,6 +26,7 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
         <SeletorCompetencia rotulo="Mês projetado" mes={mes} ano={ano} onChange={(m, a) => setAlvo({ mes: m, ano: a })} />
         <p className="basis-full text-xs text-fin-text-muted">
           Fixos e recebimentos são estimados pela média dos 3 meses anteriores nas categorias escolhidas, descontado o que já foi lançado.
+          Parcelas projetadas são as ainda não lançadas no mês, estimadas a partir da última parcela registrada de cada compra.
         </p>
       </BarraFiltros>
 
@@ -44,7 +45,12 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
                   valor={formatCurrency(p.despesasPrevistas)}
                   icone="lucide:arrow-up-circle"
                   tom="negativo"
-                  detalhe={`Parcelas já lançadas: ${formatCurrency(p.totalParcelas)}`}
+                  detalhe={
+                    <>
+                      <p>Parcelas já lançadas: {formatCurrency(p.totalParcelas - p.parcelasProjetadas)}</p>
+                      {p.parcelasProjetadas > 0 && <p>Parcelas projetadas: {formatCurrency(p.parcelasProjetadas)}</p>}
+                    </>
+                  }
                 />
                 <Kpi
                   titulo="Resultado previsto"
@@ -62,12 +68,15 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
               </div>
 
               {cartoes.length > 0 && (
-                <Secao titulo="Fatura prevista dos cartões" descricao="Despesas já lançadas no cartão + fixos estimados no cartão.">
+                <Secao titulo="Fatura prevista dos cartões" descricao="Despesas já lançadas no cartão + fixos estimados + parcelas projetadas no cartão.">
                   <div className="grid grid-cols-1 gap-3 px-5 py-[18px] sm:grid-cols-2 lg:grid-cols-3">
                     {cartoes.map((c) => (
                       <div key={c.contaId} className="rounded-[11px] border border-fin-border bg-fin-surface-2 p-3.5">
                         <p className="text-[12.5px] font-semibold text-fin-text-secondary">{c.nomeConta}</p>
                         <p className="mt-1 font-fin-mono text-[18px] text-fin-text-primary">{formatCurrency(c.faturaPrevista ?? 0)}</p>
+                        {c.parcelasProjetadas > 0 && (
+                          <p className="mt-0.5 text-[11.5px] text-fin-text-muted">Inclui {formatCurrency(c.parcelasProjetadas)} em parcelas projetadas</p>
+                        )}
                       </div>
                     ))}
                     {cartoes.length > 1 && (
@@ -81,7 +90,7 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
               )}
 
               <Secao titulo="Saldo previsto por conta" descricao={labelCompetencia(p.mes, p.ano)}>
-                <div className="overflow-x-auto">
+                <div className="scrollbar-fino overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -91,6 +100,7 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
                         <th className={`${th} text-right`}>Saídas lançadas</th>
                         <th className={`${th} text-right`}>Recebim. estimados</th>
                         <th className={`${th} text-right`}>Fixos estimados</th>
+                        <th className={`${th} text-right`}>Parcelas projetadas</th>
                         <th className={`${th} text-right`}>Saldo final</th>
                       </tr>
                     </thead>
@@ -106,6 +116,7 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
                           <td className={`${td} text-right`}><Valor v={c.saidasLancadas} tom="negativo" /></td>
                           <td className={`${td} text-right`}><Valor v={c.recebimentosEstimados} tom="positivo" /></td>
                           <td className={`${td} text-right`}><Valor v={c.fixosEstimados} tom="negativo" /></td>
+                          <td className={`${td} text-right`}><Valor v={c.parcelasProjetadas} tom="negativo" /></td>
                           <td className={`${td} text-right font-fin-mono font-semibold ${c.saldoFinalPrevisto < 0 ? 'text-fin-negative' : 'text-fin-text-primary'}`}>
                             {formatCurrency(c.saldoFinalPrevisto)}
                           </td>

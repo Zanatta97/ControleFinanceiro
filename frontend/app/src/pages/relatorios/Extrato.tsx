@@ -80,7 +80,7 @@ function ExtratoConta({ contas }: { contas: ContaResponse[] }) {
               {x.transacoes.length === 0 ? (
                 <p className="px-5 py-8 text-center text-sm text-fin-text-muted">Nenhuma transação no período.</p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="scrollbar-fino overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>

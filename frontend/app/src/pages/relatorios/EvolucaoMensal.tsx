@@ -39,7 +39,7 @@ export default function EvolucaoMensal() {
                   itens={e.meses.map((m) => ({ rotulo: m.nomeMes.slice(0, 3), valores: [m.totalReceitas, m.totalDespesas] }))}
                   formatar={formatCurrency}
                 />
-                <div className="overflow-x-auto border-t border-fin-border">
+                <div className="scrollbar-fino overflow-x-auto border-t border-fin-border">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>

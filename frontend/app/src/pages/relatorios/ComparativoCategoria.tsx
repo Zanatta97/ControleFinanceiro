@@ -57,7 +57,7 @@ export default function ComparativoCategoria() {
                 titulo="Comparativo por categoria"
                 descricao={`${labelCompetencia(mes, ano)} × ${labelCompetencia(anterior.mes, anterior.ano)} × média dos 3 meses anteriores. "—" indica base zero.`}
               >
-                <div className="overflow-x-auto">
+                <div className="scrollbar-fino overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>

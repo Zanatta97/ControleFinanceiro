@@ -43,7 +43,7 @@ export default function MatrizCategoriaMes() {
               titulo={`Categoria × mês — ${dados.ano}`}
               descricao={`Valores em R$, pela competência. Total do ano: ${formatCurrency(dados.totalAno)}.`}
             >
-              <div className="overflow-x-auto">
+              <div className="scrollbar-fino overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-fin-border text-xs font-medium uppercase tracking-wide text-fin-text-muted">

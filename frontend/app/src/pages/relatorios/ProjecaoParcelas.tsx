@@ -81,7 +81,7 @@ export default function ProjecaoParcelas() {
                 }))}
                 formatar={formatCurrency}
               />
-              <div className="overflow-x-auto border-t border-fin-border">
+              <div className="scrollbar-fino overflow-x-auto border-t border-fin-border">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className={theadRow}>
@@ -119,7 +119,7 @@ export default function ProjecaoParcelas() {
               {p.comprasAtivas.length === 0 ? (
                 <p className="px-5 py-8 text-center text-sm text-fin-text-muted">Nenhuma compra parcelada ativa.</p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="scrollbar-fino overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -150,13 +150,28 @@ export default function ProjecaoParcelas() {
                             {c.parcelaAtual === 0 ? 'não iniciada' : `${c.parcelaAtual}/${c.totalParcelas}`}
                           </td>
                           <td className={`${td} text-right font-fin-mono text-fin-text-primary`}>{formatCurrency(c.valorParcela)}</td>
-                          <td className={`${td} text-right font-fin-mono text-fin-text-secondary`}>{c.parcelasRestantes}</td>
+                          <td className={`${td} text-right text-fin-text-secondary`}>
+                            <span className="font-fin-mono">{c.parcelasRestantes}</span>
+                            {c.parcelasProjetadas > 0 && (
+                              <span
+                                className="ml-2 whitespace-nowrap rounded-full bg-fin-warning-soft px-2 py-0.5 text-[11px] font-medium text-fin-warning"
+                                title="Parcelas ainda não lançadas, estimadas a partir da última parcela registrada"
+                              >
+                                {c.parcelasProjetadas} {c.parcelasProjetadas === 1 ? 'projetada' : 'projetadas'}
+                              </span>
+                            )}
+                          </td>
                           <td className={`${td} text-right font-fin-mono font-semibold text-fin-text-primary`}>{formatCurrency(c.valorRestante)}</td>
                           <td className={`${td} whitespace-nowrap text-fin-text-muted`}>{formatMesCompetencia(c.ultimaCompetencia)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  {p.comprasAtivas.some((c) => c.parcelasProjetadas > 0) && (
+                    <p className="border-t border-fin-border px-5 py-3 text-xs text-fin-text-muted">
+                      Parcelas projetadas ainda não foram lançadas: são estimadas a partir da última parcela registrada da compra, com o mesmo valor, uma por mês. Elas entram nos totais deste relatório.
+                    </p>
+                  )}
                 </div>
               )}
             </Secao>

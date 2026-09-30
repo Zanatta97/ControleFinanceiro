@@ -96,30 +96,33 @@ export default function Navbar() {
     <>
       <header className="relative z-30 flex h-[60px] flex-none items-center gap-4 border-b border-fin-border bg-fin-surface px-4 sm:px-6">
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-none items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-fin-brand text-white">
             <Icon icon="lucide:dollar-sign" width={16} height={16} />
           </div>
           <span className="hidden text-sm font-bold text-fin-text-primary sm:inline">Controle Financeiro</span>
         </div>
 
-        {/* Nav desktop */}
-        <nav className="ml-1.5 hidden items-center gap-0.5 lg:flex">
+        {/* Nav desktop: de lg a xl só ícone (o texto não cabe ao lado do bloco da direita);
+            o rótulo aparece a partir de xl. Abaixo de lg vale a MobileTabBar. */}
+        <nav className="ml-1.5 hidden min-w-0 items-center gap-0.5 lg:flex">
           {navLinks.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               end={l.end}
+              title={l.label}
+              aria-label={l.label}
               className={({ isActive }) =>
-                `flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13.5px] font-semibold transition-colors ${
+                `flex flex-none items-center gap-2 rounded-[9px] px-2.5 py-2 text-[13.5px] font-semibold transition-colors xl:px-3 ${
                   isActive
                     ? 'bg-fin-brand-soft text-fin-brand'
                     : 'text-fin-text-secondary hover:bg-fin-surface-2'
                 }`
               }
             >
-              <Icon icon={l.icon} width={17} height={17} />
-              {l.label}
+              <Icon icon={l.icon} width={17} height={17} className="flex-none" />
+              <span className="hidden whitespace-nowrap xl:inline">{l.label}</span>
             </NavLink>
           ))}
         </nav>
@@ -129,18 +132,21 @@ export default function Navbar() {
           {/* Badge do ambiente ativo */}
           {nomeAmbiente && (
             isDemo ? (
-              <span className="flex h-8 items-center gap-1.5 rounded-full bg-fin-brand-soft px-3 text-[12.5px] font-semibold text-fin-brand">
-                <Icon icon="lucide:layers" width={14} height={14} />
-                <span className="hidden sm:inline">{nomeAmbiente}</span>
+              <span
+                title={nomeAmbiente}
+                className="flex h-8 min-w-0 items-center gap-1.5 rounded-full bg-fin-brand-soft px-3 text-[12.5px] font-semibold text-fin-brand"
+              >
+                <Icon icon="lucide:layers" width={14} height={14} className="flex-none" />
+                <span className="hidden max-w-[120px] truncate sm:block 2xl:max-w-[200px]">{nomeAmbiente}</span>
               </span>
             ) : (
               <button
                 onClick={handleTrocarAmbiente}
-                title="Trocar ambiente"
-                className="flex h-8 items-center gap-1.5 rounded-full bg-fin-brand-soft px-3 text-[12.5px] font-semibold text-fin-brand transition hover:brightness-95"
+                title={`Trocar ambiente (${nomeAmbiente})`}
+                className="flex h-8 min-w-0 items-center gap-1.5 rounded-full bg-fin-brand-soft px-3 text-[12.5px] font-semibold text-fin-brand transition hover:brightness-95"
               >
-                <Icon icon="lucide:layers" width={14} height={14} />
-                <span className="hidden sm:inline">{nomeAmbiente}</span>
+                <Icon icon="lucide:layers" width={14} height={14} className="flex-none" />
+                <span className="hidden max-w-[120px] truncate sm:block 2xl:max-w-[200px]">{nomeAmbiente}</span>
               </button>
             )
           )}

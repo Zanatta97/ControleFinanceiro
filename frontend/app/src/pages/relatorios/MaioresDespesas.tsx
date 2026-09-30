@@ -57,7 +57,7 @@ export default function MaioresDespesas() {
       <EstadoView estado={estado} vazio="Nenhuma despesa encontrada no período.">
         {(dados) => (
           <Secao titulo={`As ${dados.length} maiores despesas`} descricao={descricaoFiltro(filtro)}>
-            <div className="overflow-x-auto">
+            <div className="scrollbar-fino overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={theadRow}>
