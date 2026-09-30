@@ -27,7 +27,8 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public string NomeCategoria { get; set; } = string.Empty;
         public string? Cor { get; set; }
 
-        // Data original da compra (todas as parcelas guardam a mesma)
+        // Data da parcela lançada de menor número. No cadastro pelo app todas as parcelas guardam a data
+        // da compra; em parcelas importadas de fatura cada uma pode ter a sua, e aí vale a da mais antiga lançada.
         public DateTime DataCompra { get; set; }
 
         // Valor da próxima parcela (a primeira depois do mês de referência)
@@ -37,8 +38,17 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public int ParcelaAtual { get; set; }
         public int TotalParcelas { get; set; }
 
-        // Parcelas com competência depois do mês de referência que existem no banco
+        // Parcelas com competência depois do mês de referência: lançadas + projetadas
         public int ParcelasRestantes { get; set; }
+
+        /// <summary>
+        /// Quantas das ParcelasRestantes não estão lançadas no banco e foram inferidas: a partir da última
+        /// parcela lançada N/M da compra, as parcelas N+1..M entram com o mesmo valor, uma por competência.
+        /// 0 quando todas as parcelas restantes já estão lançadas.
+        /// </summary>
+        public int ParcelasProjetadas { get; set; }
+
+        // Soma das parcelas restantes (lançadas + projetadas)
         public decimal ValorRestante { get; set; }
         public DateOnly UltimaCompetencia { get; set; }
     }
@@ -53,7 +63,8 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         // Total em parcelas na competência de referência (base de comparação do primeiro mês)
         public decimal TotalParcelasMesReferencia { get; set; }
 
-        // Soma de tudo o que ainda falta pagar em parcelas depois do mês de referência (inclui além do horizonte)
+        // Soma de tudo o que ainda falta pagar em parcelas depois do mês de referência (inclui além do horizonte).
+        // Nos totais do relatório (mês de referência, série e restante) entram parcelas lançadas e projetadas.
         public decimal TotalRestante { get; set; }
 
         public IEnumerable<ProjecaoParcelasMesDTO> Meses { get; set; } = [];

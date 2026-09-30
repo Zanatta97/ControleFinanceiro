@@ -19,9 +19,16 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public decimal FixosEstimados { get; set; }
         public decimal RecebimentosEstimados { get; set; }
 
+        /// <summary>
+        /// Parcelas da competência alvo que ainda não estão lançadas nesta conta, inferidas da última parcela
+        /// lançada de cada compra (mesmo valor, uma por mês). Parcela já lançada no alvo fica só em SaidasLancadas.
+        /// </summary>
+        public decimal ParcelasProjetadas { get; set; }
+
+        // Inicial + entradas lançadas + recebimentos estimados − saídas lançadas − fixos estimados − parcelas projetadas
         public decimal SaldoFinalPrevisto { get; set; }
 
-        // Só para cartão de crédito: despesas já lançadas no cartão no alvo + fixos estimados no cartão
+        // Só para cartão de crédito: despesas já lançadas no cartão no alvo + fixos estimados + parcelas projetadas no cartão
         public decimal? FaturaPrevista { get; set; }
     }
 
@@ -33,11 +40,17 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         // Receitas lançadas no alvo + recebimentos estimados (transferência não entra)
         public decimal ReceitasPrevistas { get; set; }
 
-        // Despesas lançadas no alvo + fixos estimados (transferência não entra)
+        // Despesas lançadas no alvo + fixos estimados + parcelas projetadas (transferência não entra)
         public decimal DespesasPrevistas { get; set; }
 
-        // Despesas parceladas já lançadas na competência alvo
+        // Parcelas da competência alvo: lançadas + projetadas (a parte projetada está em ParcelasProjetadas)
         public decimal TotalParcelas { get; set; }
+
+        /// <summary>
+        /// Soma das ParcelasProjetadas de todas as contas: parcelas do alvo inferidas, ainda não lançadas.
+        /// TotalParcelas − ParcelasProjetadas = parcelas já lançadas no alvo.
+        /// </summary>
+        public decimal ParcelasProjetadas { get; set; }
 
         // ReceitasPrevistas − DespesasPrevistas
         public decimal ResultadoPrevisto { get; set; }

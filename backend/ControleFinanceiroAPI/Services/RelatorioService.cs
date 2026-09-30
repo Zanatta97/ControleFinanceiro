@@ -16,13 +16,26 @@ namespace ControleFinanceiroAPI.Services
         private const int AnoMaximo = 2100;
         private const int QuantidadeMaximaMesesProjecao = 36;
         private const int MesesHistoricoEstimativa = 3;
+
+        // Quanto voltar no tempo para achar a última parcela lançada de cada compra (base da projeção)
+        private const int MesesHistoricoParcelas = 36;
         private const string GrupoFixo = "Fixo";
         private const string GrupoRecebimento = "Recebimento";
 
         private readonly IUnityOfWork _repository;
 
-        // Parcela já reconhecida pela observação, com a competência normalizada para o dia 1
-        private sealed record ParcelaLancada(Transacao Transacao, DateOnly Competencia, int Numero, int Total);
+        // Parcela reconhecida pela observação, com a competência normalizada para o dia 1.
+        // Projetada = inferida, não existe no banco; nesse caso Transacao é a última parcela lançada
+        // da compra, usada só como modelo (valor, conta, categoria, descrição).
+        private sealed record ParcelaCompra(Transacao Transacao, DateOnly Competencia, int Numero, int Total, bool Projetada)
+        {
+            // Sem id de compra no modelo, a compra é identificada por descrição, conta, total M e a competência
+            // da parcela 1 (competência − (N − 1) meses). A Data não entra: nas parcelas importadas de fatura
+            // cada parcela traz a data da sua fatura, e agrupar por ela quebraria a compra em várias.
+            public ChaveCompra Compra => new(Transacao.Descricao, Transacao.ContaId, Total, Competencia.AddMonths(1 - Numero));
+        }
+
+        private readonly record struct ChaveCompra(string? Descricao, Guid ContaId, int Total, DateOnly CompetenciaPrimeiraParcela);
 
         public RelatorioService(IUnityOfWork repository)
         {
@@ -432,17 +445,15 @@ namespace ControleFinanceiroAPI.Services
             var hoje = (dataReferencia ?? DateTime.Today).Date;
             var referencia = ResolverCompetencia(mes, ano, new DateOnly(hoje.Year, hoje.Month, 1));
 
-            // As parcelas futuras já existem no banco (o cadastro grava uma transação por competência).
-            // Busca da referência em diante, sem limite final: a lista de compras precisa da última parcela,
-            // mesmo que ela caia depois do horizonte pedido.
-            var transacoes = await _repository.TransacaoRepository.GetDespesasParceladasAPartirDeMesCompetenciaAsync(ambienteId, referencia);
+            // Lançadas + projetadas: o cadastro pelo app grava todas as parcelas, mas a carga de faturas
+            // só traz as que já saíram em fatura; as que faltam são inferidas da última lançada.
+            var parcelas = await GetParcelasComProjecaoAsync(ambienteId, referencia);
 
-            var parcelas = transacoes
-                .Select(t => t.TryGetParcela(out var numero, out var total)
-                    ? new ParcelaLancada(t, NormalizarCompetencia(t.MesCompetencia), numero, total)
-                    : null)
-                .OfType<ParcelaLancada>()
-                .ToList();
+            // Data da compra = data da parcela lançada de menor número (as projetadas copiam a da última lançada)
+            var dataCompra = parcelas
+                .Where(p => !p.Projetada)
+                .GroupBy(p => p.Compra)
+                .ToDictionary(g => g.Key, g => g.MinBy(p => p.Numero)!.Transacao.Data);
 
             var formato = CultureInfo.GetCultureInfo("pt-BR").DateTimeFormat;
             var totalReferencia = parcelas.Where(p => p.Competencia == referencia).Sum(p => p.Transacao.Valor);
@@ -472,12 +483,11 @@ namespace ControleFinanceiroAPI.Services
                 totalAnterior = total;
             }
 
-            // Compra ativa = tem parcela depois da referência. Sem id de compra no modelo, as parcelas
-            // são agrupadas por (Descricao, ContaId, Data, total M): todas guardam a data original da compra.
+            // Compra ativa = tem parcela (lançada ou projetada) depois da referência
             var futuras = parcelas.Where(p => p.Competencia > referencia).ToList();
 
             var compras = futuras
-                .GroupBy(p => new { p.Transacao.Descricao, p.Transacao.ContaId, p.Transacao.Data, p.Total })
+                .GroupBy(p => p.Compra)
                 .Select(g =>
                 {
                     var ordenadas = g.OrderBy(p => p.Numero).ToList();
@@ -491,12 +501,13 @@ namespace ControleFinanceiroAPI.Services
                         CategoriaId = proxima.Transacao.CategoriaId,
                         NomeCategoria = proxima.Transacao.Categoria?.Nome ?? "Sem categoria",
                         Cor = proxima.Transacao.Categoria?.Cor,
-                        DataCompra = g.Key.Data,
+                        DataCompra = dataCompra[g.Key],
                         ValorParcela = proxima.Transacao.Valor,
                         // Parcela atual = a anterior à primeira futura; 0 quando a compra ainda não começou
                         ParcelaAtual = proxima.Numero - 1,
                         TotalParcelas = g.Key.Total,
                         ParcelasRestantes = ordenadas.Count,
+                        ParcelasProjetadas = ordenadas.Count(p => p.Projetada),
                         ValorRestante = ordenadas.Sum(p => p.Transacao.Valor),
                         UltimaCompetencia = ordenadas.Max(p => p.Competencia)
                     };
@@ -541,9 +552,15 @@ namespace ControleFinanceiroAPI.Services
             var doMesBase = transacoes.Where(t => NormalizarCompetencia(t.MesCompetencia) == mesBase).ToList();
             var doAlvo = transacoes.Where(t => NormalizarCompetencia(t.MesCompetencia) == alvo).ToList();
 
-            // Base da média: alvo−3 a alvo−1, sem parcelas (as do alvo já estão lançadas como parcelas)
+            // Base da média: alvo−3 a alvo−1, sem parcelas (as do alvo entram como lançadas ou projetadas)
             var historico = transacoes
                 .Where(t => NormalizarCompetencia(t.MesCompetencia) < alvo && !t.IsParcela())
+                .ToList();
+
+            // Parcelas do alvo que ainda não estão no banco. A inferência só gera números acima da última
+            // parcela lançada da compra, então parcela já lançada no alvo fica só em SaidasLancadas.
+            var projetadasAlvo = (await GetParcelasComProjecaoAsync(ambienteId, alvo))
+                .Where(p => p.Projetada && p.Competencia == alvo)
                 .ToList();
 
             var projecaoContas = contas.Select(conta =>
@@ -556,13 +573,14 @@ namespace ControleFinanceiroAPI.Services
                 var (entradas, saidas) = doAlvo.CalcularMovimentoDaConta(conta.Id);
                 var fixos = EstimarRecorrente(historico, doAlvo, conta.Id, TipoTransacao.Despesa, fixas);
                 var recebimentos = EstimarRecorrente(historico, doAlvo, conta.Id, TipoTransacao.Receita, recebimento);
+                var parcelasProjetadas = projetadasAlvo.Where(p => p.Transacao.ContaId == conta.Id).Sum(p => p.Transacao.Valor);
 
                 decimal? fatura = null;
                 if (conta.TipoConta == TipoConta.CartaoCredito)
                 {
                     fatura = doAlvo
                         .Where(t => t.TipoTransacao == TipoTransacao.Despesa && t.ContaId == conta.Id)
-                        .Sum(t => t.Valor) + fixos;
+                        .Sum(t => t.Valor) + fixos + parcelasProjetadas;
                 }
 
                 return new ProjecaoContaDTO
@@ -575,16 +593,21 @@ namespace ControleFinanceiroAPI.Services
                     SaidasLancadas = saidas,
                     FixosEstimados = fixos,
                     RecebimentosEstimados = recebimentos,
-                    SaldoFinalPrevisto = saldoInicial + entradas + recebimentos - saidas - fixos,
+                    ParcelasProjetadas = parcelasProjetadas,
+                    SaldoFinalPrevisto = saldoInicial + entradas + recebimentos - saidas - fixos - parcelasProjetadas,
                     FaturaPrevista = fatura
                 };
             }).ToList();
+
+            // Soma pelas contas: projeção de uma conta que não está na lista não entra em nenhum total
+            var totalParcelasProjetadas = projecaoContas.Sum(c => c.ParcelasProjetadas);
 
             // Transferência não é receita nem despesa: os totais gerais olham só Receita e Despesa
             var receitasPrevistas = doAlvo.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor)
                                     + projecaoContas.Sum(c => c.RecebimentosEstimados);
             var despesasPrevistas = doAlvo.Where(t => t.TipoTransacao == TipoTransacao.Despesa).Sum(t => t.Valor)
-                                    + projecaoContas.Sum(c => c.FixosEstimados);
+                                    + projecaoContas.Sum(c => c.FixosEstimados)
+                                    + totalParcelasProjetadas;
 
             return new ProjecaoProximoMesResponseDTO
             {
@@ -594,7 +617,8 @@ namespace ControleFinanceiroAPI.Services
                 DespesasPrevistas = despesasPrevistas,
                 TotalParcelas = doAlvo
                     .Where(t => t.TipoTransacao == TipoTransacao.Despesa && t.IsParcela())
-                    .Sum(t => t.Valor),
+                    .Sum(t => t.Valor) + totalParcelasProjetadas,
+                ParcelasProjetadas = totalParcelasProjetadas,
                 ResultadoPrevisto = receitasPrevistas - despesasPrevistas,
                 SaldoPrevisto = projecaoContas.Sum(c => c.SaldoFinalPrevisto),
                 Contas = projecaoContas
@@ -666,6 +690,49 @@ namespace ControleFinanceiroAPI.Services
                 Total = transacoes.Where(t => t.CategoriaId == categoria.Id).Sum(t => t.Valor),
                 Grupo = grupo
             };
+        }
+
+        // Parcelas lançadas desde referência − 36 meses, mais as projetadas. O recuo é o que permite achar
+        // a última parcela lançada de compras cuja continuação ainda não está no banco.
+        private async Task<List<ParcelaCompra>> GetParcelasComProjecaoAsync(Guid ambienteId, DateOnly referencia)
+        {
+            var inicio = referencia.AddMonths(-MesesHistoricoParcelas);
+            var transacoes = await _repository.TransacaoRepository.GetDespesasParceladasAPartirDeMesCompetenciaAsync(ambienteId, inicio);
+
+            return InferirParcelasFaltantes(transacoes);
+        }
+
+        // Para cada compra, a parcela lançada de maior número N (competência C, valor V) gera as parcelas
+        // N+1..M com valor V nas competências C+1, C+2, ... Só gera números acima do maior lançado, então
+        // nunca repete uma parcela que já existe. Compra terminada (N == M) não gera nada.
+        private static List<ParcelaCompra> InferirParcelasFaltantes(IEnumerable<Transacao> transacoes)
+        {
+            var lancadas = transacoes
+                .Select(t => t.TryGetParcela(out var numero, out var total)
+                    ? new ParcelaCompra(t, NormalizarCompetencia(t.MesCompetencia), numero, total, Projetada: false)
+                    : null)
+                .OfType<ParcelaCompra>()
+                .ToList();
+
+            var projetadas = lancadas
+                .GroupBy(p => p.Compra)
+                .SelectMany(g =>
+                {
+                    var maiorNumero = g.Max(p => p.Numero);
+
+                    // Uma sequência por parcela de maior número: duas compras idênticas no mesmo mês
+                    // (mesma chave) continuam valendo duas
+                    return g.Where(p => p.Numero == maiorNumero)
+                            .SelectMany(ultima => Enumerable.Range(1, ultima.Total - ultima.Numero)
+                                .Select(i => ultima with
+                                {
+                                    Numero = ultima.Numero + i,
+                                    Competencia = ultima.Competencia.AddMonths(i),
+                                    Projetada = true
+                                }));
+                });
+
+            return lancadas.Concat(projetadas).ToList();
         }
 
         // Para cada categoria escolhida: média do histórico (mês sem lançamento entra como zero)

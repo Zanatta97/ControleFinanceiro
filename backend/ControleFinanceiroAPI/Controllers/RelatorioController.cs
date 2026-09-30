@@ -302,15 +302,18 @@ namespace ControleFinanceiroAPI.Controllers
         }
 
         /// <summary>
-        /// Projeção das parcelas já lançadas: total por mês futuro e compras parceladas ainda ativas.
+        /// Projeção das parcelas: total por mês futuro e compras parceladas ainda ativas.
         /// </summary>
         /// <remarks>
         /// Parcela é reconhecida pela observação "Parcela N/M" gravada no cadastro; se a observação for editada
         /// e perder esse prefixo, a transação deixa de contar como parcela. Só despesas entram.
+        /// Parcelas que faltam no banco são projetadas: a partir da última parcela lançada N/M de cada compra
+        /// (buscada até 36 meses antes da referência), as parcelas N+1..M entram com o mesmo valor, uma por competência.
         /// A série vai do mês seguinte à referência até referência + meses. ReducaoEmRelacaoAoMesAnterior é
         /// o total do mês anterior da série menos o do mês (no primeiro, o do mês de referência); negativo indica aumento.
-        /// Compras ativas: parcelas agrupadas por descrição, conta, data da compra e total de parcelas, com ao menos
-        /// uma parcela depois da referência. ParcelaAtual é 0 quando a compra ainda não começou.
+        /// Compras ativas: parcelas agrupadas por descrição, conta, total de parcelas e competência da 1ª parcela, com ao menos
+        /// uma parcela (lançada ou projetada) depois da referência. ParcelaAtual é 0 quando a compra ainda não começou;
+        /// ParcelasProjetadas diz quantas das restantes foram inferidas.
         /// </remarks>
         /// <param name="mes">Mês de referência (1 a 12). Opcional, junto com ano; padrão = mês corrente.</param>
         /// <param name="ano">Ano de referência. Opcional, junto com mes.</param>
@@ -342,8 +345,11 @@ namespace ControleFinanceiroAPI.Controllers
         /// Saldo inicial previsto = saldo final do mês anterior ao alvo (saldo inicial salvo, ou 0, + movimento da competência).
         /// Fixos/recebimentos estimados: para cada categoria informada, média das despesas/receitas da conta nos 3 meses
         /// anteriores ao alvo (mês sem lançamento conta 0, parcelas fora), menos o já lançado no alvo, mínimo 0.
-        /// Saldo final previsto = inicial + entradas lançadas + recebimentos estimados − saídas lançadas − fixos estimados.
-        /// Cartão de crédito traz também a fatura prevista (despesas lançadas no cartão + fixos estimados no cartão).
+        /// Parcelas projetadas: parcelas do alvo que ainda não existem no banco, inferidas da última parcela lançada
+        /// de cada compra; parcela já lançada no alvo conta só em saídas lançadas.
+        /// Saldo final previsto = inicial + entradas lançadas + recebimentos estimados − saídas lançadas − fixos estimados
+        /// − parcelas projetadas.
+        /// Cartão de crédito traz também a fatura prevista (despesas lançadas + fixos estimados + parcelas projetadas no cartão).
         /// Retorna 400 se uma categoria não for do ambiente ativo ou estiver nas duas listas.
         /// </remarks>
         /// <param name="mes">Mês da competência alvo (1 a 12). Opcional, junto com ano; padrão = mês seguinte ao atual.</param>
