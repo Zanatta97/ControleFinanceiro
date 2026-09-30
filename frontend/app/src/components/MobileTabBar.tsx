@@ -7,6 +7,7 @@ const tabs = [
   { to: '/contas', label: 'Contas', icon: 'lucide:credit-card', end: false },
   { to: '/categorias', label: 'Categorias', icon: 'lucide:tag', end: false },
   { to: '/orcamentos', label: 'Orçam.', icon: 'lucide:target', end: false },
+  { to: '/relatorios', label: 'Relat.', icon: 'lucide:bar-chart-3', end: false },
 ]
 
 export default function MobileTabBar() {

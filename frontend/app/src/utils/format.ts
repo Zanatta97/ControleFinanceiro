@@ -23,3 +23,15 @@ export function formatMesCompetencia(iso: string | null | undefined): string {
     .replace('. de ', '/')
     .replace('.', '')
 }
+
+// Percentual no padrão pt-BR ("12,5%"). Nulo ou não numérico (base zero) vira "—", nunca "NaN".
+export function formatPercent(value: number | null | undefined, casas = 1): string {
+  if (value == null || !Number.isFinite(value)) return '—'
+  return `${value.toFixed(casas).replace('.', ',')}%`
+}
+
+// Variação com sinal ("+12,5%" / "-3,0%"). Nula (base zero) vira "—".
+export function formatVariacao(value: number | null | undefined, casas = 1): string {
+  if (value == null || !Number.isFinite(value)) return '—'
+  return `${value > 0 ? '+' : ''}${formatPercent(value, casas)}`
+}

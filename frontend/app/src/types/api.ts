@@ -218,6 +218,188 @@ export interface ExtratoContaResponse {
   transacoes: TransacaoResponse[]
 }
 
+// Filtro dos relatórios que aceitam competência (mes/ano) OU período (dataInicio/dataFim) — nunca os dois
+export interface FiltroCompetenciaOuPeriodo {
+  mes?: number
+  ano?: number
+  dataInicio?: string  // YYYY-MM-DD
+  dataFim?: string     // YYYY-MM-DD
+}
+
+export interface GastosPorContaResponse {
+  contaId: string
+  nomeConta: string
+  tipoConta: TipoConta | null
+  totalGasto: number
+  percentual: number
+}
+
+export interface ComparativoCategoriaResponse {
+  categoriaId: string
+  nomeCategoria: string
+  cor: string | null
+  gastoMes: number
+  gastoMesAnterior: number
+  mediaTresMesesAnteriores: number
+  // Nulas quando a base de comparação é zero
+  variacaoMesAnterior: number | null
+  variacaoMedia: number | null
+}
+
+export interface MaiorDespesaResponse {
+  transacaoId: string
+  descricao: string | null
+  valor: number
+  data: string
+  mesCompetencia: string  // YYYY-MM-DD
+  categoriaId: string
+  nomeCategoria: string
+  cor: string | null
+  contaId: string
+  nomeConta: string
+}
+
+export interface MatrizCategoriaValorMes {
+  mes: number
+  nomeMes: string
+  valor: number
+}
+
+export interface MatrizCategoriaLinha {
+  categoriaId: string
+  nomeCategoria: string
+  cor: string | null
+  meses: MatrizCategoriaValorMes[]  // sempre 12 itens
+  totalAno: number
+}
+
+export interface MatrizCategoriaMesResponse {
+  ano: number
+  categorias: MatrizCategoriaLinha[]
+  totaisPorMes: MatrizCategoriaValorMes[]
+  totalAno: number
+}
+
+export interface FrequenciaCategoriaResponse {
+  categoriaId: string
+  nomeCategoria: string
+  cor: string | null
+  quantidade: number
+  totalGasto: number
+  ticketMedio: number
+}
+
+export interface RitmoMesResponse {
+  dataReferencia: string
+  diasDecorridos: number
+  diasNoMes: number
+  gastoAteHoje: number
+  diaComparadoMesAnterior: number
+  gastoMesAnteriorAteMesmoDia: number
+  // Nula quando o mês anterior não teve gasto até o dia comparado
+  variacaoPercentual: number | null
+  gastoTotalMesAnterior: number
+  projecaoFimMes: number
+}
+
+export interface FaturaCompetenciaResponse {
+  contaId: string
+  nomeConta: string
+  mes: number
+  ano: number
+  totalDespesas: number
+  totalPago: number
+  // Negativo indica pagamento acima do valor da fatura
+  saldoEmAberto: number
+}
+
+export interface ProjecaoParcelasMes {
+  mes: number
+  ano: number
+  nomeMes: string
+  totalParcelas: number
+  quantidadeParcelas: number
+  totalParcelasTerminando: number
+  quantidadeParcelasTerminando: number
+  // Positivo = o compromisso caiu; negativo = subiu
+  reducaoEmRelacaoAoMesAnterior: number
+}
+
+export interface CompraParceladaAtiva {
+  descricao: string | null
+  contaId: string
+  nomeConta: string
+  categoriaId: string
+  nomeCategoria: string
+  cor: string | null
+  dataCompra: string
+  valorParcela: number
+  parcelaAtual: number  // 0 quando a compra ainda não começou
+  totalParcelas: number
+  parcelasRestantes: number
+  valorRestante: number
+  ultimaCompetencia: string  // YYYY-MM-DD
+}
+
+export interface ProjecaoParcelasResponse {
+  mesReferencia: number
+  anoReferencia: number
+  quantidadeMeses: number
+  totalParcelasMesReferencia: number
+  totalRestante: number
+  meses: ProjecaoParcelasMes[]
+  comprasAtivas: CompraParceladaAtiva[]
+}
+
+export interface ProjecaoConta {
+  contaId: string
+  nomeConta: string
+  tipoConta: TipoConta
+  saldoInicialPrevisto: number
+  entradasLancadas: number
+  saidasLancadas: number
+  fixosEstimados: number
+  recebimentosEstimados: number
+  saldoFinalPrevisto: number
+  // Só para cartão de crédito
+  faturaPrevista: number | null
+}
+
+export interface ProjecaoProximoMesResponse {
+  mes: number
+  ano: number
+  receitasPrevistas: number
+  despesasPrevistas: number
+  totalParcelas: number
+  resultadoPrevisto: number
+  saldoPrevisto: number
+  contas: ProjecaoConta[]
+}
+
+export interface FixosRecebimentosCategoria {
+  categoriaId: string
+  nomeCategoria: string
+  cor: string | null
+  total: number
+  grupo: string  // "Fixo" ou "Recebimento"
+}
+
+export interface FixosRecebimentosResponse {
+  mes: number
+  ano: number
+  recebimentos: number
+  outrasReceitas: number
+  gastosFixos: number
+  parcelas: number
+  gastosVariaveis: number
+  totalDespesas: number
+  saldo: number
+  // Nulos quando não houve recebimento no mês
+  percentualComprometido: number | null
+  percentualFixosSobreRecebimentos: number | null
+  categorias: FixosRecebimentosCategoria[]
+}
+
 export interface ApiLogResponse {
   id: number
   timestamp: string

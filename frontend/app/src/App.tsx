@@ -10,6 +10,7 @@ import Contas from './pages/Contas'
 import Categorias from './pages/Categorias'
 import Transacoes from './pages/Transacoes'
 import Orcamentos from './pages/Orcamentos'
+import Relatorios from './pages/Relatorios'
 import Configuracoes from './pages/Configuracoes'
 import Admin from './pages/Admin'
 
@@ -44,6 +45,8 @@ function AppRoutes() {
         <Route path="/categorias" element={<Categorias />} />
         <Route path="/transacoes" element={<Transacoes />} />
         <Route path="/orcamentos" element={<Orcamentos />} />
+        {/* Subaba no último segmento: /relatorios/por-categoria, /relatorios/fatura... */}
+        <Route path="/relatorios/:aba?" element={<Relatorios />} />
         {!isDemo && <Route path="/configuracoes" element={<Configuracoes />} />}
         {!isDemo && <Route path="/admin" element={<Admin />} />}
       </Route>
