@@ -276,7 +276,10 @@ namespace ControleFinanceiroAPI.Services
             var novoToken = _tokenService.GenerateAccessToken(claims, _configuration);
             var novoRefreshToken = _tokenService.GenerateRefreshToken();
 
+            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
+
             user.RefreshToken = novoRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(refreshTokenValidityInMinutes);
             await _userManager.UpdateAsync(user);
 
             return new TokenDTO

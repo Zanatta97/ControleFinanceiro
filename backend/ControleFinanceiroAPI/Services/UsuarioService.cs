@@ -118,6 +118,8 @@ namespace ControleFinanceiroAPI.Services
 
                 user.RefreshToken = refreshToken;
 
+                await _userManager.UpdateAsync(user);
+
                 return ApiResponseDTO<object>.SuccessResponse(new
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
@@ -193,7 +195,10 @@ namespace ControleFinanceiroAPI.Services
 
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
+            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
+
             user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(refreshTokenValidityInMinutes);
 
             await _userManager.UpdateAsync(user);
 
