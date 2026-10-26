@@ -3,8 +3,11 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import { useInstalarApp } from '../hooks/useInstalarApp'
 import { selecionarAmbiente, listarDoUsuario, criar, buscarPorId } from '../api/ambiente'
 import type { AmbienteResponse } from '../types/api'
+import Modal from './ui/Modal'
+import Button from './ui/Button'
 
 export const navLinks = [
   { to: '/', label: 'Dashboard', icon: 'lucide:layout-dashboard', end: true },
@@ -46,6 +49,20 @@ export default function Navbar() {
   const [novoNome, setNovoNome] = useState('')
   const [criando, setCriando] = useState(false)
   const [erro, setErro] = useState('')
+  const [showInstrucoesIOS, setShowInstrucoesIOS] = useState(false)
+
+  const { podeInstalar, instalar, ehIOS, instalado } = useInstalarApp()
+  // No iOS não há convite nativo: o item abre as instruções enquanto o app não estiver instalado
+  const mostrarInstalar = !instalado && (podeInstalar || ehIOS)
+
+  function handleInstalar() {
+    setShowDropdown(false)
+    if (podeInstalar) {
+      instalar()
+    } else {
+      setShowInstrucoesIOS(true)
+    }
+  }
 
   async function handleTrocarAmbiente() {
     const { data } = await listarDoUsuario()
@@ -97,9 +114,7 @@ export default function Navbar() {
       <header className="relative z-30 flex h-[60px] flex-none items-center gap-4 border-b border-fin-border bg-fin-surface px-4 sm:px-6">
         {/* Logo */}
         <div className="flex flex-none items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-fin-brand text-white">
-            <Icon icon="lucide:dollar-sign" width={16} height={16} />
-          </div>
+          <img src="/icons/logo-marca-96.png" alt="" className="h-7 w-7" />
           <span className="hidden text-sm font-bold text-fin-text-primary sm:inline">Controle Financeiro</span>
         </div>
 
@@ -204,9 +219,19 @@ export default function Navbar() {
                         <Icon icon="lucide:refresh-cw" width={16} height={16} />
                         Alterar ambiente
                       </button>
-                      <div className="mx-1.5 my-1.5 h-px bg-fin-border" />
                     </>
                   )}
+                  {/* Visível também no demo: instalar não depende de conta */}
+                  {mostrarInstalar && (
+                    <button
+                      onClick={handleInstalar}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-[13px] font-medium text-fin-text-primary hover:bg-fin-surface-2"
+                    >
+                      <Icon icon="lucide:smartphone" width={16} height={16} />
+                      Instalar app
+                    </button>
+                  )}
+                  {(!isDemo || mostrarInstalar) && <div className="mx-1.5 my-1.5 h-px bg-fin-border" />}
                   <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-[13px] font-medium text-fin-negative hover:bg-fin-negative-soft"
@@ -225,6 +250,39 @@ export default function Navbar() {
       {showDropdown && (
         <div className="fixed inset-0 z-20" onClick={() => setShowDropdown(false)} />
       )}
+
+      {/* iOS: a instalação é manual, pelo menu Compartilhar do Safari */}
+      <Modal
+        open={showInstrucoesIOS}
+        onClose={() => setShowInstrucoesIOS(false)}
+        title="Instalar o app"
+        size="sm"
+      >
+        <ol className="flex flex-col gap-3 text-[13.5px] text-fin-text-primary">
+          <li className="flex items-center gap-3">
+            <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-fin-brand-soft text-fin-brand">
+              <Icon icon="lucide:share" width={17} height={17} />
+            </span>
+            <span>
+              Toque em <strong className="font-semibold">Compartilhar</strong> na barra do navegador.
+            </span>
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-fin-brand-soft text-fin-brand">
+              <Icon icon="lucide:square-plus" width={17} height={17} />
+            </span>
+            <span>
+              Escolha <strong className="font-semibold">Adicionar à Tela de Início</strong>.
+            </span>
+          </li>
+        </ol>
+        <p className="mt-4 text-[11.5px] text-fin-text-muted">
+          O app passa a abrir direto da tela inicial, sem a barra do navegador.
+        </p>
+        <div className="mt-5 flex justify-end">
+          <Button onClick={() => setShowInstrucoesIOS(false)}>Entendi</Button>
+        </div>
+      </Modal>
 
       {/* Modal de ambientes — tela cheia no mobile, modal centralizado no desktop */}
       {showAmbientes && (

@@ -1,6 +1,19 @@
 {
+  "routes": [
+    {
+      "route": "/sw.js",
+      "headers": { "cache-control": "no-cache" }
+    },
+    {
+      "route": "/index.html",
+      "headers": { "cache-control": "no-cache" }
+    }
+  ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/*.{css,js,png,gif,ico,jpg,svg,woff,woff2,ttf,eot}"]
+    "exclude": ["/*.{css,js,png,gif,ico,jpg,svg,woff,woff2,ttf,eot,webmanifest}"]
+  },
+  "mimeTypes": {
+    ".webmanifest": "application/manifest+json"
   }
 }

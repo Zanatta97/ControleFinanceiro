@@ -59,9 +59,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-fin-bg p-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] bg-fin-brand text-white">
-            <Icon icon="lucide:dollar-sign" width={26} height={26} />
-          </div>
+          <img src="/icons/icon-192.png" alt="" className="mx-auto h-16 w-16" />
           <h1 className="mt-3 text-2xl font-bold text-fin-text-primary">Controle Financeiro</h1>
           <p className="mt-1 text-sm text-fin-text-secondary">Entre com sua conta</p>
         </div>

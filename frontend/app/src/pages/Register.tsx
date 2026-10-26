@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Icon } from '@iconify/react'
 import { register as apiRegister } from '../api/auth'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
@@ -45,9 +44,7 @@ export default function Register() {
     <div className="flex min-h-screen items-center justify-center bg-fin-bg p-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] bg-fin-brand text-white">
-            <Icon icon="lucide:dollar-sign" width={26} height={26} />
-          </div>
+          <img src="/icons/icon-192.png" alt="Controle Financeiro" className="mx-auto h-16 w-16" />
           <h1 className="mt-3 text-2xl font-bold text-fin-text-primary">Criar Conta</h1>
           <p className="mt-1 text-sm text-fin-text-secondary">Preencha os dados abaixo</p>
         </div>
