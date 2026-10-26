@@ -14,7 +14,7 @@ import {
 } from './utils'
 
 const campo =
-  'rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none'
+  'rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-base sm:text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none'
 const botaoSeta =
   'rounded-lg border border-fin-border px-3 py-1.5 text-sm text-fin-text-secondary transition hover:bg-fin-surface-2'
 
@@ -40,11 +40,12 @@ export function SeletorCompetencia({ mes, ano, onChange, rotulo = 'Competência'
     const p = somarMeses(mes, ano, delta)
     onChange(p.mes, p.ano)
   }
+  // Celular: a linha ‹ mês › ocupa a largura do card e só o campo encolhe. A partir de sm, largura automática.
   return (
-    <div>
+    <div className="w-full min-w-0 sm:w-auto">
       <RotuloFiltro>{rotulo}</RotuloFiltro>
       <div className="flex items-center gap-2">
-        <button type="button" aria-label="Mês anterior" onClick={() => mover(-1)} className={botaoSeta}>‹</button>
+        <button type="button" aria-label="Mês anterior" onClick={() => mover(-1)} className={`${botaoSeta} flex-none`}>‹</button>
         <input
           type="month"
           aria-label={rotulo}
@@ -54,9 +55,9 @@ export function SeletorCompetencia({ mes, ano, onChange, rotulo = 'Competência'
             const [a, m] = e.target.value.split('-').map(Number)
             onChange(m, a)
           }}
-          className={campo}
+          className={`${campo} min-w-0 flex-1 sm:flex-none`}
         />
-        <button type="button" aria-label="Próximo mês" onClick={() => mover(1)} className={botaoSeta}>›</button>
+        <button type="button" aria-label="Próximo mês" onClick={() => mover(1)} className={`${botaoSeta} flex-none`}>›</button>
       </div>
     </div>
   )

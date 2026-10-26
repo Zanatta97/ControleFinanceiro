@@ -133,14 +133,15 @@ export default function Dashboard() {
           <h1 className="text-[22px] font-bold text-fin-text-primary">Dashboard</h1>
           <p className="text-sm capitalize text-fin-text-secondary">{labelMes(mes, ano)}</p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Celular: a linha ‹ mês › ocupa a largura disponível e só o campo encolhe */}
+        <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
           <button
             onClick={() => {
               const d = new Date(ano, mes - 2, 1)
               setMes(d.getMonth() + 1)
               setAno(d.getFullYear())
             }}
-            className="rounded-lg border border-fin-border px-3 py-1.5 text-sm text-fin-text-secondary transition hover:bg-fin-surface-2"
+            className="flex-none rounded-lg border border-fin-border px-3 py-1.5 text-sm text-fin-text-secondary transition hover:bg-fin-surface-2"
           >
             ‹
           </button>
@@ -148,7 +149,7 @@ export default function Dashboard() {
             type="month"
             value={ymToInput(mes, ano)}
             onChange={(e) => handleMes(e.target.value)}
-            className="rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none"
+            className="min-w-0 flex-1 rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-base sm:text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none sm:flex-none"
           />
           <button
             onClick={() => {
@@ -156,7 +157,7 @@ export default function Dashboard() {
               setMes(d.getMonth() + 1)
               setAno(d.getFullYear())
             }}
-            className="rounded-lg border border-fin-border px-3 py-1.5 text-sm text-fin-text-secondary transition hover:bg-fin-surface-2"
+            className="flex-none rounded-lg border border-fin-border px-3 py-1.5 text-sm text-fin-text-secondary transition hover:bg-fin-surface-2"
           >
             ›
           </button>
@@ -242,12 +243,13 @@ export default function Dashboard() {
               {categorias.length === 0 ? (
                 <p className="py-8 text-center text-sm text-fin-text-muted">Sem despesas neste mês.</p>
               ) : (
-                <div className="flex items-center gap-[18px] px-5 py-[18px]">
+                <div className="flex flex-col items-center gap-[18px] px-5 py-[18px] sm:flex-row">
                   <Donut segments={categorias.map((c) => ({ value: c.percentual, cor: c.cor ?? 'var(--fin-text-muted)' }))}>
                     <span className="text-[9.5px] font-semibold uppercase text-fin-text-muted">Total</span>
                     <span className="font-fin-mono text-[14px] text-fin-text-primary">{formatCurrency(totalGasto)}</span>
                   </Donut>
-                  <div className="flex flex-1 flex-col gap-2.5">
+                  {/* min-w-0: sem ele o item flex não encolhe e o truncate do nome não funciona */}
+                  <div className="flex w-full min-w-0 flex-col gap-2.5 sm:flex-1">
                     {categorias.map((c) => (
                       <div key={c.categoriaId} className="flex items-center gap-2.5">
                         <span className="h-2.5 w-2.5 flex-none rounded-[3px]" style={{ backgroundColor: c.cor ?? 'var(--fin-text-muted)' }} />

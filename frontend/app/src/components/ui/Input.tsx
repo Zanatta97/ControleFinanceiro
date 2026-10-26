@@ -13,7 +13,7 @@ export default function Input({ label, error, className = '', id, ...rest }: Pro
       <input
         id={inputId}
         {...rest}
-        className={`rounded-lg border px-3 py-2 text-sm bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted shadow-sm transition focus:outline-none focus:shadow-fin-focus ${error ? 'border-fin-negative' : 'border-fin-border'} ${className}`}
+        className={`rounded-lg border px-3 py-2 text-base sm:text-sm bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted shadow-sm transition focus:outline-none focus:shadow-fin-focus ${error ? 'border-fin-negative' : 'border-fin-border'} ${className}`}
       />
       {error && <span className="text-xs text-fin-negative">{error}</span>}
     </div>

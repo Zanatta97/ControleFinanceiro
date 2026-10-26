@@ -14,7 +14,7 @@ export default function Select({ label, error, options, className = '', id, ...r
       <select
         id={selectId}
         {...rest}
-        className={`rounded-lg border px-3 py-2 text-sm bg-fin-surface text-fin-text-primary shadow-sm transition focus:outline-none focus:shadow-fin-focus ${error ? 'border-fin-negative' : 'border-fin-border'} ${className}`}
+        className={`rounded-lg border px-3 py-2 text-base sm:text-sm bg-fin-surface text-fin-text-primary shadow-sm transition focus:outline-none focus:shadow-fin-focus ${error ? 'border-fin-negative' : 'border-fin-border'} ${className}`}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>

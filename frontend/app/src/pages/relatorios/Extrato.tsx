@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { listarDoAmbiente } from '../../api/conta'
 import { extratoConta } from '../../api/relatorio'
+import CartaoLinha, { ListaCartoes } from '../../components/ui/CartaoLinha'
 import { useRelatorio } from '../../hooks/useRelatorio'
 import { TipoTransacao, type ContaResponse, type TransacaoResponse } from '../../types/api'
 import { formatCurrency } from '../../utils/format'
@@ -9,7 +10,7 @@ import { EstadoView, Kpi, Secao, tbodyCls, td, th, theadRow, trCls } from './ui'
 import { filtroInicial, formatDataLocal, nomeTipoConta } from './utils'
 
 const campo =
-  'rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none'
+  'rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-base sm:text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none'
 
 // Entrada ou saída do ponto de vista da conta do extrato (transferência depende do lado)
 function ehEntrada(t: TransacaoResponse, contaId: string) {
@@ -45,9 +46,15 @@ function ExtratoConta({ contas }: { contas: ContaResponse[] }) {
   return (
     <div className="space-y-4">
       <BarraFiltros>
-        <div>
+        {/* Celular: o select ocupa a largura do card e não cresce com o nome da conta mais longa */}
+        <div className="w-full min-w-0 sm:w-auto">
           <RotuloFiltro>Conta</RotuloFiltro>
-          <select aria-label="Conta" value={contaId} onChange={(e) => setContaId(e.target.value)} className={`${campo} min-w-[200px]`}>
+          <select
+            aria-label="Conta"
+            value={contaId}
+            onChange={(e) => setContaId(e.target.value)}
+            className={`${campo} w-full min-w-0 max-w-full sm:w-auto sm:min-w-[200px]`}
+          >
             {contas.map((c) => (
               <option key={c.id} value={c.id}>{c.nome} ({nomeTipoConta[c.tipoConta] ?? 'Conta'})</option>
             ))}
@@ -80,7 +87,8 @@ function ExtratoConta({ contas }: { contas: ContaResponse[] }) {
               {x.transacoes.length === 0 ? (
                 <p className="px-5 py-8 text-center text-sm text-fin-text-muted">Nenhuma transação no período.</p>
               ) : (
-                <div className="scrollbar-fino overflow-x-auto">
+                <>
+                <div className="scrollbar-fino hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -115,6 +123,33 @@ function ExtratoConta({ contas }: { contas: ContaResponse[] }) {
                     </tbody>
                   </table>
                 </div>
+                <ListaCartoes>
+                  {x.transacoes.map((t) => {
+                    const entrada = ehEntrada(t, x.contaId)
+                    const transferencia = t.tipoTransacao === TipoTransacao.Transferencia
+                    return (
+                      <CartaoLinha
+                        key={t.id}
+                        titulo={t.descricao || '—'}
+                        subtitulo={
+                          transferencia
+                            ? `Transferência ${entrada ? `de ${t.contaNome ?? 'outra conta'}` : `para ${t.contaDestinoNome ?? 'outra conta'}`}`
+                            : undefined
+                        }
+                        destaque={
+                          <span className={`font-fin-mono ${entrada ? 'text-fin-positive' : 'text-fin-negative'}`}>
+                            {entrada ? '+' : '−'}{formatCurrency(t.valor)}
+                          </span>
+                        }
+                        campos={[
+                          { rotulo: 'Data', valor: formatDataLocal(t.data) },
+                          { rotulo: 'Categoria', valor: t.categoriaNome || '—' },
+                        ]}
+                      />
+                    )
+                  })}
+                </ListaCartoes>
+                </>
               )}
             </Secao>
           </>

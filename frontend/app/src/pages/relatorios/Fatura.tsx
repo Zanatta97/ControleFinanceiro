@@ -8,8 +8,9 @@ import { BarraFiltros, RotuloFiltro, SeletorCompetencia } from './filtros'
 import { BarraProporcao, EstadoVazio, EstadoView, Kpi, Secao } from './ui'
 import { labelCompetencia, mesAtual } from './utils'
 
+// Celular: largura do card, sem crescer com o nome do cartão mais longo. A partir de sm, largura automática.
 const campo =
-  'min-w-[200px] rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none'
+  'w-full min-w-0 max-w-full sm:w-auto sm:min-w-[200px] rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-base sm:text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none'
 
 export default function Fatura() {
   const estadoContas = useRelatorio(() => listarDoAmbiente(), 'contas')
@@ -35,7 +36,7 @@ function FaturaCartao({ cartoes }: { cartoes: { id: string; nome: string }[] }) 
   return (
     <div className="space-y-4">
       <BarraFiltros>
-        <div>
+        <div className="w-full min-w-0 sm:w-auto">
           <RotuloFiltro>Cartão</RotuloFiltro>
           <select aria-label="Cartão" value={contaId} onChange={(e) => setContaId(e.target.value)} className={campo}>
             {cartoes.map((c) => (

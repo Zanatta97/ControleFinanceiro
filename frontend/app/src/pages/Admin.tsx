@@ -579,7 +579,7 @@ function TabLogs() {
 
       {logs.length > 0 && (
         <Card className="flex flex-col">
-          <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 420px)' }}>
+          <div className="overflow-auto" style={{ maxHeight: 'calc(100dvh - 420px)' }}>
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-fin-surface z-10">
                 <tr className="border-b border-fin-border text-left text-xs font-medium uppercase tracking-wide text-fin-text-muted">

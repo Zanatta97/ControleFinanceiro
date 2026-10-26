@@ -202,7 +202,7 @@ export function GraficoBarras({ series, itens, altura = 160, formatar }: Grafico
         </div>
       )}
       <div className="scrollbar-fino overflow-x-auto">
-        <div className="flex min-w-[520px] items-end gap-2" style={{ height: altura }}>
+        <div className="flex items-end gap-2 sm:min-w-[520px]" style={{ height: altura }}>
           {itens.map((item) => (
             <div
               key={item.rotulo}
@@ -222,7 +222,7 @@ export function GraficoBarras({ series, itens, altura = 160, formatar }: Grafico
             </div>
           ))}
         </div>
-        <div className="mt-2 flex min-w-[520px] gap-2 border-t border-fin-border pt-2">
+        <div className="mt-2 flex gap-2 border-t border-fin-border pt-2 sm:min-w-[520px]">
           {itens.map((item) => (
             <span key={item.rotulo} className="flex-1 text-center text-[11px] capitalize text-fin-text-muted">
               {item.rotulo}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { evolucaoMensal } from '../../api/relatorio'
+import CartaoLinha, { ListaCartoes } from '../../components/ui/CartaoLinha'
 import { useRelatorio } from '../../hooks/useRelatorio'
 import { formatCurrency } from '../../utils/format'
 import { BarraFiltros, SeletorAno } from './filtros'
@@ -39,7 +40,7 @@ export default function EvolucaoMensal() {
                   itens={e.meses.map((m) => ({ rotulo: m.nomeMes.slice(0, 3), valores: [m.totalReceitas, m.totalDespesas] }))}
                   formatar={formatCurrency}
                 />
-                <div className="scrollbar-fino overflow-x-auto border-t border-fin-border">
+                <div className="scrollbar-fino hidden overflow-x-auto border-t border-fin-border md:block">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -67,6 +68,28 @@ export default function EvolucaoMensal() {
                     </tbody>
                   </table>
                 </div>
+                <ListaCartoes className="border-t border-fin-border">
+                  {e.meses.map((m) => (
+                    <CartaoLinha
+                      key={m.mes}
+                      titulo={<span className="capitalize">{m.nomeMes}</span>}
+                      destaque={
+                        <>
+                          <span className={`block font-fin-mono font-semibold ${m.saldo < 0 ? 'text-fin-negative' : 'text-fin-text-primary'}`}>
+                            {formatCurrency(m.saldo)}
+                          </span>
+                          <span className="block text-[10.5px] font-medium uppercase tracking-wide text-fin-text-muted">Saldo</span>
+                        </>
+                      }
+                      campos={[
+                        { rotulo: 'Receitas', valor: <span className="font-fin-mono text-fin-positive">{formatCurrency(m.totalReceitas)}</span> },
+                        { rotulo: 'Despesas', valor: <span className="font-fin-mono text-fin-negative">{formatCurrency(m.totalDespesas)}</span> },
+                        { rotulo: 'Cartão', valor: <span className="font-fin-mono">{formatCurrency(m.despesasCartao)}</span> },
+                        { rotulo: 'Contas', valor: <span className="font-fin-mono">{formatCurrency(m.despesasOutras)}</span> },
+                      ]}
+                    />
+                  ))}
+                </ListaCartoes>
               </Secao>
             </>
           )

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { projecaoParcelas } from '../../api/relatorio'
+import CartaoLinha, { ListaCartoes } from '../../components/ui/CartaoLinha'
 import { useRelatorio } from '../../hooks/useRelatorio'
 import { formatCurrency, formatMesCompetencia } from '../../utils/format'
 import { BarraFiltros, RotuloFiltro, SeletorCompetencia } from './filtros'
@@ -36,7 +37,7 @@ export default function ProjecaoParcelas() {
             aria-label="Horizonte da projeção"
             value={meses}
             onChange={(e) => setMeses(Number(e.target.value))}
-            className="rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none"
+            className="rounded-lg border border-fin-border bg-fin-surface px-3 py-1.5 text-base sm:text-sm text-fin-text-primary focus:border-fin-brand focus:shadow-fin-focus focus:outline-none"
           >
             {opcoesMeses.map((n) => (
               <option key={n} value={n}>{n} meses</option>
@@ -81,7 +82,7 @@ export default function ProjecaoParcelas() {
                 }))}
                 formatar={formatCurrency}
               />
-              <div className="scrollbar-fino overflow-x-auto border-t border-fin-border">
+              <div className="scrollbar-fino hidden overflow-x-auto border-t border-fin-border md:block">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className={theadRow}>
@@ -113,13 +114,37 @@ export default function ProjecaoParcelas() {
                   </tbody>
                 </table>
               </div>
+              <ListaCartoes className="border-t border-fin-border">
+                {p.meses.map((m) => (
+                  <CartaoLinha
+                    key={`${m.ano}-${m.mes}`}
+                    titulo={<span className="capitalize">{labelCompetencia(m.mes, m.ano)}</span>}
+                    destaque={<span className="font-fin-mono text-fin-text-primary">{formatCurrency(m.totalParcelas)}</span>}
+                    campos={[
+                      { rotulo: 'Parcelas', valor: <span className="font-fin-mono">{m.quantidadeParcelas}</span> },
+                      {
+                        rotulo: 'Terminando',
+                        valor: m.quantidadeParcelasTerminando > 0 ? (
+                          <span className="font-fin-mono">
+                            {m.quantidadeParcelasTerminando} · {formatCurrency(m.totalParcelasTerminando)}
+                          </span>
+                        ) : (
+                          <span className="text-fin-text-muted">—</span>
+                        ),
+                      },
+                      { rotulo: 'Redução vs. mês anterior', valor: <Reducao valor={m.reducaoEmRelacaoAoMesAnterior} />, largo: true },
+                    ]}
+                  />
+                ))}
+              </ListaCartoes>
             </Secao>
 
             <Secao titulo="Compras parceladas ativas" descricao="Com ao menos uma parcela depois do mês de referência.">
               {p.comprasAtivas.length === 0 ? (
                 <p className="px-5 py-8 text-center text-sm text-fin-text-muted">Nenhuma compra parcelada ativa.</p>
               ) : (
-                <div className="scrollbar-fino overflow-x-auto">
+                <>
+                <div className="scrollbar-fino hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -167,12 +192,62 @@ export default function ProjecaoParcelas() {
                       ))}
                     </tbody>
                   </table>
-                  {p.comprasAtivas.some((c) => c.parcelasProjetadas > 0) && (
-                    <p className="border-t border-fin-border px-5 py-3 text-xs text-fin-text-muted">
-                      Parcelas projetadas ainda não foram lançadas: são estimadas a partir da última parcela registrada da compra, com o mesmo valor, uma por mês. Elas entram nos totais deste relatório.
-                    </p>
-                  )}
                 </div>
+                <ListaCartoes>
+                  {p.comprasAtivas.map((c) => (
+                    <CartaoLinha
+                      key={`${c.descricao}|${c.contaId}|${c.dataCompra}|${c.totalParcelas}`}
+                      titulo={c.descricao || '—'}
+                      subtitulo={
+                        <span className="flex items-center gap-2">
+                          <CorCategoria cor={c.cor} />
+                          <span className="min-w-0 break-words">{c.nomeCategoria} · {c.nomeConta}</span>
+                        </span>
+                      }
+                      destaque={
+                        <>
+                          <span className="block font-fin-mono font-semibold text-fin-text-primary">{formatCurrency(c.valorRestante)}</span>
+                          <span className="block text-[10.5px] font-medium uppercase tracking-wide text-fin-text-muted">Restante</span>
+                        </>
+                      }
+                      campos={[
+                        { rotulo: 'Compra', valor: formatDataLocal(c.dataCompra) },
+                        {
+                          rotulo: 'Parcela',
+                          valor: (
+                            <span className="font-fin-mono">
+                              {c.parcelaAtual === 0 ? 'não iniciada' : `${c.parcelaAtual}/${c.totalParcelas}`}
+                            </span>
+                          ),
+                        },
+                        { rotulo: 'Valor da parcela', valor: <span className="font-fin-mono text-fin-text-primary">{formatCurrency(c.valorParcela)}</span> },
+                        {
+                          rotulo: 'Restantes',
+                          valor: (
+                            <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="font-fin-mono">{c.parcelasRestantes}</span>
+                              {c.parcelasProjetadas > 0 && (
+                                <span
+                                  className="whitespace-nowrap rounded-full bg-fin-warning-soft px-2 py-0.5 text-[11px] font-medium text-fin-warning"
+                                  title="Parcelas ainda não lançadas, estimadas a partir da última parcela registrada"
+                                >
+                                  {c.parcelasProjetadas} {c.parcelasProjetadas === 1 ? 'projetada' : 'projetadas'}
+                                </span>
+                              )}
+                            </span>
+                          ),
+                        },
+                        { rotulo: 'Última', valor: formatMesCompetencia(c.ultimaCompetencia) },
+                      ]}
+                    />
+                  ))}
+                </ListaCartoes>
+                {p.comprasAtivas.some((c) => c.parcelasProjetadas > 0) && (
+                  <p className="border-t border-fin-border px-5 py-3 text-xs text-fin-text-muted">
+                    Parcelas projetadas ainda não foram lançadas: são estimadas a partir da última parcela registrada da compra, com o mesmo valor, uma por mês. Elas entram nos totais deste relatório.
+                  </p>
+                )}
+                </>
               )}
             </Secao>
           </>

@@ -5,6 +5,7 @@ import { formatCurrency } from '../utils/format'
 import Card from './ui/Card'
 import Button from './ui/Button'
 import ConfirmDialog from './ui/ConfirmDialog'
+import CartaoLinha, { ListaCartoes, type CampoCartao } from './ui/CartaoLinha'
 
 interface Props {
   mes: number
@@ -74,6 +75,48 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
     }
   }
 
+  // Saldo inicial editável, usado na tabela (desktop) e nos cartões (celular).
+  // As duas versões ficam no DOM — uma escondida por CSS —, então o autoFocus só
+  // pega no campo visível: focus() em elemento com display:none não tem efeito.
+  function renderSaldoInicial(d: SaldoMensalContaResponse, alinhamento: 'justify-end' | 'justify-start') {
+    if (editando === d.contaId) {
+      return (
+        <div className={`flex items-center ${alinhamento} gap-1.5`}>
+          <input
+            autoFocus
+            type="number"
+            step="0.01"
+            value={valorEdit}
+            onChange={(e) => setValorEdit(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') requestSaveEdit(d)
+              if (e.key === 'Escape') setEditando(null)
+            }}
+            className="w-[104px] rounded-[7px] border-[1.5px] border-fin-brand bg-fin-surface px-2 py-1 text-right font-fin-mono text-base text-fin-text-primary focus:outline-none focus:shadow-fin-focus sm:text-sm"
+          />
+          <button onClick={() => requestSaveEdit(d)} title="Salvar" className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-fin-brand text-white transition hover:bg-fin-brand-hover">
+            <Icon icon="lucide:check" width={14} height={14} />
+          </button>
+          <button onClick={() => setEditando(null)} title="Cancelar" className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-fin-border text-fin-text-muted transition hover:bg-fin-surface-2">
+            <Icon icon="lucide:x" width={13} height={13} />
+          </button>
+        </div>
+      )
+    }
+    return (
+      <button
+        onClick={() => startEdit(d.contaId, d.saldoInicial)}
+        className={`group inline-flex items-center ${alinhamento} gap-1.5 rounded-[7px] border border-transparent px-1.5 py-1 font-fin-mono text-sm transition hover:border-fin-border hover:bg-fin-surface-2`}
+        title="Clique para editar"
+      >
+        <span className={d.saldoInicial !== 0 ? 'text-fin-text-secondary' : 'text-fin-text-muted'}>
+          {formatCurrency(d.saldoInicial)}
+        </span>
+        <Icon icon="lucide:pencil" width={12} height={12} className="text-fin-text-muted group-hover:text-fin-brand" />
+      </button>
+    )
+  }
+
   if (loading) return <div className="py-4 text-center text-sm text-fin-text-muted">Carregando saldos...</div>
 
   const temDados = dados.some((d) => d.saldoInicial !== 0 || d.totalEntradas !== 0 || d.totalSaidas !== 0)
@@ -93,7 +136,8 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
       {dados.length === 0 ? (
         <p className="px-5 py-6 text-center text-sm text-fin-text-muted">Nenhuma conta encontrada.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-fin-border text-left text-xs font-medium uppercase tracking-wide text-fin-text-muted">
@@ -112,39 +156,7 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
 
                   {/* Saldo inicial — editável */}
                   <td className="px-5 py-3 text-right">
-                    {editando === d.contaId ? (
-                      <div className="flex items-center justify-end gap-1.5">
-                        <input
-                          autoFocus
-                          type="number"
-                          step="0.01"
-                          value={valorEdit}
-                          onChange={(e) => setValorEdit(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') requestSaveEdit(d)
-                            if (e.key === 'Escape') setEditando(null)
-                          }}
-                          className="w-[104px] rounded-[7px] border-[1.5px] border-fin-brand bg-fin-surface px-2 py-1 text-right font-fin-mono text-sm text-fin-text-primary focus:outline-none focus:shadow-fin-focus"
-                        />
-                        <button onClick={() => requestSaveEdit(d)} title="Salvar" className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-fin-brand text-white transition hover:bg-fin-brand-hover">
-                          <Icon icon="lucide:check" width={14} height={14} />
-                        </button>
-                        <button onClick={() => setEditando(null)} title="Cancelar" className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-fin-border text-fin-text-muted transition hover:bg-fin-surface-2">
-                          <Icon icon="lucide:x" width={13} height={13} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => startEdit(d.contaId, d.saldoInicial)}
-                        className="group inline-flex items-center justify-end gap-1.5 rounded-[7px] border border-transparent px-1.5 py-1 font-fin-mono text-sm transition hover:border-fin-border hover:bg-fin-surface-2"
-                        title="Clique para editar"
-                      >
-                        <span className={d.saldoInicial !== 0 ? 'text-fin-text-secondary' : 'text-fin-text-muted'}>
-                          {formatCurrency(d.saldoInicial)}
-                        </span>
-                        <Icon icon="lucide:pencil" width={12} height={12} className="text-fin-text-muted group-hover:text-fin-brand" />
-                      </button>
-                    )}
+                    {renderSaldoInicial(d, 'justify-end')}
                   </td>
 
                   <td className="px-5 py-3 text-right text-fin-positive">{formatCurrency(d.totalEntradas)}</td>
@@ -159,12 +171,50 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
               ))}
             </tbody>
           </table>
-          {!temDados && (
-            <p className="px-5 py-3 text-center text-xs text-fin-text-muted">
-              Nenhuma transação ou saldo registrado neste mês. Use "Calcular saldo inicial" para inicializar a partir das transações existentes.
-            </p>
-          )}
         </div>
+        <ListaCartoes>
+          {dados.map((d) => {
+            const emEdicao = editando === d.contaId
+            // Em edição, o campo e os dois botões não cabem em meia coluna: o saldo inicial
+            // ocupa a linha toda e Entradas | Saídas seguem lado a lado logo abaixo.
+            const saldoInicial: CampoCartao = {
+              rotulo: 'Saldo inicial',
+              valor: <div className="-ml-1.5">{renderSaldoInicial(d, 'justify-start')}</div>,
+              largo: emEdicao,
+            }
+            const diferenca: CampoCartao = {
+              rotulo: 'Diferença',
+              valor: (
+                <span className={d.diferenca >= 0 ? 'text-fin-positive' : 'text-fin-negative'}>
+                  {d.diferenca >= 0 ? '+' : ''}{formatCurrency(d.diferenca)}
+                </span>
+              ),
+            }
+            const entradas: CampoCartao = { rotulo: 'Entradas', valor: <span className="text-fin-positive">{formatCurrency(d.totalEntradas)}</span> }
+            const saidas: CampoCartao = { rotulo: 'Saídas', valor: <span className="text-fin-negative">{formatCurrency(d.totalSaidas)}</span> }
+            return (
+              <CartaoLinha
+                key={d.contaId}
+                titulo={d.nomeConta}
+                destaque={
+                  <>
+                    <span className={`block font-semibold ${d.saldoFinal >= 0 ? 'text-fin-text-primary' : 'text-fin-negative'}`}>
+                      {formatCurrency(d.saldoFinal)}
+                    </span>
+                    <span className="block text-[10.5px] font-medium uppercase tracking-wide text-fin-text-muted">Saldo final</span>
+                  </>
+                }
+                campos={emEdicao ? [saldoInicial, entradas, saidas, diferenca] : [saldoInicial, diferenca, entradas, saidas]}
+              />
+            )
+          })}
+        </ListaCartoes>
+        {!temDados && (
+          <p className="px-5 py-3 text-center text-xs text-fin-text-muted">
+            Nenhuma transação ou saldo registrado neste mês. Use "Calcular saldo inicial" para inicializar a partir das transações existentes.
+          </p>
+        )}
+        </>
       )}
 
       {/* Confirmação de alteração do saldo inicial (Atual → Novo) */}

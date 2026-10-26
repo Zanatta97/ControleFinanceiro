@@ -120,7 +120,7 @@ export default function IconPicker({ value, onChange, previewColor = 'var(--fin-
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Pesquisar ícone (ex: casa, comida, carro...)"
-              className="w-full rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
+              className="w-full rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary placeholder:text-fin-text-muted px-3 py-2 text-base sm:text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand"
             />
           </div>
 

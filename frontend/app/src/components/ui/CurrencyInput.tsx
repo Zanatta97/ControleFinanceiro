@@ -40,7 +40,7 @@ export default function CurrencyInput({ label, value, onChange, error }: Props) 
         </label>
       )}
       <div
-        className={`flex items-center rounded-lg border px-3 py-2 text-sm bg-fin-surface shadow-sm transition focus-within:shadow-fin-focus focus-within:border-fin-brand ${error ? 'border-fin-negative' : 'border-fin-border'}`}
+        className={`flex items-center rounded-lg border px-3 py-2 text-base sm:text-sm bg-fin-surface shadow-sm transition focus-within:shadow-fin-focus focus-within:border-fin-brand ${error ? 'border-fin-negative' : 'border-fin-border'}`}
       >
         <span className="mr-1 text-fin-text-muted select-none">R$</span>
         <input
