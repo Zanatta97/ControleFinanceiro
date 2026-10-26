@@ -12,7 +12,8 @@ const tabs = [
 
 export default function MobileTabBar() {
   return (
-    <nav className="flex h-[62px] flex-none items-center justify-around border-t border-fin-border bg-fin-surface pb-1.5 lg:hidden">
+    // Altura útil de 62px; a barra cresce para baixo só o tanto da barrinha do iPhone (safe-area)
+    <nav className="flex h-[calc(62px+env(safe-area-inset-bottom))] flex-none items-center justify-around border-t border-fin-border bg-fin-surface pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden">
       {tabs.map((t) => (
         <NavLink
           key={t.to}

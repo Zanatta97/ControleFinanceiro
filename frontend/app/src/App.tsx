@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import Layout from './components/Layout'
+import AvisoAtualizacao from './components/AvisoAtualizacao'
 import Login from './pages/Login'
 import SelecionarAmbiente from './pages/SelecionarAmbiente'
 import Dashboard from './pages/Dashboard'
@@ -63,6 +64,7 @@ export default function App() {
           <AuthProvider>
             <AppRoutes />
           </AuthProvider>
+          <AvisoAtualizacao />
         </BrowserRouter>
       </QueryClientProvider>
     </ThemeProvider>

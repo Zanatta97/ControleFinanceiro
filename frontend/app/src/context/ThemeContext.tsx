@@ -22,6 +22,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       root.classList.remove('dark')
     }
+
+    // Barra do navegador / app instalado acompanha a cor de superfície do tema (--fin-surface)
+    const superficie = getComputedStyle(root).getPropertyValue('--fin-surface').trim()
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', superficie || (isDark ? '#1C1F29' : '#FFFFFF'))
   }, [isDark])
 
   function toggleTheme() {
