@@ -16,6 +16,7 @@ import Toast from '../components/ui/Toast'
 import CurrencyInput from '../components/ui/CurrencyInput'
 import Pagination from '../components/ui/Pagination'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
+import CartaoLinha, { ListaCartoes } from '../components/ui/CartaoLinha'
 import { usePagination } from '../hooks/usePagination'
 
 const tipoOptions = [
@@ -273,7 +274,7 @@ export default function Transacoes() {
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 items-end">
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {(['todos', 'Receita', 'Despesa', 'Transferencia'] as const).map((f) => {
             const active = filtroTipo === f
             return (
@@ -287,12 +288,12 @@ export default function Transacoes() {
         <div className="flex flex-col gap-0.5">
           <label className="text-xs text-fin-text-muted">Competência</label>
           <input type="month" value={filtroMes} onChange={(e) => setFiltroMes(e.target.value)}
-            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
+            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-base sm:text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
         </div>
         <div className="flex flex-col gap-0.5">
           <label className="text-xs text-fin-text-muted">Categoria</label>
           <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}
-            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand">
+            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-base sm:text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand">
             <option value="">Todas</option>
             {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
@@ -300,7 +301,7 @@ export default function Transacoes() {
         <div className="flex flex-col gap-0.5">
           <label className="text-xs text-fin-text-muted">Conta</label>
           <select value={filtroConta} onChange={(e) => setFiltroConta(e.target.value)}
-            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand">
+            className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-1.5 text-base sm:text-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand">
             <option value="">Todas</option>
             {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
@@ -323,7 +324,7 @@ export default function Transacoes() {
         </Card>
       ) : (
         <Card className="flex flex-col min-h-0">
-          <div className="overflow-auto flex-1" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+          <div className="hidden overflow-auto flex-1 md:block md:max-h-[calc(100dvh-320px)]">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-fin-surface z-10">
                 <tr className="border-b border-fin-border text-left text-xs font-medium uppercase tracking-wide text-fin-text-muted">
@@ -386,6 +387,59 @@ export default function Transacoes() {
               </tbody>
             </table>
           </div>
+          {/* Celular: cartões na mesma ordem da tabela. A ordenação por cabeçalho fica só no desktop. */}
+          <ListaCartoes>
+            {paginados.map((t) => {
+              const isTransferencia = t.tipoTransacao === TipoTransacao.Transferencia
+              const isReceita = t.tipoTransacao === TipoTransacao.Receita
+              return (
+                <CartaoLinha
+                  key={t.id}
+                  marcador={isTransferencia ? <Icon icon="lucide:arrow-left-right" width={14} height={14} className="text-fin-text-muted" aria-label="Transferência" /> : undefined}
+                  titulo={t.descricao || '—'}
+                  subtitulo={t.observacao || undefined}
+                  destaque={
+                    isTransferencia ? (
+                      // Transferência não é entrada nem saída do ambiente: visual neutro, sem sinal.
+                      <span className="font-fin-mono font-medium text-fin-text-secondary">{formatCurrency(t.valor)}</span>
+                    ) : (
+                      <span className={`font-fin-mono font-medium ${isReceita ? 'text-fin-positive' : 'text-fin-negative'}`}>
+                        {isReceita ? '+' : '-'}{formatCurrency(t.valor)}
+                      </span>
+                    )
+                  }
+                  campos={[
+                    { rotulo: 'Categoria', valor: t.categoriaNome || '—' },
+                    {
+                      rotulo: 'Conta',
+                      valor: isTransferencia
+                        ? <>{t.contaNome || '—'} <span className="text-fin-text-muted">→</span> {t.contaDestinoNome || '—'}</>
+                        : t.contaNome || '—',
+                    },
+                    {
+                      rotulo: 'Competência',
+                      valor: (
+                        <span className="rounded-full bg-fin-brand-soft px-2 py-0.5 text-xs font-medium text-fin-brand">
+                          {formatMesCompetencia(t.mesCompetencia)}
+                        </span>
+                      ),
+                    },
+                    { rotulo: 'Data', valor: formatDate(t.data) },
+                  ]}
+                  acoes={
+                    <>
+                      <button onClick={() => openEdit(t)} title="Editar" aria-label="Editar" className="flex h-9 w-9 items-center justify-center rounded-[7px] text-fin-text-muted transition hover:bg-fin-surface-2 hover:text-fin-text-primary">
+                        <Icon icon="lucide:pencil" width={16} height={16} />
+                      </button>
+                      <button onClick={() => setToDelete(t)} title="Excluir" aria-label="Excluir" className="flex h-9 w-9 items-center justify-center rounded-[7px] text-fin-text-muted transition hover:bg-fin-negative-soft hover:text-fin-negative">
+                        <Icon icon="lucide:trash-2" width={16} height={16} />
+                      </button>
+                    </>
+                  }
+                />
+              )
+            })}
+          </ListaCartoes>
           <Pagination pagina={pagina} totalPaginas={totalPaginas} total={total} itensPorPagina={ITENS_POR_PAGINA} onPagina={irPara} />
         </Card>
       )}
@@ -437,7 +491,7 @@ export default function Transacoes() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-fin-text-primary">Mês de competência</label>
             <input type="month" value={mesInput} onChange={(e) => handleMesChange(e.target.value)}
-              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-2 text-sm shadow-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
+              className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-2 text-base sm:text-sm shadow-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
             <p className="text-xs text-fin-text-muted">Mês ao qual esta transação será atribuída financeiramente.</p>
           </div>
 
@@ -446,7 +500,7 @@ export default function Transacoes() {
               <label className="text-sm font-medium text-fin-text-primary">Número de parcelas</label>
               <input type="number" min={1} value={parcelas}
                 onChange={(e) => setForm((f) => ({ ...f, parcelas: Math.max(1, parseInt(e.target.value) || 1) }))}
-                className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-2 text-sm shadow-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
+                className="rounded-lg border border-fin-border bg-fin-surface text-fin-text-primary px-3 py-2 text-base sm:text-sm shadow-sm focus:outline-none focus:shadow-fin-focus focus:border-fin-brand" />
               {parcelas > 1 && (
                 <div className="rounded-lg bg-fin-brand-soft border border-fin-brand px-3 py-2 text-xs text-fin-brand">
                   Serão criadas <strong>{parcelas} transações</strong>: {previewParcelas(mesInput, parcelas)}

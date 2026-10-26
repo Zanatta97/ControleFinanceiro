@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { comparativoCategoria } from '../../api/relatorio'
+import CartaoLinha, { ListaCartoes } from '../../components/ui/CartaoLinha'
 import { useRelatorio } from '../../hooks/useRelatorio'
 import { formatCurrency } from '../../utils/format'
 import { BarraFiltros, SeletorCompetencia } from './filtros'
@@ -57,7 +58,7 @@ export default function ComparativoCategoria() {
                 titulo="Comparativo por categoria"
                 descricao={`${labelCompetencia(mes, ano)} × ${labelCompetencia(anterior.mes, anterior.ano)} × média dos 3 meses anteriores. "—" indica base zero.`}
               >
-                <div className="scrollbar-fino overflow-x-auto">
+                <div className="scrollbar-fino hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -90,6 +91,22 @@ export default function ComparativoCategoria() {
                     </tbody>
                   </table>
                 </div>
+                <ListaCartoes>
+                  {dados.map((c) => (
+                    <CartaoLinha
+                      key={c.categoriaId}
+                      marcador={<CorCategoria cor={c.cor} />}
+                      titulo={c.nomeCategoria}
+                      destaque={<span className="font-fin-mono text-fin-text-primary">{formatCurrency(c.gastoMes)}</span>}
+                      campos={[
+                        { rotulo: 'Mês anterior', valor: <span className="font-fin-mono">{formatCurrency(c.gastoMesAnterior)}</span> },
+                        { rotulo: 'Variação (anterior)', valor: <VariacaoChip valor={c.variacaoMesAnterior} /> },
+                        { rotulo: 'Média 3 meses', valor: <span className="font-fin-mono">{formatCurrency(c.mediaTresMesesAnteriores)}</span> },
+                        { rotulo: 'Variação (média)', valor: <VariacaoChip valor={c.variacaoMedia} /> },
+                      ]}
+                    />
+                  ))}
+                </ListaCartoes>
               </Secao>
             </>
           )

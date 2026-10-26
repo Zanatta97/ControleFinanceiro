@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { projecaoProximoMes } from '../../api/relatorio'
+import CartaoLinha, { ListaCartoes } from '../../components/ui/CartaoLinha'
 import { useRelatorio } from '../../hooks/useRelatorio'
 import { TipoConta } from '../../types/api'
 import { formatCurrency } from '../../utils/format'
@@ -90,7 +91,7 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
               )}
 
               <Secao titulo="Saldo previsto por conta" descricao={labelCompetencia(p.mes, p.ano)}>
-                <div className="scrollbar-fino overflow-x-auto">
+                <div className="scrollbar-fino hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -125,6 +126,31 @@ export default function ProjecaoProximoMes({ selecao, onSelecao }: SelecaoCatego
                     </tbody>
                   </table>
                 </div>
+                <ListaCartoes>
+                  {p.contas.map((c) => (
+                    <CartaoLinha
+                      key={c.contaId}
+                      titulo={c.nomeConta}
+                      subtitulo={nomeTipoConta[c.tipoConta] ?? ''}
+                      destaque={
+                        <>
+                          <span className={`block font-fin-mono font-semibold ${c.saldoFinalPrevisto < 0 ? 'text-fin-negative' : 'text-fin-text-primary'}`}>
+                            {formatCurrency(c.saldoFinalPrevisto)}
+                          </span>
+                          <span className="block text-[10.5px] font-medium uppercase tracking-wide text-fin-text-muted">Saldo final</span>
+                        </>
+                      }
+                      campos={[
+                        { rotulo: 'Saldo inicial', valor: <Valor v={c.saldoInicialPrevisto} /> },
+                        { rotulo: 'Entradas lançadas', valor: <Valor v={c.entradasLancadas} tom="positivo" /> },
+                        { rotulo: 'Saídas lançadas', valor: <Valor v={c.saidasLancadas} tom="negativo" /> },
+                        { rotulo: 'Recebim. estimados', valor: <Valor v={c.recebimentosEstimados} tom="positivo" /> },
+                        { rotulo: 'Fixos estimados', valor: <Valor v={c.fixosEstimados} tom="negativo" /> },
+                        { rotulo: 'Parcelas projetadas', valor: <Valor v={c.parcelasProjetadas} tom="negativo" /> },
+                      ]}
+                    />
+                  ))}
+                </ListaCartoes>
               </Secao>
             </>
           )

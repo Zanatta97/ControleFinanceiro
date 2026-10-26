@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { frequenciaCategoria } from '../../api/relatorio'
+import CartaoLinha, { ListaCartoes } from '../../components/ui/CartaoLinha'
 import { useRelatorio } from '../../hooks/useRelatorio'
 import { formatCurrency } from '../../utils/format'
 import { BarraFiltros, FiltroPeriodo } from './filtros'
@@ -37,7 +38,7 @@ export default function FrequenciaCategoria() {
               </div>
 
               <Secao titulo="Frequência e ticket médio por categoria" descricao={descricaoFiltro(filtro)}>
-                <div className="scrollbar-fino overflow-x-auto">
+                <div className="scrollbar-fino hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className={theadRow}>
@@ -68,6 +69,27 @@ export default function FrequenciaCategoria() {
                     </tbody>
                   </table>
                 </div>
+                <ListaCartoes>
+                  {dados.map((c) => (
+                    <CartaoLinha
+                      key={c.categoriaId}
+                      marcador={<CorCategoria cor={c.cor} />}
+                      titulo={c.nomeCategoria}
+                      destaque={
+                        <>
+                          <span className="block font-fin-mono font-semibold text-fin-text-primary">{formatCurrency(c.ticketMedio)}</span>
+                          <span className="block text-[10.5px] font-medium uppercase tracking-wide text-fin-text-muted">Ticket médio</span>
+                        </>
+                      }
+                      campos={[
+                        { rotulo: 'Qtde.', valor: <span className="font-fin-mono text-fin-text-primary">{c.quantidade}</span> },
+                        { rotulo: 'Total', valor: <span className="font-fin-mono">{formatCurrency(c.totalGasto)}</span> },
+                      ]}
+                    >
+                      <BarraProporcao pct={maiorQuantidade > 0 ? (c.quantidade / maiorQuantidade) * 100 : 0} cor={c.cor ?? corNeutra} />
+                    </CartaoLinha>
+                  ))}
+                </ListaCartoes>
               </Secao>
             </>
           )

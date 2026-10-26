@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { maioresDespesas } from '../../api/relatorio'
+import CartaoLinha, { ListaCartoes } from '../../components/ui/CartaoLinha'
 import { useRelatorio } from '../../hooks/useRelatorio'
 import { formatCurrency, formatMesCompetencia } from '../../utils/format'
 import { BarraFiltros, FiltroPeriodo, RotuloFiltro } from './filtros'
@@ -44,7 +45,7 @@ export default function MaioresDespesas() {
             onChange={(e) => setRascunho(e.target.value)}
             onBlur={aplicarQuantidade}
             onKeyDown={(e) => e.key === 'Enter' && aplicarQuantidade()}
-            className={`w-[96px] rounded-lg border bg-fin-surface px-3 py-1.5 text-sm text-fin-text-primary focus:shadow-fin-focus focus:outline-none ${
+            className={`w-[96px] rounded-lg border bg-fin-surface px-3 py-1.5 text-base sm:text-sm text-fin-text-primary focus:shadow-fin-focus focus:outline-none ${
               quantidadeValida ? 'border-fin-border focus:border-fin-brand' : 'border-fin-negative'
             }`}
           />
@@ -57,7 +58,7 @@ export default function MaioresDespesas() {
       <EstadoView estado={estado} vazio="Nenhuma despesa encontrada no período.">
         {(dados) => (
           <Secao titulo={`As ${dados.length} maiores despesas`} descricao={descricaoFiltro(filtro)}>
-            <div className="scrollbar-fino overflow-x-auto">
+            <div className="scrollbar-fino hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={theadRow}>
@@ -90,6 +91,30 @@ export default function MaioresDespesas() {
                 </tbody>
               </table>
             </div>
+            <ListaCartoes>
+              {dados.map((d, i) => (
+                <CartaoLinha
+                  key={d.transacaoId}
+                  marcador={<span className="font-fin-mono text-xs text-fin-text-muted">{i + 1}</span>}
+                  titulo={d.descricao || '—'}
+                  destaque={<span className="font-fin-mono text-fin-negative">{formatCurrency(d.valor)}</span>}
+                  campos={[
+                    {
+                      rotulo: 'Categoria',
+                      valor: (
+                        <span className="flex items-center gap-2">
+                          <CorCategoria cor={d.cor} />
+                          <span className="min-w-0 break-words">{d.nomeCategoria}</span>
+                        </span>
+                      ),
+                    },
+                    { rotulo: 'Conta', valor: d.nomeConta },
+                    { rotulo: 'Data', valor: formatDataLocal(d.data) },
+                    { rotulo: 'Competência', valor: formatMesCompetencia(d.mesCompetencia) },
+                  ]}
+                />
+              ))}
+            </ListaCartoes>
           </Secao>
         )}
       </EstadoView>
