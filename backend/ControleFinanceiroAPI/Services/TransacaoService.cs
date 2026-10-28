@@ -28,7 +28,7 @@ namespace ControleFinanceiroAPI.Services
 
         public async Task<IEnumerable<Transacao>> GetByContaAsync(Guid contaId, Guid ambienteId)
         {
-            return await _repository.TransacaoRepository.GetByContaAsync(contaId);
+            return await _repository.TransacaoRepository.GetByContaAsync(contaId, ambienteId);
         }
 
         public async Task<IEnumerable<Transacao>> GetByPeriodoAsync(Guid ambienteId, DateTime inicio, DateTime fim)

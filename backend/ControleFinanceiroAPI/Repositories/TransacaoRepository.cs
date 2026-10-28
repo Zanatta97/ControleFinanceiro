@@ -10,12 +10,12 @@ namespace ControleFinanceiroAPI.Repositories
     {
         public TransacaoRepository(AppDbContext context) : base(context) { }
 
-        public async Task<IEnumerable<Transacao>> GetByContaAsync(Guid contaId)
+        public async Task<IEnumerable<Transacao>> GetByContaAsync(Guid contaId, Guid ambienteId)
         {
             return await _context.Transacoes
                 .AsNoTracking()
                 .Include(t => t.Categoria)
-                .Where(t => t.ContaId == contaId)
+                .Where(t => t.ContaId == contaId && t.AmbienteId == ambienteId)
                 .OrderByDescending(t => t.Data)
                 .ToListAsync();
         }
