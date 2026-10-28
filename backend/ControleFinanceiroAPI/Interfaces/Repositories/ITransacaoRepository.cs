@@ -5,7 +5,7 @@ namespace ControleFinanceiroAPI.Interfaces.Repositories
 {
     public interface ITransacaoRepository : IRepository<Transacao>
     {
-        Task<IEnumerable<Transacao>> GetByContaAsync(Guid contaId);
+        Task<IEnumerable<Transacao>> GetByContaAsync(Guid contaId, Guid ambienteId);
         Task<IEnumerable<Transacao>> GetByContaAndPeriodoAsync(Guid contaId, Guid ambienteId, DateTime inicio, DateTime fim);
         Task<IEnumerable<Transacao>> GetByPeriodoAsync(Guid ambienteId, DateTime inicio, DateTime fim);
         Task<IEnumerable<Transacao>> GetByMesCompetenciaAsync(Guid ambienteId, int mes, int ano);
