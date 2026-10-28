@@ -7,6 +7,7 @@ interface Props {
   duration?: number
 }
 
+/** Aviso flutuante no rodapé que se fecha sozinho após `duration` ms. */
 export default function Toast({ message, type = 'error', onClose, duration = 5000 }: Props) {
   useEffect(() => {
     const t = setTimeout(onClose, duration)

@@ -9,6 +9,7 @@ const styles = {
   info: 'bg-fin-brand-soft border-fin-brand text-fin-brand',
 }
 
+/** Faixa de mensagem dentro de formulários e modais (erro, sucesso ou informação). */
 export default function Alert({ type, message }: Props) {
   return (
     <div className={`rounded-lg border px-4 py-3 text-sm ${styles[type]}`}>

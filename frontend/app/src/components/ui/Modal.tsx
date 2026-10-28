@@ -10,6 +10,7 @@ interface Props {
 
 const sizes = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg' }
 
+/** Janela modal centralizada com título. */
 export default function Modal({ open, onClose, title, children, size = 'md' }: Props) {
   if (!open) return null
   return (

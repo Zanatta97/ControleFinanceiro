@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ControleFinanceiroAPI.DTO.Orcamento
 {
+    /// <summary>Dados para criar ou editar um orçamento. O ambiente vem do token.</summary>
     public class OrcamentoRequestDTO
     {
         [Required(ErrorMessage = "O Nome é obrigatório")]

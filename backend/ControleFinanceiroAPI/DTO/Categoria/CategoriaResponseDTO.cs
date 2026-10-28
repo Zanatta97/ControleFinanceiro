@@ -1,5 +1,6 @@
 ﻿namespace ControleFinanceiroAPI.DTO.Categoria
 {
+    /// <summary>Categoria do ambiente.</summary>
     public class CategoriaResponseDTO
     {
         public Guid Id { get; set; }

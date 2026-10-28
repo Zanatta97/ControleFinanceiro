@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Quantidade de despesas, total e ticket médio (total ÷ quantidade) de uma categoria.</summary>
     public class FrequenciaCategoriaResponseDTO
     {
         public Guid CategoriaId { get; set; }

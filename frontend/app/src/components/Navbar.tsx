@@ -9,6 +9,7 @@ import type { AmbienteResponse } from '../types/api'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
 
+/** Itens do menu do desktop. O celular usa a MobileTabBar, com a mesma ordem e rótulos mais curtos. */
 export const navLinks = [
   { to: '/', label: 'Dashboard', icon: 'lucide:layout-dashboard', end: true },
   { to: '/transacoes', label: 'Transações', icon: 'lucide:arrow-left-right', end: false },
@@ -18,6 +19,7 @@ export const navLinks = [
   { to: '/relatorios', label: 'Relatórios', icon: 'lucide:bar-chart-3', end: false },
 ]
 
+/** Iniciais para o avatar: primeira e última palavra do nome, ou as duas primeiras letras se for uma palavra só. */
 function iniciais(nome?: string | null) {
   if (!nome) return '?'
   const partes = nome.trim().split(/\s+/)
@@ -25,12 +27,19 @@ function iniciais(nome?: string | null) {
   return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase()
 }
 
+/**
+ * Barra superior: menu (desktop), ambiente ativo com troca/criação de ambiente, tema, instalação do app
+ * e menu do usuário. No modo demo, o ambiente aparece só como etiqueta (sem troca) e o menu esconde
+ * Configurações, Administração e "Alterar ambiente".
+ */
 export default function Navbar() {
   const { nome, email, nomeAmbiente, ambienteId, isDemo, isAdmin, logout, setAmbienteToken } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [ambientes, setAmbientes] = useState<AmbienteResponse[]>([])
 
+  // O nome do ambiente não está no token: quando há ambiente mas falta o nome (ex.: login que já trouxe
+  // o último ambiente, ou seleção feita pelas Configurações), busca na API e grava junto com os tokens atuais.
   useEffect(() => {
     if (ambienteId && !nomeAmbiente) {
       buscarPorId(ambienteId).then(({ data }) => {
@@ -73,6 +82,10 @@ export default function Navbar() {
     setShowDropdown(false)
   }
 
+  /**
+   * Troca o ambiente ativo: guarda o novo par de tokens. O App remonta o Layout pela key `ambienteId`,
+   * então todas as telas recarregam os dados do novo ambiente.
+   */
   async function handleSelecionar(a: AmbienteResponse) {
     const { data } = await selecionarAmbiente(a.id)
     if (data.dados?.accessToken && data.dados.refreshToken) {
@@ -82,6 +95,7 @@ export default function Navbar() {
     navigate('/')
   }
 
+  /** Cria o ambiente e já entra nele (criar não troca o ambiente ativo; a seleção é uma segunda chamada). */
   async function handleCriar() {
     if (!novoNome.trim()) return
     setCriando(true)
@@ -318,6 +332,7 @@ export default function Navbar() {
                 <p className="py-2 text-center text-sm text-fin-text-secondary">Nenhum ambiente encontrado.</p>
               )}
               {ambientes.map((a) => {
+                // Comportamento atual: compara pelo nome, não pelo id; dois ambientes com o mesmo nome aparecem ativos
                 const ativo = a.nome === nomeAmbiente
                 return (
                   <button

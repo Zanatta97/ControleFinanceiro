@@ -4,6 +4,10 @@ using System.Security.Claims;
 
 namespace ControleFinanceiroAPI.Logging
 {
+    /// <summary>
+    /// Grava os registros de <see cref="ApiLog"/> no banco. Registrado como Singleton no Program.cs e,
+    /// por isso, abre um escopo de DI próprio a cada gravação para obter um AppDbContext (Scoped).
+    /// </summary>
     public class ApiLogService : IApiLogService
     {
         // IServiceScopeFactory permite criar um escopo de DI manualmente.
@@ -45,6 +49,8 @@ namespace ControleFinanceiroAPI.Logging
                     IsError = exception != null || statusCode >= 400,
                     ElapsedMs = elapsedMs,
                     // Lê o Id do usuário do token JWT (se estiver autenticado)
+                    // Comportamento atual: os tokens da API guardam o id no claim "id" (não em NameIdentifier/"sub"),
+                    // então este valor tende a ficar null mesmo para requisições autenticadas.
                     UserId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 };
 

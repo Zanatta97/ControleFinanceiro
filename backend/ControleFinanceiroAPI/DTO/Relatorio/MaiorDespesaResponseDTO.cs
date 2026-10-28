@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Uma das maiores despesas do filtro.</summary>
     public class MaiorDespesaResponseDTO
     {
         public Guid TransacaoId { get; set; }

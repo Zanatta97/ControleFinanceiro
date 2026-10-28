@@ -4,6 +4,7 @@ using ControleFinanceiroAPI.Model;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>Implementação de <see cref="IContaService"/>.</summary>
     public class ContaService : IContaService
     {
         private readonly IUnityOfWork _repository;
@@ -15,26 +16,31 @@ namespace ControleFinanceiroAPI.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Conta>> GetAllAsync()
         {
             return await _repository.ContaRepository.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Conta>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _repository.ContaRepository.GetAllByAmbienteAsync(ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Conta?> GetAsync(Guid id, Guid ambienteId)
         {
             return await _repository.ContaRepository.GetByIdAsync(c => c.Id == id && c.AmbienteId == ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Conta?> GetReadOnlyAsync(Guid id, Guid ambienteId)
         {
             return await _repository.ContaRepository.GetByIdReadOnlyAsync(c => c.Id == id && c.AmbienteId == ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Conta> AddAsync(Conta conta)
         {
             ArgumentNullException.ThrowIfNull(conta, nameof(conta));
@@ -51,6 +57,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<Conta> UpdateAsync(Guid id, Conta conta, Guid ambienteId)
         {
             ArgumentNullException.ThrowIfNull(conta, nameof(conta));
@@ -75,6 +82,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteAsync(Guid id, Guid ambienteId)
         {
             try

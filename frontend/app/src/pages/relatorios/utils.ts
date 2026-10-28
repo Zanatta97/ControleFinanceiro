@@ -25,6 +25,7 @@ export interface SelecaoCategoriasProps {
   onSelecao: (s: SelecaoCategorias) => void
 }
 
+/** Cor usada quando a categoria não tem cor cadastrada. */
 export const corNeutra = 'var(--fin-text-muted)'
 
 // Data local em YYYY-MM-DD (toISOString usaria UTC e poderia virar o dia)
@@ -34,17 +35,20 @@ export function toISODate(d: Date): string {
   return `${d.getFullYear()}-${mm}-${dd}`
 }
 
+/** Mês (1 a 12) e ano de hoje, no fuso do navegador. */
 export function mesAtual() {
   const d = new Date()
   return { mes: d.getMonth() + 1, ano: d.getFullYear() }
 }
 
+/** Mês e ano seguintes ao atual (dezembro vira janeiro do ano seguinte). */
 export function proximoMes() {
   const d = new Date()
   const p = new Date(d.getFullYear(), d.getMonth() + 1, 1)
   return { mes: p.getMonth() + 1, ano: p.getFullYear() }
 }
 
+/** Soma `delta` meses (pode ser negativo) a mês/ano, virando o ano quando preciso. */
 export function somarMeses(mes: number, ano: number, delta: number) {
   const d = new Date(ano, mes - 1 + delta, 1)
   return { mes: d.getMonth() + 1, ano: d.getFullYear() }
@@ -61,6 +65,7 @@ export function labelMesCurto(mes: number, ano: number): string {
   return `${nome}/${String(ano).slice(2)}`
 }
 
+/** Filtro padrão: competência do mês atual; o período já vem preenchido do dia 1 até hoje, se o usuário trocar de modo. */
 export function filtroInicial(): FiltroPeriodoValor {
   const hoje = new Date()
   return {
@@ -81,22 +86,29 @@ export function erroPeriodo(f: FiltroPeriodoValor): string | null {
 }
 
 // Parâmetros da API: só os do modo ativo, nunca os dois
+// (o backend responde 400 quando recebe competência e período juntos)
 export function filtroParaParams(f: FiltroPeriodoValor): FiltroCompetenciaOuPeriodo {
   return f.modo === 'competencia'
     ? { mes: f.mes, ano: f.ano }
     : { dataInicio: f.dataInicio, dataFim: f.dataFim }
 }
 
+/**
+ * Chave do filtro para o `useRelatorio`. Usa só os campos do modo ativo: editar as datas enquanto o modo
+ * é competência não dispara nova busca.
+ */
 export function chaveFiltro(f: FiltroPeriodoValor): string {
   return f.modo === 'competencia' ? `c:${f.mes}-${f.ano}` : `p:${f.dataInicio}_${f.dataFim}`
 }
 
+/** Texto do filtro ativo para exibir ao usuário ("Competência de setembro de 2026" ou "De 01/09/2026 a 30/09/2026"). */
 export function descricaoFiltro(f: FiltroPeriodoValor): string {
   if (f.modo === 'competencia') return `Competência de ${labelCompetencia(f.mes, f.ano)}`
   const fmt = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('pt-BR')
   return `De ${fmt(f.dataInicio)} a ${fmt(f.dataFim)}`
 }
 
+/** Nome de exibição de cada tipo de conta. */
 export const nomeTipoConta: Record<TipoConta, string> = {
   [TipoConta.Corrente]: 'Corrente',
   [TipoConta.Poupanca]: 'Poupança',

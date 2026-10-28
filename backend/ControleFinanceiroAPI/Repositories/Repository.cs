@@ -5,6 +5,10 @@ using System.Linq.Expressions;
 
 namespace ControleFinanceiroAPI.Repositories
 {
+    /// <summary>
+    /// Implementação genérica de <see cref="IRepository{T}"/> sobre o AppDbContext. Os repositórios
+    /// específicos herdam daqui e acrescentam as consultas por ambiente.
+    /// </summary>
     public class Repository<T> : IRepository<T> where T : class  
     {
         protected readonly AppDbContext _context;
@@ -44,16 +48,19 @@ namespace ControleFinanceiroAPI.Repositories
             return await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(predicate);
         }
 
+        /// <inheritdoc />
         public virtual void Add(T entity)
         {
             _context.Set<T>().Add(entity);
         }
 
+        /// <inheritdoc />
         public virtual void Update(T entity)
         {
             _context.Set<T>().Update(entity);
         }
 
+        /// <inheritdoc />
         public virtual void Delete(T entity)
         {
             _context.Set<T>().Remove(entity);

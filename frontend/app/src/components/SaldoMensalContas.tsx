@@ -12,6 +12,11 @@ interface Props {
   ano: number
 }
 
+/**
+ * Tabela "Saldo das Contas" do Dashboard para a competência `mes`/`ano`: saldo inicial (editável),
+ * entradas, saídas e saldo final de cada conta. Toda alteração passa por um diálogo de confirmação:
+ * Atual → Novo na edição manual, e aviso de sobrescrita no "Calcular saldo inicial".
+ */
 export default function SaldoMensalContas({ mes, ano }: Props) {
   const [dados, setDados] = useState<SaldoMensalContaResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,6 +61,7 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
 
   // Abre o diálogo de confirmação (Atual → Novo) ao invés de salvar direto.
   function requestSaveEdit(conta: SaldoMensalContaResponse) {
+    // Aceita vírgula decimal; valor inválido ou igual ao atual só fecha a edição, sem chamar a API
     const valor = parseFloat(valorEdit.replace(',', '.'))
     if (isNaN(valor)) { setEditando(null); return }
     if (valor === conta.saldoInicial) { setEditando(null); return }
@@ -119,6 +125,7 @@ export default function SaldoMensalContas({ mes, ano }: Props) {
 
   if (loading) return <div className="py-4 text-center text-sm text-fin-text-muted">Carregando saldos...</div>
 
+  // Sem nenhum valor no mês, mostra a dica de usar "Calcular saldo inicial"
   const temDados = dados.some((d) => d.saldoInicial !== 0 || d.totalEntradas !== 0 || d.totalSaidas !== 0)
 
   return (

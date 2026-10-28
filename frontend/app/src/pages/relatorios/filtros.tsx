@@ -18,10 +18,12 @@ const campo =
 const botaoSeta =
   'rounded-lg border border-fin-border px-3 py-1.5 text-sm text-fin-text-secondary transition hover:bg-fin-surface-2'
 
+/** Card que agrupa os filtros no topo de cada subaba de relatório. */
 export function BarraFiltros({ children }: { children: ReactNode }) {
   return <Card className="flex flex-wrap items-end gap-4 px-5 py-4">{children}</Card>
 }
 
+/** Rótulo pequeno em caixa alta acima de cada filtro. */
 export function RotuloFiltro({ children }: { children: ReactNode }) {
   return <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.05em] text-fin-text-muted">{children}</span>
 }
@@ -35,6 +37,7 @@ interface SeletorCompetenciaProps {
   rotulo?: string
 }
 
+/** Seletor de mês/ano com setas ‹ › para o mês anterior e o seguinte. */
 export function SeletorCompetencia({ mes, ano, onChange, rotulo = 'Competência' }: SeletorCompetenciaProps) {
   function mover(delta: number) {
     const p = somarMeses(mes, ano, delta)
@@ -51,6 +54,7 @@ export function SeletorCompetencia({ mes, ano, onChange, rotulo = 'Competência'
           aria-label={rotulo}
           value={`${ano}-${String(mes).padStart(2, '0')}`}
           onChange={(e) => {
+            // O campo month fica vazio quando o usuário apaga o valor; ignora para não gerar mês/ano NaN
             if (!e.target.value) return
             const [a, m] = e.target.value.split('-').map(Number)
             onChange(m, a)
@@ -65,6 +69,7 @@ export function SeletorCompetencia({ mes, ano, onChange, rotulo = 'Competência'
 
 // ── Ano ─────────────────────────────────────────────────────────────────
 
+/** Seletor de ano com setas ‹ ›. */
 export function SeletorAno({ ano, onChange }: { ano: number; onChange: (ano: number) => void }) {
   return (
     <div>
@@ -168,6 +173,7 @@ interface SeletorCategoriasProps {
   onChange: (ids: string[]) => void
 }
 
+/** Lista de categorias como chips de seleção múltipla; as `bloqueadas` aparecem desabilitadas. */
 export function SeletorCategorias({
   titulo,
   descricao,
@@ -236,7 +242,14 @@ interface CategoriasFixosRecebimentosProps extends SelecaoCategoriasProps {
   obrigatorio?: boolean
 }
 
+/**
+ * As duas listas de categorias (gasto fixo e recebimento) usadas na projeção do próximo mês e em
+ * fixos × recebimentos. Cada lista bloqueia as categorias já escolhidas na outra, porque o backend
+ * recusa (400) a mesma categoria nas duas.
+ * @param obrigatorio só muda o texto de ajuda ("Selecione ao menos uma." / "Opcional."); não valida.
+ */
 export function CategoriasFixosRecebimentos({ selecao, onSelecao, obrigatorio = false }: CategoriasFixosRecebimentosProps) {
+  // Chave fixa: as categorias são buscadas uma vez por montagem do componente
   const estado = useRelatorio(() => listarCategorias(), 'categorias')
 
   if (estado.status === 'carregando' || estado.status === 'ocioso') {

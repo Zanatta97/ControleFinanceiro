@@ -7,6 +7,10 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue>({ isDark: false, toggleTheme: () => {} })
 
+/**
+ * Tema claro/escuro. A escolha do usuário fica no localStorage ('theme'); sem escolha salva, segue a
+ * preferência do sistema operacional. O tema é aplicado pela classe `dark` no elemento <html>.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState<boolean>(() => {
     const stored = localStorage.getItem('theme')
@@ -45,6 +49,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   )
 }
 
+/** Tema atual e a função que alterna entre claro e escuro (salvando a escolha). */
 export function useTheme() {
   return useContext(ThemeContext)
 }

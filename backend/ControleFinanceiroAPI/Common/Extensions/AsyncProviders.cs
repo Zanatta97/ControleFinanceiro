@@ -5,6 +5,11 @@ using System.Linq.Expressions;
 
 namespace ControleFinanceiroAPI.Common.Extensions
 {
+    /// <summary>
+    /// Provider que faz uma coleção em memória se passar por fonte assíncrona do Entity Framework 6
+    /// (System.Data.Entity), executando as consultas de forma síncrona. Usado pelas extensões de
+    /// <see cref="AsyncQueryableExtensions"/>; nenhum código da aplicação chama essas extensões hoje.
+    /// </summary>
     internal class DbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
     {
         private readonly IQueryProvider _inner;
@@ -45,6 +50,7 @@ namespace ControleFinanceiroAPI.Common.Extensions
         }
     }
 
+    /// <summary>Coleção em memória exposta como IDbAsyncEnumerable do EF6 (ver <see cref="DbAsyncQueryProvider{TEntity}"/>).</summary>
     internal class DbAsyncEnumerable<T> : EnumerableQuery<T>, IDbAsyncEnumerable<T>, IQueryable<T>
     {
         public DbAsyncEnumerable(IEnumerable<T> enumerable)
@@ -71,6 +77,7 @@ namespace ControleFinanceiroAPI.Common.Extensions
         }
     }
 
+    /// <summary>Enumerador assíncrono do EF6 que delega para um enumerador síncrono comum.</summary>
     internal class DbAsyncEnumerator<T> : IDbAsyncEnumerator<T>
     {
         private readonly IEnumerator<T> _inner;

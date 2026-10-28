@@ -3,6 +3,10 @@ using ControleFinanceiroAPI.Interfaces.Repositories;
 
 namespace ControleFinanceiroAPI.Repositories
 {
+    /// <summary>
+    /// Implementação de <see cref="IUnityOfWork"/>. Os repositórios são criados sob demanda no primeiro
+    /// acesso e reaproveitados dentro da requisição, todos sobre o mesmo AppDbContext.
+    /// </summary>
     public class UnityOfWork : IUnityOfWork
     {
         private readonly AppDbContext _context;
@@ -68,11 +72,13 @@ namespace ControleFinanceiroAPI.Repositories
             }
         }
 
+        /// <inheritdoc />
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _context.Dispose();

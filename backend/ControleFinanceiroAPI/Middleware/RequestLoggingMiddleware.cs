@@ -4,6 +4,15 @@ using System.Text;
 
 namespace ControleFinanceiroAPI.Middleware
 {
+    /// <summary>
+    /// Middleware mais externo do pipeline: mede o tempo, captura request e response e grava um ApiLog.
+    /// Com o log completo desligado (padrão) grava só respostas ≥ 400, sem o corpo da requisição;
+    /// ligado, grava todas, com os dois corpos.
+    /// </summary>
+    /// <remarks>
+    /// Com o log completo ligado, o corpo de qualquer requisição é gravado como veio — inclusive a senha
+    /// enviada no login e na troca de senha.
+    /// </remarks>
     public class RequestLoggingMiddleware
     {
         private readonly RequestDelegate _next;

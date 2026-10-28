@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Despesas de uma categoria no filtro e o percentual sobre o total.</summary>
     public class GastoPorCategoriaResponseDTO
     {
         public Guid CategoriaId { get; set; }

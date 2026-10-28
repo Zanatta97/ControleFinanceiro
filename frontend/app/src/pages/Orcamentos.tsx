@@ -14,11 +14,14 @@ import Card from '../components/ui/Card'
 import Alert from '../components/ui/Alert'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 
+// Comportamento atual: Encerrado vale 2 no frontend, mas o enum do backend só tem Ativo = 1 e Inativo = 0.
+// O backend grava o 2 como veio; a tela funciona, mas o filtro por status Inativo da API não o encontra.
 const statusOptions = [
   { value: StatusOrcamento.Ativo, label: 'Ativo' },
   { value: StatusOrcamento.Encerrado, label: 'Encerrado' },
 ]
 
+/** Formulário de novo orçamento: ativo, primeira categoria, data limite no último dia do mês atual. */
 function emptyForm(categorias: CategoriaResponse[]): OrcamentoRequest {
   return {
     nome: '',
@@ -30,6 +33,10 @@ function emptyForm(categorias: CategoriaResponse[]): OrcamentoRequest {
   }
 }
 
+/**
+ * Tela de orçamentos: cards com o consumo de cada orçamento e o formulário de criação/edição.
+ * O cadastro vem de /Orcamento/ambiente e o consumo de /Relatorio/orcamentos; os dois são cruzados pelo id.
+ */
 export default function Orcamentos() {
   const [orcamentos, setOrcamentos] = useState<OrcamentoResponse[]>([])
   const [status, setStatus] = useState<OrcamentoStatusResponse[]>([])
@@ -117,6 +124,7 @@ export default function Orcamentos() {
     ? orcamentos.filter((o) => o.statusOrcamento === StatusOrcamento.Ativo)
     : orcamentos
 
+  /** Consumo do orçamento; undefined se o relatório de status falhou ou não trouxe esse orçamento. */
   function getStatus(id: string) {
     return status.find((s) => s.id === id)
   }
@@ -155,6 +163,7 @@ export default function Orcamentos() {
         <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {filtrados.map((o) => {
             const st = getStatus(o.id)
+            // A barra para em 100% mesmo com o limite estourado; abaixo de 70% verde, de 70% amarelo, de 90% vermelho
             const pct = st ? Math.min(st.percentual, 100) : 0
             const color = pct >= 90 ? 'var(--fin-negative)' : pct >= 70 ? 'var(--fin-warning)' : 'var(--fin-positive)'
             const ativo = o.statusOrcamento === StatusOrcamento.Ativo

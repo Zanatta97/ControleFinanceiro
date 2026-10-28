@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Totais de um mês de competência na evolução anual.</summary>
     public class EvolucaoMensalItemDTO
     {
         public int Mes { get; set; }
@@ -11,6 +12,7 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public decimal Saldo { get; set; }
     }
 
+    /// <summary>Evolução de receitas, despesas e saldo nos 12 meses de competência do ano.</summary>
     public class EvolucaoMensalResponseDTO
     {
         public int Ano { get; set; }

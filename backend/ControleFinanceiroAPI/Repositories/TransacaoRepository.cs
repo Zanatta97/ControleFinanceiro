@@ -6,10 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControleFinanceiroAPI.Repositories
 {
+    /// <summary>
+    /// Implementação de <see cref="ITransacaoRepository"/>. As consultas usadas pelos relatórios incluem
+    /// Categoria e Conta: os agrupamentos usam nome, cor e TipoConta (separação do cartão de crédito).
+    /// </summary>
     public class TransacaoRepository : Repository<Transacao>, ITransacaoRepository
     {
         public TransacaoRepository(AppDbContext context) : base(context) { }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByContaAsync(Guid contaId, Guid ambienteId)
         {
             return await _context.Transacoes
@@ -20,6 +25,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByContaAndPeriodoAsync(Guid contaId, Guid ambienteId, DateTime inicio, DateTime fim)
         {
             var query = _context.Transacoes
@@ -51,6 +57,7 @@ namespace ControleFinanceiroAPI.Repositories
             return query.Where(t => t.Data <= fim);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByMesCompetenciaAsync(Guid ambienteId, int mes, int ano)
         {
             return await _context.Transacoes
@@ -65,6 +72,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByIntervaloCompetenciaAsync(Guid ambienteId, DateOnly inicio, DateOnly fim)
         {
             return await _context.Transacoes
@@ -79,6 +87,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByMesCompetenciaEContaAsync(Guid ambienteId, Guid contaId, int mes, int ano)
         {
             return await _context.Transacoes
@@ -91,6 +100,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetAPartirDeMesCompetenciaAsync(Guid ambienteId, Guid contaId, DateOnly mesInicio)
         {
             return await _context.Transacoes
@@ -103,6 +113,7 @@ namespace ControleFinanceiroAPI.Repositories
 
         // Pré-filtro no banco pelo prefixo "Parcela " (vira LIKE 'Parcela %'); quem confirma o formato
         // "Parcela N/M" é o TransacaoExtension.TryGetParcela, já em memória.
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetDespesasParceladasAPartirDeMesCompetenciaAsync(Guid ambienteId, DateOnly mesInicio)
         {
             return await _context.Transacoes
@@ -118,6 +129,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByPeriodoAsync(Guid ambienteId, DateTime inicio, DateTime fim)
         {
             var query = _context.Transacoes
@@ -132,6 +144,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByTipoAsync(Guid ambienteId, TipoTransacao tipo)
         {
             return await _context.Transacoes
@@ -144,6 +157,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _context.Transacoes

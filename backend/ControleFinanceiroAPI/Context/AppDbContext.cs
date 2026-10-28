@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControleFinanceiroAPI.Context
 {
+    /// <summary>
+    /// DbContext da aplicação. Herda de IdentityDbContext para as tabelas de usuário, role e claims
+    /// do Identity ficarem no mesmo banco das entidades financeiras.
+    /// </summary>
     public class AppDbContext : IdentityDbContext<Usuario>
     {
 
@@ -24,6 +28,10 @@ namespace ControleFinanceiroAPI.Context
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // As FKs AmbienteId de Categoria, Conta, Orcamento e Transacao não são configuradas aqui:
+            // seguem a convenção do EF (opcionais, sem ação no banco). Excluir um Ambiente não apaga esses
+            // registros em cascata. Só AmbienteMembro e SaldoMensalConta são apagados junto (FK obrigatória).
 
             // AmbienteMembro não tem um Id próprio — a chave primária é a combinação dos dois campos
             builder.Entity<AmbienteMembro>()

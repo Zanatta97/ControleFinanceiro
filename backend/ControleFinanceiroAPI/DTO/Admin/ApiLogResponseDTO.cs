@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Admin
 {
+    /// <summary>Registro de log de requisição exibido na aba "Logs da API" do Admin (sem o stack trace).</summary>
     public class ApiLogResponseDTO
     {
         public int Id { get; set; }

@@ -36,6 +36,8 @@ function nomeMesAnterior(mes: number) {
 }
 
 // Calcula a variação percentual entre o valor atual e o anterior.
+// Nulo sem base (mês anterior ausente ou zero): o chip some em vez de mostrar uma porcentagem sem sentido.
+// Divide pelo valor absoluto para o sinal acompanhar a direção mesmo com saldo anterior negativo.
 function delta(atual: number, anterior: number | undefined): number | null {
   if (anterior == null || anterior === 0) return null
   return ((atual - anterior) / Math.abs(anterior)) * 100
@@ -48,6 +50,10 @@ interface DeltaChipProps {
   inverse?: boolean // card de saldo destacado (texto branco)
 }
 
+/**
+ * Chip "▲ +12,5% vs. mai" com a variação contra o mês anterior. Verde quando a variação é boa:
+ * subir é bom para receitas e saldo; para despesas (`lowerIsBetter`), bom é cair.
+ */
 function DeltaChip({ pct, lowerIsBetter = false, mesAnterior, inverse = false }: DeltaChipProps) {
   if (pct == null) return null
   const subiu = pct > 0
@@ -72,6 +78,10 @@ function DeltaChip({ pct, lowerIsBetter = false, mesAnterior, inverse = false }:
   )
 }
 
+/**
+ * Painel do mês de competência escolhido: receitas, despesas (cartão × contas) e saldo com variação
+ * contra o mês anterior, saldo das contas, gastos por categoria e orçamentos.
+ */
 export default function Dashboard() {
   const init = currentYM()
   const [mes, setMes] = useState(init.mes)
@@ -89,6 +99,8 @@ export default function Dashboard() {
 
   async function load(m: number, a: number) {
     setLoading(true)
+    // allSettled: o relatório de categorias responde 404 em mês sem despesa; com Promise.all isso
+    // derrubaria os outros cards. Cada falha vira só o seu card vazio.
     const [r, c, o, e] = await Promise.allSettled([
       resumoMensal(m, a),
       gastoPorCategoria(m, a),
@@ -109,6 +121,7 @@ export default function Dashboard() {
   }
 
   // Mês anterior (dentro do mesmo ano carregado na evolução).
+  // Em janeiro não há mês 0 nessa lista, então os chips de variação não aparecem.
   const mesAnt = evolucao?.meses.find((x) => x.mes === mes - 1)
   const mesAntLabel = nomeMesAnterior(mes)
   const deltaReceitas = delta(resumo?.totalReceitas ?? 0, mesAnt?.totalReceitas)
@@ -122,6 +135,7 @@ export default function Dashboard() {
   const pctCartao = totalDespesas > 0 ? (despesasCartao / totalDespesas) * 100 : 0
 
   const totalGasto = categorias.reduce((acc, c) => acc + c.totalGasto, 0)
+  // "Ativos" aqui = data limite a partir do dia 1 do mês exibido; o status (Ativo/Encerrado) não é olhado
   const orcamentosAtivos = orcamentos
     .filter((o) => new Date(o.dataLimite) >= new Date(ano, mes - 1, 1))
 

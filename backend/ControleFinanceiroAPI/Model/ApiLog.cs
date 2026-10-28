@@ -2,6 +2,10 @@ namespace ControleFinanceiroAPI.Model
 {
     // Entidade que representa um registro de log salvo no banco de dados.
     // Cada linha na tabela ApiLogs será um request que passou pela API.
+    /// <summary>
+    /// Registro de uma requisição gravado pelo RequestLoggingMiddleware: todas, com corpo, quando o log
+    /// completo está ativo; só as de erro (status ≥ 400), sem o corpo da requisição, quando não está.
+    /// </summary>
     public class ApiLog
     {
         public int Id { get; set; }

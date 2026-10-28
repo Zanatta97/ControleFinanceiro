@@ -6,6 +6,10 @@ using ControleFinanceiroAPI.Model;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>
+    /// Implementação de <see cref="ISaldoMensalService"/>. Mês inválido (fora de 1..12) faz o construtor de
+    /// DateOnly lançar ArgumentOutOfRangeException, que o ErrorHandlingMiddleware devolve como 500.
+    /// </summary>
     public class SaldoMensalService : ISaldoMensalService
     {
         private readonly IUnityOfWork _repository;
@@ -15,6 +19,7 @@ namespace ControleFinanceiroAPI.Services
             _repository = repository;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<SaldoMensalContaResponseDTO>> GetByMesAsync(Guid ambienteId, int mes, int ano)
         {
             var mes1 = new DateOnly(ano, mes, 1);
@@ -50,9 +55,11 @@ namespace ControleFinanceiroAPI.Services
             return resultado;
         }
 
+        /// <inheritdoc />
         public async Task SalvarSaldoInicialAsync(Guid ambienteId, Guid contaId, int mes, int ano, decimal saldoInicial)
         {
             var mes1 = new DateOnly(ano, mes, 1);
+            // Comportamento atual: contaId vem da rota e não é conferido contra o ambiente antes de gravar
             _repository.SaldoMensalRepository.AddOrUpdate(new SaldoMensalConta
             {
                 ContaId = contaId,
@@ -63,6 +70,7 @@ namespace ControleFinanceiroAPI.Services
             await _repository.SaveChangesAsync();
         }
 
+        /// <inheritdoc />
         public async Task CalcularSaldoInicialAsync(Guid ambienteId, int mes, int ano)
         {
             var mesInicio = new DateOnly(ano, mes, 1);
@@ -82,6 +90,8 @@ namespace ControleFinanceiroAPI.Services
                 var lista = transacoes.ToList();
                 var (entradas, saidas) = lista.CalcularMovimentoDaConta(conta.Id);
 
+                // Saldo final do mês anterior = saldo inicial dele (0 se nunca gravado) + movimento da competência.
+                // Não encadeia meses mais antigos: se o mês anterior não tem saldo inicial, ele parte de 0.
                 var saldoFinalAnterior = (saldoAnterior?.SaldoInicial ?? 0) + entradas - saidas;
 
                 _repository.SaldoMensalRepository.AddOrUpdate(new SaldoMensalConta

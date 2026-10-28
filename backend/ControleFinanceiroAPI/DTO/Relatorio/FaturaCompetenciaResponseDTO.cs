@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Fatura de um cartão de crédito numa competência.</summary>
     public class FaturaCompetenciaResponseDTO
     {
         public Guid ContaId { get; set; }

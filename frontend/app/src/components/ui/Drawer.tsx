@@ -10,6 +10,7 @@ interface Props {
   footer?: ReactNode
 }
 
+/** Painel lateral de formulário (tela cheia no celular), fecha com Esc e trava a rolagem da página. */
 export default function Drawer({ open, onClose, title, children, footer }: Props) {
   useEffect(() => {
     if (!open) return

@@ -3,6 +3,7 @@ interface Props {
   children: string
 }
 
+/** Etiqueta arredondada com cor de destaque (ex.: Ativo/Bloqueado). */
 export default function Badge({ color, children }: Props) {
   const style = color ? { backgroundColor: color + '22', color } : undefined
   return (

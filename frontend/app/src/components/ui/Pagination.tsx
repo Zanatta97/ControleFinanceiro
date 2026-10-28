@@ -6,6 +6,7 @@ interface Props {
   onPagina: (p: number) => void
 }
 
+/** Paginação (primeira, anterior, próxima, última) com o intervalo exibido; some quando há uma página só. */
 export default function Pagination({ pagina, totalPaginas, total, itensPorPagina, onPagina }: Props) {
   if (totalPaginas <= 1) return null
 

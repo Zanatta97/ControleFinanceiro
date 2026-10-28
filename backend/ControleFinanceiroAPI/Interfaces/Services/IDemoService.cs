@@ -2,6 +2,10 @@ using ControleFinanceiroAPI.DTO.Common;
 
 namespace ControleFinanceiroAPI.Interfaces.Services
 {
+    /// <summary>
+    /// Modo demonstração: acesso sem senha a um usuário e ambiente de exemplo definidos em
+    /// "Demo:Email" na configuração.
+    /// </summary>
     public interface IDemoService
     {
         /// <summary>

@@ -7,8 +7,10 @@ using System.Text;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>Implementação de <see cref="ITokenService"/> com JwtSecurityTokenHandler e chave simétrica.</summary>
     public class TokenService : ITokenService
     {
+        /// <inheritdoc />
         public JwtSecurityToken GenerateAccessToken(IEnumerable<Claim> claims, IConfiguration _config)
         {
             var key = _config.GetSection("JWT").GetValue<string>("SecretKey") ??
@@ -32,6 +34,7 @@ namespace ControleFinanceiroAPI.Services
             return token;
         }
 
+        /// <inheritdoc />
         public string GenerateRefreshToken()
         {
             var secureRanbomBytes = new byte[128];
@@ -45,11 +48,14 @@ namespace ControleFinanceiroAPI.Services
             return refreshToken;
         }
 
+        /// <inheritdoc />
         public ClaimsPrincipal GetPrincipalFromExpiredToken(string token, IConfiguration _config)
         {
             var secretKey = _config["JWT:SecretKey"] ??
                 throw new InvalidOperationException("SecretKey not found in configuration.");
 
+            // ValidateLifetime = false é o ponto do método: o refresh recebe justamente o token vencido.
+            // A assinatura continua validada, então só um token emitido por esta API é aceito.
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = false,
@@ -63,6 +69,7 @@ namespace ControleFinanceiroAPI.Services
 
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
 
+            // Confere o algoritmo do cabeçalho para recusar tokens assinados com outro algoritmo que não o emitido aqui
             if (securityToken is not JwtSecurityToken jwtSecurityToken ||
                 !jwtSecurityToken.Header.Alg.Equals(
                     SecurityAlgorithms.HmacSha256,

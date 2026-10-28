@@ -2,6 +2,7 @@
 
 namespace ControleFinanceiroAPI.DTO.Categoria
 {
+    /// <summary>Dados para criar ou editar uma categoria. O ambiente vem do token.</summary>
     public class CategoriaRequestDTO
     {
         [Required(ErrorMessage = "O Nome da Categoria é obrigatório")]

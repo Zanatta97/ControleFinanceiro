@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Valor de um mês na matriz categoria × mês.</summary>
     public class MatrizCategoriaValorMesDTO
     {
         public int Mes { get; set; }
@@ -7,6 +8,7 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public decimal Valor { get; set; }
     }
 
+    /// <summary>Linha da matriz: uma categoria com o gasto em cada mês do ano.</summary>
     public class MatrizCategoriaLinhaDTO
     {
         public Guid CategoriaId { get; set; }
@@ -18,6 +20,7 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public decimal TotalAno { get; set; }
     }
 
+    /// <summary>Matriz categoria × mês de competência de um ano.</summary>
     public class MatrizCategoriaMesResponseDTO
     {
         public int Ano { get; set; }

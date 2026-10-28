@@ -5,6 +5,7 @@ interface Props {
   error?: string
 }
 
+/** Campo de valor em reais preenchido da direita para a esquerda, como em caixa eletrônico (cada dígito entra nos centavos). */
 export default function CurrencyInput({ label, value, onChange, error }: Props) {
   const inputId = label?.toLowerCase().replace(/\s+/g, '-')
 

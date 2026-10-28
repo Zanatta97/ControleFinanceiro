@@ -12,6 +12,7 @@ using System.Security.Claims;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>Implementação de <see cref="IUsuarioService"/> sobre o ASP.NET Core Identity.</summary>
     public class UsuarioService : IUsuarioService
     {
         private readonly ILogger<UsuarioService> _logger;
@@ -33,6 +34,7 @@ namespace ControleFinanceiroAPI.Services
             _configuration = configuration;
         }
 
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> CreateRole(string roleName)
         {
             var roleExist = await _roleManager.RoleExistsAsync(roleName);
@@ -57,6 +59,7 @@ namespace ControleFinanceiroAPI.Services
                               StatusCodes.Status400BadRequest);
         }
 
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> AssignUserToRole(string email, string roleName)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -82,6 +85,7 @@ namespace ControleFinanceiroAPI.Services
                               StatusCodes.Status400BadRequest);
         }
 
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> Login([FromBody] UsuarioLoginRequestDTO usuario)
         {
             var user = await _userManager.FindByEmailAsync(usuario.Email);
@@ -98,6 +102,9 @@ namespace ControleFinanceiroAPI.Services
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
+                // Sem ambiente salvo, o token sai sem o claim e o frontend leva o usuário à seleção de
+                // ambiente (POST /api/Ambiente/selecionar/{id}). Com ambiente salvo, reaproveita o último
+                // selecionado — sem conferir de novo se o usuário ainda é membro dele.
                 if (user.AmbienteAtivoId.HasValue)
                 {
                     authClaims.Add(new Claim("ambiente_id", user.AmbienteAtivoId.Value.ToString()));
@@ -112,8 +119,11 @@ namespace ControleFinanceiroAPI.Services
 
                 var refreshToken = _tokenService.GenerateRefreshToken();
 
+                // Configuração ausente ou inválida deixa a validade em 0 minutos: o refresh já nasce expirado
                 _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
 
+                // Persistir token e validade é o que permite o refresh depois (sem isso o refresh sempre
+                // falhava e o usuário era deslogado ao expirar o access token — issue #62).
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(refreshTokenValidityInMinutes);
 
                 user.RefreshToken = refreshToken;
@@ -130,6 +140,7 @@ namespace ControleFinanceiroAPI.Services
 
             return ApiResponseDTO<object>.ErrorResponse("Erro ao fazer login", StatusCodes.Status401Unauthorized);
         }
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> Register([FromBody] UsuarioRegisterDTO dto)
         {
             var userExists = await _userManager.FindByEmailAsync(dto.Email);
@@ -153,18 +164,22 @@ namespace ControleFinanceiroAPI.Services
 
             if (!result.Succeeded)
             {
+                // Comportamento atual: result.Errors é uma coleção, e a interpolação grava o nome do tipo
+                // (não as descrições dos erros) no log e na mensagem devolvida ao frontend.
                 _logger.LogError($"Erro na criação do usuário: {result.Errors}");
                 return ApiResponseDTO<object>.ErrorResponse(
                         $"Erro na criação do usuário: {result.Errors}",
                         StatusCodes.Status500InternalServerError);
             }
 
+            // Se a role "User" não existir no banco, o usuário é criado sem role nenhuma (sem erro)
             if (await _roleManager.RoleExistsAsync("User"))
                 await _userManager.AddToRoleAsync(usuario, "User");
 
             return ApiResponseDTO<object>.SuccessResponse("Usuário criado com sucesso");
 
         }
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> RefreshToken(TokenDTO tokenDTO)
         {
             if (tokenDTO is null)
@@ -175,24 +190,32 @@ namespace ControleFinanceiroAPI.Services
             string accessToken = tokenDTO.AccessToken ?? throw new ArgumentNullException(nameof(tokenDTO.AccessToken));
             string refreshToken = tokenDTO.RefreshToken ?? throw new ArgumentNullException(nameof(tokenDTO.RefreshToken));
 
+            // O access token chega expirado de propósito: só a assinatura é conferida, para saber de quem é
             var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken, _configuration);
 
+            // GetPrincipalFromExpiredToken lança exceção em vez de devolver null; este ramo não é alcançado hoje
             if (principal is null)
             {
                 return ApiResponseDTO<object>.ErrorResponse("Token de acesso inválido", StatusCodes.Status400BadRequest);
             }
 
+            // O claim Name guarda o UserName, que o cadastro iguala ao e-mail — daí a busca por e-mail
             string username = principal.Identity!.Name!;
 
             var user = await _userManager.FindByEmailAsync(username);
 
+            // Só existe um refresh token válido por usuário (o último emitido). Um token antigo, já
+            // rotacionado, cai aqui — por isso o frontend precisa fazer um único refresh por vez (api/client.ts).
             if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
                 return ApiResponseDTO<object>.ErrorResponse("Token de atualização inválido", StatusCodes.Status400BadRequest);
             }
 
+            // Os claims são copiados do token expirado, inclusive "ambiente_id" e as roles: o ambiente selecionado
+            // se mantém, e mudanças de role ou de participação no ambiente só aparecem num novo login/seleção.
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims.ToList(), _configuration);
 
+            // Rotação: o refresh token usado deixa de valer e a validade recomeça (sessão deslizante)
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
             _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
@@ -210,8 +233,10 @@ namespace ControleFinanceiroAPI.Services
 
         }
 
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> Revoke(string username)
         {
+            // username é o e-mail (UserName e Email são iguais desde o cadastro)
             var user = await _userManager.FindByEmailAsync(username);
 
             if (user == null) return ApiResponseDTO<object>.ErrorResponse("Usuário Inválido", StatusCodes.Status400BadRequest);
@@ -224,6 +249,7 @@ namespace ControleFinanceiroAPI.Services
 
         }
 
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> AlterarSenha(string userId, AlterarSenhaDTO dto)
         {
             if (dto.NovaSenha != dto.ConfirmacaoNovaSenha)

@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import MobileTabBar from './MobileTabBar'
 
+/** Estrutura das telas autenticadas: Navbar no topo, conteúdo rolável e MobileTabBar no celular. */
 export default function Layout() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-fin-bg">

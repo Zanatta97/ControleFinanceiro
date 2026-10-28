@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Ritmo de gasto do mês corrente (pela Data) comparado ao mesmo ponto do mês anterior.</summary>
     public class RitmoMesResponseDTO
     {
         public DateTime DataReferencia { get; set; }
