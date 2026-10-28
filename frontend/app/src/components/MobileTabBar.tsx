@@ -10,6 +10,7 @@ const tabs = [
   { to: '/relatorios', label: 'Relat.', icon: 'lucide:bar-chart-3', end: false },
 ]
 
+/** Menu inferior de navegação, exibido abaixo de lg (no desktop o menu fica na Navbar). */
 export default function MobileTabBar() {
   return (
     // Altura útil de 62px; a barra cresce para baixo só o tanto da barrinha do iPhone (safe-area)

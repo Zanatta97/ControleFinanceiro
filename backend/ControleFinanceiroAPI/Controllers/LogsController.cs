@@ -9,6 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControleFinanceiroAPI.Controllers
 {
+    /// <summary>
+    /// Liga/desliga o log completo de requisições (estado em memória no LogSettingsManager) e consulta os
+    /// logs gravados.
+    /// </summary>
+    /// <remarks>
+    /// Comportamento atual: a classe não tem [Authorize]; status, ativar e desativar respondem a qualquer
+    /// chamada, inclusive anônima. Só a listagem exige Admin. O estado volta a "desligado" quando a API reinicia.
+    /// </remarks>
     [ApiController]
     [Route("api/[controller]")]
     public class LogsController : ControllerBase
@@ -57,6 +65,16 @@ namespace ControleFinanceiroAPI.Controllers
             ));
         }
 
+        /// <summary>
+        /// Logs gravados, do mais recente para o mais antigo, com filtros opcionais. Só Admin.
+        /// </summary>
+        /// <param name="dataInicio">Timestamp mínimo (horário local do servidor, como é gravado).</param>
+        /// <param name="dataFim">Timestamp máximo.</param>
+        /// <param name="userId">Id do usuário que fez a requisição.</param>
+        /// <param name="path">Trecho da rota (busca por "contém").</param>
+        /// <param name="statusCode">Status HTTP exato.</param>
+        /// <param name="apenasErros">Só registros com IsError.</param>
+        /// <param name="limite">Quantidade máxima; acima de 500 é reduzida a 500.</param>
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ListarLogs(

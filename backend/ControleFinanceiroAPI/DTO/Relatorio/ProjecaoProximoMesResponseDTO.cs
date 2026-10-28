@@ -2,6 +2,7 @@ using ControleFinanceiroAPI.Enums;
 
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Previsão de uma conta na competência alvo.</summary>
     public class ProjecaoContaDTO
     {
         public Guid ContaId { get; set; }
@@ -32,6 +33,7 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public decimal? FaturaPrevista { get; set; }
     }
 
+    /// <summary>Previsão de receitas, despesas e saldo da competência alvo, por conta e no total.</summary>
     public class ProjecaoProximoMesResponseDTO
     {
         public int Mes { get; set; }

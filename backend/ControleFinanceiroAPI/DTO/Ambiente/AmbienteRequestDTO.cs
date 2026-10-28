@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ControleFinanceiroAPI.DTO.Ambiente
 {
+    /// <summary>Dados para criar ou renomear um ambiente.</summary>
     public class AmbienteRequestDTO
     {
         [Required(ErrorMessage = "O Nome do Ambiente é obrigatório")]

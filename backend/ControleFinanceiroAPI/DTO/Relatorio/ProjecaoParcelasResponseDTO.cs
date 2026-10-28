@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Total de parcelas de um mês futuro na projeção.</summary>
     public class ProjecaoParcelasMesDTO
     {
         public int Mes { get; set; }
@@ -18,6 +19,7 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public decimal ReducaoEmRelacaoAoMesAnterior { get; set; }
     }
 
+    /// <summary>Compra parcelada com parcelas depois do mês de referência (lançadas ou projetadas).</summary>
     public class CompraParceladaAtivaDTO
     {
         public string? Descricao { get; set; }
@@ -53,6 +55,7 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public DateOnly UltimaCompetencia { get; set; }
     }
 
+    /// <summary>Projeção das parcelas a vencer a partir do mês de referência.</summary>
     public class ProjecaoParcelasResponseDTO
     {
         // Mês de referência: a projeção começa no mês seguinte a ele

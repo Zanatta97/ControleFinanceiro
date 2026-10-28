@@ -4,6 +4,7 @@ using ControleFinanceiroAPI.Model;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>Implementação de <see cref="ICategoriaService"/>.</summary>
     public class CategoriaService : ICategoriaService
     {
         private readonly IUnityOfWork _repository;
@@ -15,25 +16,30 @@ namespace ControleFinanceiroAPI.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Categoria>> GetAllAsync()
         {
             return await _repository.CategoriaRepository.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Categoria>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _repository.CategoriaRepository.GetAllByAmbienteAsync(ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Categoria?> GetAsync(Guid id, Guid ambienteId)
         {
             return await _repository.CategoriaRepository.GetByIdAsync(c => c.Id == id && c.AmbienteId == ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Categoria?> GetReadOnlyAsync(Guid id, Guid ambienteId)
         {
             return await _repository.CategoriaRepository.GetByIdReadOnlyAsync(c => c.Id == id && c.AmbienteId == ambienteId);
         }
+        /// <inheritdoc />
         public async Task<Categoria> AddAsync(Categoria categoria)
         {
             ArgumentNullException.ThrowIfNull(categoria, nameof(categoria));
@@ -49,6 +55,7 @@ namespace ControleFinanceiroAPI.Services
                 throw;
             }
         }
+        /// <inheritdoc />
         public async Task<Categoria> UpdateAsync(Guid id, Categoria categoria, Guid ambienteId)
         {
             ArgumentNullException.ThrowIfNull(categoria, nameof(categoria));
@@ -74,6 +81,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteAsync(Guid id, Guid ambienteId)
         {
             try

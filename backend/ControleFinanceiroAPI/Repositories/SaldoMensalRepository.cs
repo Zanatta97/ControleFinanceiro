@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControleFinanceiroAPI.Repositories
 {
+    /// <summary>
+    /// Implementação de <see cref="ISaldoMensalRepository"/>. Não herda de Repository&lt;T&gt;:
+    /// expõe só consulta por mês e inclusão/atualização.
+    /// </summary>
     public class SaldoMensalRepository : ISaldoMensalRepository
     {
         private readonly AppDbContext _context;
@@ -14,6 +18,7 @@ namespace ControleFinanceiroAPI.Repositories
             _context = context;
         }
 
+        /// <inheritdoc />
         public async Task<SaldoMensalConta?> GetAsync(Guid contaId, Guid ambienteId, DateOnly mes)
         {
             return await _context.SaldoMensalContas
@@ -21,6 +26,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .FirstOrDefaultAsync(s => s.ContaId == contaId && s.AmbienteId == ambienteId && s.Mes == mes);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<SaldoMensalConta>> GetAllByAmbienteAsync(Guid ambienteId, DateOnly mes)
         {
             return await _context.SaldoMensalContas
@@ -29,8 +35,10 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public void AddOrUpdate(SaldoMensalConta saldo)
         {
+            // Consulta rastreada (sem AsNoTracking): o registro existente é alterado e salvo pelo SaveChangesAsync
             var existing = _context.SaldoMensalContas
                 .FirstOrDefault(s => s.ContaId == saldo.ContaId && s.AmbienteId == saldo.AmbienteId && s.Mes == saldo.Mes);
 

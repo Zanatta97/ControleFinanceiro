@@ -16,6 +16,7 @@ interface Props {
 const R = 60
 const CIRC = 2 * Math.PI * R
 
+/** Gráfico de rosca em SVG; cada fatia é proporcional ao `value` do segmento. */
 export default function Donut({ segments, size = 140, stroke = 20, children }: Props) {
   const total = segments.reduce((acc, s) => acc + (s.value > 0 ? s.value : 0), 0)
   let acc = 0

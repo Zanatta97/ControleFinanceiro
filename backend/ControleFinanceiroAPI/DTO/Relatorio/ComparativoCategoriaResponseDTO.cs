@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Despesa de uma categoria na competência comparada ao mês anterior e à média dos três anteriores.</summary>
     public class ComparativoCategoriaResponseDTO
     {
         public Guid CategoriaId { get; set; }

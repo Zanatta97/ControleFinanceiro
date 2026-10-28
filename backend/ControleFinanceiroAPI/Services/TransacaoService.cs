@@ -5,6 +5,7 @@ using ControleFinanceiroAPI.Model;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>Implementação de <see cref="ITransacaoService"/>.</summary>
     public class TransacaoService : ITransacaoService
     {
         private readonly IUnityOfWork _repository;
@@ -16,44 +17,53 @@ namespace ControleFinanceiroAPI.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetAllAsync()
         {
             return await _repository.TransacaoRepository.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _repository.TransacaoRepository.GetAllByAmbienteAsync(ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByContaAsync(Guid contaId, Guid ambienteId)
         {
             return await _repository.TransacaoRepository.GetByContaAsync(contaId, ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByPeriodoAsync(Guid ambienteId, DateTime inicio, DateTime fim)
         {
             return await _repository.TransacaoRepository.GetByPeriodoAsync(ambienteId, inicio, fim);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> GetByTipoAsync(Guid ambienteId, TipoTransacao tipo)
         {
             return await _repository.TransacaoRepository.GetByTipoAsync(ambienteId, tipo);
         }
 
+        /// <inheritdoc />
         public async Task<Transacao?> GetAsync(Guid id, Guid ambienteId)
         {
             return await _repository.TransacaoRepository.GetByIdAsync(t => t.Id == id && t.AmbienteId == ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Transacao?> GetReadOnlyAsync(Guid id, Guid ambienteId)
         {
             return await _repository.TransacaoRepository.GetByIdReadOnlyAsync(t => t.Id == id && t.AmbienteId == ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Transacao> AddAsync(Transacao transacao)
         {
             ArgumentNullException.ThrowIfNull(transacao, nameof(transacao));
+            // O AmbienteId já veio do token (DTOMapper.ToEntity)
             await ValidarContaDestinoAsync(transacao, transacao.AmbienteId);
             try
             {
@@ -68,14 +78,17 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Transacao>> AddManyAsync(IEnumerable<Transacao> transacoes)
         {
             var lista = transacoes.ToList();
             ArgumentNullException.ThrowIfNull(lista, nameof(transacoes));
+            // Valida todas antes de adicionar qualquer uma: uma parcela inválida não deixa a compra pela metade
             foreach (var t in lista)
                 await ValidarContaDestinoAsync(t, t.AmbienteId);
             try
             {
+                // Um único SaveChanges para todas as parcelas: o EF grava numa transação só
                 foreach (var t in lista)
                     _repository.TransacaoRepository.Add(t);
                 await _repository.SaveChangesAsync();
@@ -88,6 +101,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<Transacao> UpdateAsync(Guid id, Transacao transacao, Guid ambienteId)
         {
             ArgumentNullException.ThrowIfNull(transacao, nameof(transacao));
@@ -119,6 +133,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteAsync(Guid id, Guid ambienteId)
         {
             try
@@ -143,10 +158,14 @@ namespace ControleFinanceiroAPI.Services
         /// Transferencia exige conta destino diferente da origem e do mesmo ambiente;
         /// Receita e Despesa não podem ter conta destino.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Combinação de tipo e destino inválida (vira 409).</exception>
+        /// <exception cref="KeyNotFoundException">Conta de destino inexistente ou de outro ambiente (vira 404).</exception>
         private async Task ValidarContaDestinoAsync(Transacao transacao, Guid? ambienteId)
         {
             if (transacao.TipoTransacao != TipoTransacao.Transferencia)
             {
+                // Fora de transferência o destino não entra em nenhum cálculo (CalcularMovimentoDaConta só
+                // lê ContaDestinoId em Transferencia): o campo é recusado em vez de gravado sem efeito.
                 if (transacao.ContaDestinoId.HasValue)
                     throw new InvalidOperationException("Conta de destino só pode ser informada em transferências.");
                 return;
@@ -155,9 +174,12 @@ namespace ControleFinanceiroAPI.Services
             if (!transacao.ContaDestinoId.HasValue || transacao.ContaDestinoId.Value == Guid.Empty)
                 throw new InvalidOperationException("Transferência exige uma conta de destino.");
 
+            // Origem = destino lançaria saída e entrada na mesma conta, que se anulam no saldo
             if (transacao.ContaDestinoId.Value == transacao.ContaId)
                 throw new InvalidOperationException("A conta de destino deve ser diferente da conta de origem.");
 
+            // O id vem do corpo da requisição: sem o filtro por ambiente, uma transferência poderia
+            // creditar (e expor no extrato) uma conta de outro ambiente.
             var contaDestinoId = transacao.ContaDestinoId.Value;
             var contaDestino = await _repository.ContaRepository
                 .GetByIdReadOnlyAsync(c => c.Id == contaDestinoId && c.AmbienteId == ambienteId);

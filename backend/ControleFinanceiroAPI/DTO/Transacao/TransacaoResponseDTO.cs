@@ -2,6 +2,7 @@
 
 namespace ControleFinanceiroAPI.DTO.Transacao
 {
+    /// <summary>Transação com os nomes de categoria e contas (preenchidos só quando a consulta os carregou).</summary>
     public class TransacaoResponseDTO
     {
         public Guid Id { get; set; }

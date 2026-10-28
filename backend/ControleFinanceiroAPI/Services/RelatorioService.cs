@@ -9,6 +9,10 @@ using System.Globalization;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>
+    /// Implementação de <see cref="IRelatorioService"/>. Cada relatório busca as transações do intervalo
+    /// necessário numa consulta só e faz agrupamentos e somas em memória.
+    /// </summary>
     public class RelatorioService : IRelatorioService
     {
         private const int QuantidadeMaximaMaioresDespesas = 100;
@@ -42,16 +46,19 @@ namespace ControleFinanceiroAPI.Services
             _repository = repository;
         }
 
+        /// <inheritdoc />
         public async Task<ResumoFinanceiroResponseDTO> GetResumoAsync(Guid ambienteId, int mes, int ano)
         {
             var transacoes = await _repository.TransacaoRepository.GetByMesCompetenciaAsync(ambienteId, mes, ano);
 
             // Transferência (ex.: pagamento de fatura) só move dinheiro entre contas:
             // não é receita nem despesa, por isso os filtros abaixo a deixam de fora.
+            // Se entrasse, a compra no cartão seria contada duas vezes: na compra e no pagamento da fatura.
             var receitas = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Receita).Sum(t => t.Valor);
             var despesasMes = transacoes.Where(t => t.TipoTransacao == TipoTransacao.Despesa).ToList();
 
             // Despesa em conta do tipo cartão de crédito vai para DespesasCartao; o resto, para DespesasOutras
+            // (separação pedida para o card de despesas do Dashboard; TotalDespesas continua sendo a soma — issue #57)
             var despesasCartao = despesasMes.Where(t => t.Conta?.TipoConta == TipoConta.CartaoCredito).Sum(t => t.Valor);
             var despesasOutras = despesasMes.Where(t => t.Conta?.TipoConta != TipoConta.CartaoCredito).Sum(t => t.Valor);
             var despesas = despesasCartao + despesasOutras;
@@ -68,6 +75,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<GastoPorCategoriaResponseDTO>> GetGastoPorCategoriaAsync(Guid ambienteId, int mes = 0, int ano = 0,
                                                                                                DateTime dataInicial = default, DateTime dataFinal = default)
         {
@@ -90,6 +98,7 @@ namespace ControleFinanceiroAPI.Services
                     .ToList();
         }
 
+        /// <inheritdoc />
         public async Task<EvolucaoMensalResponseDTO> GetEvolucaoMensalAsync(Guid ambienteId, int ano)
         {
             // Busca pela competência, não pela Data: parcelas de compras feitas no ano anterior
@@ -128,6 +137,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<OrcamentoStatusResponseDTO>> GetOrcamentosStatusAsync(Guid ambienteId)
         {
             var orcamentos = await _repository.OrcamentoRepository.GetAllByAmbienteAsync(ambienteId);
@@ -137,6 +147,9 @@ namespace ControleFinanceiroAPI.Services
 
             return orcamentos.Select(o =>
             {
+                // Comportamento atual: o orçamento não tem data de início, então o gasto soma TODAS as despesas
+                // da categoria com Data até a DataLimite (inclusive meses anteriores), pela Data e não pela
+                // competência. Orçamentos inativos também entram na lista.
                 var gasto = despesas
                     .Where(t => t.CategoriaId == o.CategoriaId && t.Data <= o.DataLimite)
                     .Sum(t => t.Valor);
@@ -159,6 +172,7 @@ namespace ControleFinanceiroAPI.Services
             }).OrderBy(o => o.Percentual).ToList();
         }
 
+        /// <inheritdoc />
         public async Task<ExtratoContaResponseDTO> GetExtratoContaAsync(Guid ambienteId, Guid contaId, DateTime dataInicio, DateTime dataFim)
         {
             var conta = await _repository.ContaRepository.GetByIdReadOnlyAsync(c => c.Id == contaId && c.AmbienteId == ambienteId);
@@ -185,6 +199,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<GastosPorContaResponseDTO>> GetGastosPorContaAsync(Guid ambienteId, int mes = 0, int ano = 0,
                                                                                          DateTime dataInicial = default, DateTime dataFinal = default)
         {
@@ -207,6 +222,7 @@ namespace ControleFinanceiroAPI.Services
                     .ToList();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<ComparativoCategoriaResponseDTO>> GetComparativoCategoriaAsync(Guid ambienteId, int mes, int ano)
         {
             ValidarCompetencia(mes, ano);
@@ -258,6 +274,7 @@ namespace ControleFinanceiroAPI.Services
                     .ToList();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<MaiorDespesaResponseDTO>> GetMaioresDespesasAsync(Guid ambienteId, int quantidade = 10, int mes = 0, int ano = 0,
                                                                                        DateTime dataInicial = default, DateTime dataFinal = default)
         {
@@ -286,6 +303,7 @@ namespace ControleFinanceiroAPI.Services
                     .ToList();
         }
 
+        /// <inheritdoc />
         public async Task<MatrizCategoriaMesResponseDTO> GetMatrizCategoriaMesAsync(Guid ambienteId, int ano)
         {
             ValidarAno(ano);
@@ -331,6 +349,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<FrequenciaCategoriaResponseDTO>> GetFrequenciaTicketMedioAsync(Guid ambienteId, int mes = 0, int ano = 0,
                                                                                                      DateTime dataInicial = default, DateTime dataFinal = default)
         {
@@ -358,6 +377,7 @@ namespace ControleFinanceiroAPI.Services
                     .ToList();
         }
 
+        /// <inheritdoc />
         public async Task<RitmoMesResponseDTO> GetRitmoMesAsync(Guid ambienteId, DateTime? dataReferencia = null)
         {
             // Este relatório usa a DATA da transação (calendário), não a competência
@@ -402,6 +422,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<FaturaCompetenciaResponseDTO> GetFaturaCompetenciaAsync(Guid ambienteId, Guid contaId, int mes, int ano)
         {
             ValidarCompetencia(mes, ano);
@@ -436,6 +457,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<ProjecaoParcelasResponseDTO> GetProjecaoParcelasAsync(Guid ambienteId, int? mes = null, int? ano = null, int meses = 12,
                                                                                 DateTime? dataReferencia = null)
         {
@@ -528,6 +550,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<ProjecaoProximoMesResponseDTO> GetProjecaoProximoMesAsync(Guid ambienteId, int? mes = null, int? ano = null,
                                                                                     IEnumerable<Guid>? categoriasFixas = null,
                                                                                     IEnumerable<Guid>? categoriasRecebimento = null,
@@ -625,6 +648,7 @@ namespace ControleFinanceiroAPI.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<FixosRecebimentosResponseDTO> GetFixosRecebimentosAsync(Guid ambienteId, int mes, int ano,
                                                                                   IEnumerable<Guid>? categoriasFixas,
                                                                                   IEnumerable<Guid>? categoriasRecebimento)

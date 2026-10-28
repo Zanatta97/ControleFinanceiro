@@ -9,6 +9,7 @@ using System.Security.Claims;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>Implementação de <see cref="IAmbienteService"/>.</summary>
     public class AmbienteService : IAmbienteService
     {
         private readonly IUnityOfWork _repository;
@@ -31,21 +32,25 @@ namespace ControleFinanceiroAPI.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Ambiente>> GetAllAsync()
         {
             return await _repository.AmbienteRepository.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Ambiente>> GetAllByUsuarioAsync(string usuarioId)
         {
             return await _repository.AmbienteRepository.GetAllByUsuarioAsync(usuarioId);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Usuario>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _repository.AmbienteRepository.GetAllByAmbienteAsync(ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Ambiente?> GetAsync(Guid id, string userId)
         {
             // Verifica se o usuário é membro antes de retornar
@@ -55,6 +60,7 @@ namespace ControleFinanceiroAPI.Services
             return await _repository.AmbienteRepository.GetByIdReadOnlyAsync(a => a.Id == id);
         }
 
+        /// <inheritdoc />
         public async Task<Ambiente> AddAsync(Ambiente ambiente, string userId)
         {
             ArgumentNullException.ThrowIfNull(ambiente, nameof(ambiente));
@@ -89,6 +95,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<Ambiente> UpdateAsync(Guid id, Ambiente ambiente, string userId)
         {
             ArgumentNullException.ThrowIfNull(ambiente, nameof(ambiente));
@@ -123,11 +130,13 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteAsync(Guid id, string userId)
         {
             try
             {
                 // userId vazio indica deleção forçada por Admin do sistema
+                // (AdminController.DeleteAmbiente; a rota já exige a role Admin)
                 if (string.IsNullOrEmpty(userId))
                 {
                     var alvo = await _repository.AmbienteRepository.GetByIdAsync(a => a.Id == id);
@@ -164,6 +173,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task AtribuirDonoAsync(Guid ambienteId, string solicitanteUserId, string membroUserId)
         {
             try
@@ -186,6 +196,9 @@ namespace ControleFinanceiroAPI.Services
                     ?? throw new KeyNotFoundException("O usuário indicado não é membro deste ambiente.");
 
                 // Rebaixa o Dono atual para Admin
+                // Comportamento atual: o membro rebaixado é o CRIADOR do ambiente (Ambiente.UsuarioId), que
+                // não muda na transferência. Depois da primeira troca de posse, o Dono vigente não é
+                // rebaixado e o ambiente passa a ter dois membros "Dono".
                 var donoAtual = await _repository.AmbienteRepository.GetByIdAsync(a => a.Id == ambienteId);
                 var membroDonoAtual = await _repository.AmbienteRepository.GetMembroAsync(ambienteId, donoAtual!.UsuarioId!);
                 if (membroDonoAtual is not null && membroDonoAtual.UsuarioId != membroUserId)
@@ -203,9 +216,12 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task AdicionarMembroAsync(Guid ambienteId, string solicitanteUserId, string membroEmail)
         {
             // Verifica se o solicitante tem permissão (Dono ou Admin)
+            // A checagem é "não é Membro": qualquer outra Role do vínculo passa. Aqui "Admin" é a Role dentro do
+            // ambiente, não a role Admin do Identity — um Admin do sistema que não é membro é recusado.
             var solicitante = await _repository.AmbienteRepository.GetMembroAsync(ambienteId, solicitanteUserId);
             if (solicitante is null || solicitante.Role == "Membro")
                 throw new UnauthorizedAccessException("Apenas Donos e Admins podem adicionar membros.");
@@ -229,6 +245,7 @@ namespace ControleFinanceiroAPI.Services
             await _repository.SaveChangesAsync();
         }
 
+        /// <inheritdoc />
         public async Task RemoverMembroAsync(Guid ambienteId, string solicitanteUserId, string membroUserId)
         {
             // Verifica se o solicitante tem permissão (Dono ou Admin)
@@ -240,6 +257,7 @@ namespace ControleFinanceiroAPI.Services
                 ?? throw new KeyNotFoundException("Membro não encontrado neste ambiente.");
 
             // Impede remoção do próprio Dono
+            // (sem Dono, ninguém mais poderia editar, excluir ou transferir o ambiente, exceto um Admin do sistema)
             if (membro.Role == "Dono")
                 throw new InvalidOperationException("O Dono do ambiente não pode ser removido.");
 
@@ -247,13 +265,17 @@ namespace ControleFinanceiroAPI.Services
             await _repository.SaveChangesAsync();
         }
 
+        /// <inheritdoc />
         public async Task<TokenDTO> SelecionarAmbienteAsync(Guid ambienteId, string userId)
         {
             // Verifica se o usuário é membro do ambiente solicitado
+            // É a única checagem de participação: daqui em diante os controllers confiam no claim
+            // "ambiente_id" do token (ClaimsPrincipalExtension.GetAmbienteAtivo) sem consultar o banco.
             var membro = await _repository.AmbienteRepository.GetMembroAsync(ambienteId, userId)
                 ?? throw new UnauthorizedAccessException("Você não é membro deste ambiente.");
 
             // Atualiza o ambiente ativo do usuário no banco
+            // (o próximo Login já emite o token com este ambiente, sem passar pela seleção de novo)
             var user = await _userManager.FindByIdAsync(userId)
                 ?? throw new KeyNotFoundException("Usuário não encontrado.");
 
@@ -261,6 +283,8 @@ namespace ControleFinanceiroAPI.Services
             await _userManager.UpdateAsync(user);
 
             // Reconstrói os claims com o novo ambiente_id e gera novo token
+            // O claim precisa estar DENTRO do JWT assinado: é ele que isola os dados de cada ambiente, e não
+            // dá para acrescentá-lo a um token já emitido. Por isso trocar de ambiente = trocar de token.
             var userRoles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>
             {
@@ -274,6 +298,8 @@ namespace ControleFinanceiroAPI.Services
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
             var novoToken = _tokenService.GenerateAccessToken(claims, _configuration);
+            // Rotaciona também o refresh token e renova a validade, como no login e no refresh: o anterior
+            // deixa de valer e a sessão continua deslizando.
             var novoRefreshToken = _tokenService.GenerateRefreshToken();
 
             _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);

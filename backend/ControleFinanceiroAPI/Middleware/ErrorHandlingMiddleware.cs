@@ -4,6 +4,22 @@ using System.Text.Json;
 
 namespace ControleFinanceiroAPI.Middleware
 {
+    /// <summary>
+    /// Converte exceções não tratadas em resposta JSON no formato ApiResponseDTO. É a convenção que permite
+    /// aos services sinalizar erro de negócio lançando exceção, sem montar a resposta HTTP:
+    /// <list type="bullet">
+    /// <item>KeyNotFoundException → 404 (registro não existe no ambiente)</item>
+    /// <item>UnauthorizedAccessException → 403 (autenticado, mas sem permissão ou sem ambiente selecionado)</item>
+    /// <item>InvalidOperationException → 409 (regra de negócio violada, ex.: transferência sem destino)</item>
+    /// <item>ArgumentNullException → 400</item>
+    /// <item>qualquer outra → 500 com mensagem genérica (a mensagem real não vai ao cliente; fica no ApiLog)</item>
+    /// </list>
+    /// </summary>
+    /// <remarks>
+    /// Comportamento atual: ArgumentException comum (não Null) cai no 500. Só o RelatorioController a captura
+    /// e devolve 400; nos demais endpoints (ex.: DateOnly com mês inválido no SaldoMensal) vira 500.
+    /// Tipos derivados também casam: ObjectDisposedException, por exemplo, é InvalidOperationException → 409.
+    /// </remarks>
     public class ErrorHandlingMiddleware
     {
         // _next representa o próximo componente no pipeline do ASP.NET Core.
@@ -42,6 +58,8 @@ namespace ControleFinanceiroAPI.Middleware
 
             var exception = context.Items["Exception"] as Exception;
 
+            // A ordem importa: o switch para no primeiro tipo compatível, inclusive por herança. Um caso para
+            // ArgumentException acrescentado acima de ArgumentNullException passaria a capturar as duas.
             var (statusCode, message) = exception switch
             {
                 KeyNotFoundException ex         => ((int)HttpStatusCode.NotFound, ex.Message),

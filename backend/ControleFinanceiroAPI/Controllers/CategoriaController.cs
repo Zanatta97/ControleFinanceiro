@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControleFinanceiroAPI.Controllers
 {
+    /// <summary>
+    /// Categorias do ambiente ativo. Ambiente e autor vêm do token; sem ambiente selecionado as rotas
+    /// respondem 403.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -19,6 +23,7 @@ namespace ControleFinanceiroAPI.Controllers
             _service = service;
         }
 
+        /// <summary>Categorias de todos os ambientes. Só Admin do sistema; 404 se não houver nenhuma.</summary>
         [HttpGet]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<CategoriaResponseDTO>>), StatusCodes.Status200OK)]
@@ -35,6 +40,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<IEnumerable<CategoriaResponseDTO>>.SuccessResponse(categorias.ToDTOList()));
         }
 
+        /// <summary>Categorias do ambiente ativo (lista vazia quando não há).</summary>
         [HttpGet("ambiente")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<CategoriaResponseDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllByAmbiente()
@@ -46,6 +52,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<IEnumerable<CategoriaResponseDTO>>.SuccessResponse(categorias.ToDTOList()));
         }
 
+        /// <summary>Uma categoria do ambiente ativo; 404 se não existir nele.</summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<CategoriaResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
@@ -62,6 +69,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<CategoriaResponseDTO>.SuccessResponse(categoria.ToResponseDTO()!));
         }
 
+        /// <summary>Cria a categoria no ambiente ativo.</summary>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponseDTO<CategoriaResponseDTO>), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] CategoriaRequestDTO dto)
@@ -74,6 +82,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<CategoriaResponseDTO>.SuccessResponse(categoria.ToResponseDTO()!, StatusCodes.Status201Created));
         }
 
+        /// <summary>Atualiza nome, cor e ícone; 404 se a categoria não existir no ambiente.</summary>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<CategoriaResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update(Guid id, [FromBody] CategoriaRequestDTO dto)
@@ -86,6 +95,10 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<CategoriaResponseDTO>.SuccessResponse(categoria.ToResponseDTO()!));
         }
 
+        /// <summary>
+        /// Exclui a categoria; as transações e orçamentos dela são apagados em cascata pelo banco.
+        /// 404 se não existir no ambiente.
+        /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]

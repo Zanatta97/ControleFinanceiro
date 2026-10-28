@@ -36,6 +36,7 @@ const config: Record<ConfirmVariant, { icon: string; iconSoft: string; iconColor
   },
 }
 
+/** Diálogo de confirmação (excluir, aviso, informação) com botão de ação em carregamento. */
 export default function ConfirmDialog({
   open,
   variant = 'delete',

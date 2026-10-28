@@ -19,6 +19,7 @@ function isIconifyName(value: string) {
   return value.includes(':') && !value.startsWith('http')
 }
 
+/** Seletor de ícone com busca na API pública do Iconify. */
 export default function IconPicker({ value, onChange, previewColor = 'var(--fin-brand)' }: IconPickerProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')

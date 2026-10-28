@@ -13,13 +13,22 @@ import Modal from '../components/ui/Modal'
 import Alert from '../components/ui/Alert'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 
+/**
+ * Configurações do usuário: perfil, troca de senha, log detalhado da API e gestão dos ambientes
+ * e membros. Fora das rotas no modo demo (App.tsx).
+ */
 export default function Configuracoes() {
   const { setAmbienteToken, nome, email, userId } = useAuth()
 
+  /** Papel do usuário logado dentro do ambiente ("Dono", "Admin", "Membro"), lido da lista de membros. */
   function roleNoAmbiente(a: AmbienteResponse): string | null {
     return a.membros?.find((m) => m.usuario?.id === userId)?.role ?? null
   }
 
+  /**
+   * Mostra os botões de membros, edição e exclusão só para Dono ou Admin do ambiente. É só a interface:
+   * a permissão real é conferida no backend (que, para editar e excluir, exige Dono ou Admin do sistema).
+   */
   function podeGerenciar(a: AmbienteResponse): boolean {
     const role = roleNoAmbiente(a)
     return role === 'Dono' || role === 'Admin'
@@ -91,6 +100,7 @@ export default function Configuracoes() {
     setLoadingLog(true)
     try {
       const { data } = await getStatus()
+      // Aceita o valor dentro do envelope ApiResponse (`dados`) ou na raiz do corpo
       const d = data as { dados?: { logAllRequests?: boolean }; logAllRequests?: boolean }
       setLogAtivo(d?.dados?.logAllRequests ?? d?.logAllRequests ?? false)
     } catch {
@@ -128,6 +138,7 @@ export default function Configuracoes() {
   async function handleSelecionarAmbiente(id: string) {
     const { data } = await selecionarAmbiente(id)
     if (data.dados?.accessToken && data.dados.refreshToken) {
+      // Sem o nome do ambiente: a Navbar percebe a falta e o busca na API
       setAmbienteToken(data.dados.accessToken, data.dados.refreshToken)
       navigate('/')
     }
@@ -186,6 +197,7 @@ export default function Configuracoes() {
       await adicionarMembro(modalMembros.id, emailMembro.trim())
       setEmailMembro('')
       await carregarAmbientes()
+      // O modal guarda uma cópia do ambiente: busca de novo para a lista de membros aberta refletir a mudança
       const { data } = await listarDoUsuario()
       const atualizado = (data.dados ?? []).find((a) => a.id === modalMembros.id)
       if (atualizado) setModalMembros(atualizado)
@@ -395,6 +407,8 @@ export default function Configuracoes() {
         open={!!ambToDelete}
         variant="delete"
         title="Excluir ambiente"
+        // Comportamento atual: o banco não apaga contas, categorias e transações junto com o ambiente (FKs sem
+        // cascata); com dados cadastrados, a exclusão tende a falhar em vez de apagá-los como diz a mensagem.
         message={<>Excluir o ambiente <strong className="text-fin-text-primary">{ambToDelete?.nome}</strong>? Todos os dados (contas, transações, categorias) serão perdidos.</>}
         confirmLabel="Excluir"
         loading={confirmLoading}

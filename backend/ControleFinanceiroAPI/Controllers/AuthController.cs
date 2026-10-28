@@ -16,6 +16,11 @@ using System.Threading.Tasks;
 
 namespace ControleFinanceiroAPI.Controllers
 {
+    /// <summary>
+    /// Login, refresh de token e gestão de roles. Sem [Authorize] na classe: login, demo e refresh-token
+    /// são anônimos; os demais declaram a própria exigência. Cada ação repassa o ApiResponseDTO do service
+    /// usando o StatusCode que vem nele.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -29,6 +34,7 @@ namespace ControleFinanceiroAPI.Controllers
             _demoService = demoService;
         }
 
+        /// <summary>Entra no modo demonstração, sem senha; recria os dados de exemplo uma vez por dia.</summary>
         [HttpPost]
         [Route("demo")]
         public async Task<IActionResult> LoginDemo()
@@ -38,6 +44,7 @@ namespace ControleFinanceiroAPI.Controllers
             return StatusCode(resultado.StatusCode, resultado);
         }
 
+        /// <summary>Cria uma role do Identity. Só Admin.</summary>
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [Route("createRole")]
@@ -48,6 +55,7 @@ namespace ControleFinanceiroAPI.Controllers
             return StatusCode(resultado.StatusCode, resultado);
         }
 
+        /// <summary>Adiciona um usuário (por e-mail) a uma role. Só Admin.</summary>
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [Route("assignUserToRole")]
@@ -58,6 +66,10 @@ namespace ControleFinanceiroAPI.Controllers
             return StatusCode(resultado.StatusCode, resultado);
         }
 
+        /// <summary>
+        /// Login por e-mail e senha. O token só traz "ambiente_id" se o usuário já tiver selecionado um
+        /// ambiente antes; sem ele, o frontend leva à seleção de ambiente.
+        /// </summary>
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginRequestDTO usuario)
@@ -67,6 +79,7 @@ namespace ControleFinanceiroAPI.Controllers
             return StatusCode(resultado.StatusCode, resultado);
         }
 
+        /// <summary>Cadastra um usuário. Só Admin desde a issue #47 (sem auto-cadastro).</summary>
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [Route("register")]
@@ -78,6 +91,7 @@ namespace ControleFinanceiroAPI.Controllers
 
         }
 
+        /// <summary>Troca a senha do usuário logado. Bloqueado no modo demonstração.</summary>
         [HttpPost]
         [Authorize]
         [BloquearDemo]
@@ -92,6 +106,10 @@ namespace ControleFinanceiroAPI.Controllers
             return StatusCode(resultado.StatusCode, resultado);
         }
 
+        /// <summary>
+        /// Troca access token expirado + refresh token por um novo par. Anônimo de propósito: é chamado
+        /// justamente quando o access token já não autentica (interceptor do frontend em api/client.ts).
+        /// </summary>
         [HttpPost]
         [Route("refresh-token")]
         public async Task<IActionResult> RefreshToken(TokenDTO tokenDTO)
@@ -102,6 +120,7 @@ namespace ControleFinanceiroAPI.Controllers
 
         }
 
+        /// <summary>Revoga o refresh token do usuário (username = e-mail). Só Admin.</summary>
         [HttpPost]
         [Route("revoke/{username}")]
         [Authorize(Roles = "Admin")]

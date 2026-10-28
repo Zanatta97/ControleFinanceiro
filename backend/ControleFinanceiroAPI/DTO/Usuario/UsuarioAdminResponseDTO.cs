@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Usuario
 {
+    /// <summary>Usuário como aparece no painel de Admin, com roles e situação de bloqueio.</summary>
     public class UsuarioAdminResponseDTO
     {
         public string Id { get; set; } = null!;

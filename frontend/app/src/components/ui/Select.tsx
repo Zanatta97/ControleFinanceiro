@@ -6,6 +6,7 @@ interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
   options: { value: string | number; label: string }[]
 }
 
+/** Lista de seleção com rótulo e mensagem de erro. */
 export default function Select({ label, error, options, className = '', id, ...rest }: Props) {
   const selectId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
   return (

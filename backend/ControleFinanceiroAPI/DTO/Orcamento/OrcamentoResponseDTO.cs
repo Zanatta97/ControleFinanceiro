@@ -2,6 +2,7 @@
 
 namespace ControleFinanceiroAPI.DTO.Orcamento
 {
+    /// <summary>Orçamento do ambiente, sem o consumo (ver OrcamentoStatusResponseDTO).</summary>
     public class OrcamentoResponseDTO
     {
         public Guid Id { get; set; }

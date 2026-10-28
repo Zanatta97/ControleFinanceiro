@@ -1,11 +1,18 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { ApiResponse, TokenDTO } from '../types/api'
 
+/**
+ * Cliente HTTP de toda a aplicação. Envia o access token guardado no localStorage em cada requisição
+ * e, ao receber 401, tenta renovar a sessão com o refresh token e repetir a requisição uma vez.
+ *
+ * Base: `VITE_API_BASE_URL` no build de produção; em desenvolvimento, `/api`, que o Vite repassa ao backend.
+ */
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
   headers: { 'Content-Type': 'application/json' },
 })
 
+/** Config da requisição com a marca `_retry`, que impede repetir mais de uma vez a mesma requisição após 401. */
 type RetryableRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
 // Refresh em andamento, compartilhado pelas requisições que recebem 401 ao mesmo tempo.
@@ -13,6 +20,11 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 // rejeita os demais e a sessão cai.
 let refreshPromise: Promise<string> | null = null
 
+/**
+ * Chama POST /Auth/refresh-token com o access token vencido e o refresh token, e grava o novo par no localStorage.
+ * @returns o novo access token.
+ * @throws quando o backend recusa o refresh ou a resposta vem sem os dois tokens.
+ */
 const requestNewAccessToken = async (refreshToken: string): Promise<string> => {
   // axios puro para não passar pelos interceptors do `api` (evita loop),
   // mas com a mesma URL base, para funcionar também fora do proxy do Vite.
@@ -29,22 +41,31 @@ const requestNewAccessToken = async (refreshToken: string): Promise<string> => {
   return tokens.accessToken
 }
 
+/**
+ * Devolve o refresh já em andamento ou inicia um novo. Todas as requisições que receberem 401 enquanto
+ * ele roda aguardam a mesma promise e repetem com o mesmo token novo.
+ * @throws quando o refresh falha; nesse caso a sessão já foi encerrada (localStorage limpo e redirecionamento ao login).
+ */
 const refreshAccessToken = (refreshToken: string): Promise<string> => {
   if (!refreshPromise) {
     refreshPromise = requestNewAccessToken(refreshToken)
       .catch((refreshError: unknown) => {
         // Falha real do refresh: encerra a sessão uma única vez, não uma por requisição.
+        // clear() apaga todo o localStorage do site, inclusive a preferência de tema ('theme').
         localStorage.clear()
         window.location.href = '/login'
         throw refreshError
       })
       .finally(() => {
+        // Libera para o próximo ciclo: o 401 que vier depois que este token novo expirar abre outro refresh
         refreshPromise = null
       })
   }
   return refreshPromise
 }
 
+// O token é lido do localStorage a cada requisição. Como o refresh grava o par novo lá,
+// a requisição seguinte já sai com o token renovado.
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken')
   if (token) config.headers.Authorization = `Bearer ${token}`
@@ -55,6 +76,8 @@ api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const original = error.config as RetryableRequestConfig | undefined
+    // Só 401 (token ausente/expirado) dispara o refresh; 403 é falta de permissão e passa direto.
+    // _retry garante uma única repetição: se a requisição repetida der 401 de novo, o erro é devolvido.
     if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true
       const refreshToken = localStorage.getItem('refreshToken')

@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Total de uma categoria escolhida como fixa ou como recebimento.</summary>
     public class FixosRecebimentosCategoriaDTO
     {
         public Guid CategoriaId { get; set; }
@@ -11,6 +12,7 @@ namespace ControleFinanceiroAPI.DTO.Relatorio
         public string Grupo { get; set; } = string.Empty;
     }
 
+    /// <summary>Divisão da competência entre recebimentos, gastos fixos, parcelas e gastos variáveis.</summary>
     public class FixosRecebimentosResponseDTO
     {
         public int Mes { get; set; }

@@ -1,5 +1,6 @@
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Receitas, despesas e saldo de uma competência; TotalDespesas = DespesasCartao + DespesasOutras (transferências fora).</summary>
     public class ResumoFinanceiroResponseDTO
     {
         public int Mes { get; set; }

@@ -19,10 +19,15 @@ import { usePagination } from '../hooks/usePagination'
 
 type Tab = 'usuarios' | 'ambientes' | 'logs'
 
+/**
+ * Painel de administração do sistema, com abas de usuários, ambientes e logs da API.
+ */
 export default function Admin() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
 
+  // A rota /admin existe para qualquer usuário fora do modo demo (App.tsx); quem não é Admin é mandado
+  // para o início. A proteção real é do backend, que exige a role Admin em todas as chamadas desta tela.
   useEffect(() => {
     if (!isAdmin) navigate('/', { replace: true })
   }, [isAdmin, navigate])
@@ -64,6 +69,7 @@ export default function Admin() {
 
 const NOVO_USUARIO_INICIAL: CriarUsuarioRequest = { nome: '', email: '', senha: '', confirmacaoSenha: '' }
 
+/** Aba de usuários: criação, roles, bloqueio e exclusão, com busca por nome ou e-mail no cliente. */
 function TabUsuarios() {
   const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([])
   const [roles, setRoles] = useState<string[]>([])
@@ -133,6 +139,7 @@ function TabUsuarios() {
   }
 
   async function handleCriarUsuario() {
+    // Esta é a única conferência da confirmação: o backend recebe confirmacaoSenha mas não a compara
     if (novoForm.senha !== novoForm.confirmacaoSenha) {
       setNovoError('As senhas não coincidem.')
       return
@@ -345,6 +352,7 @@ function TabUsuarios() {
 
 /* ─────────────────────── Tab Ambientes ─────────────────────── */
 
+/** Aba de ambientes: todos os ambientes do sistema, membros de cada um e exclusão forçada. */
 function TabAmbientes() {
   const [ambientes, setAmbientes] = useState<AmbienteResponse[]>([])
   const [loading, setLoading] = useState(true)
@@ -487,6 +495,9 @@ function TabAmbientes() {
 
 const LOGS_POR_PAGINA = 50
 
+/**
+ * Aba de logs da API. A busca só roda ao clicar em "Buscar"; traz até 500 registros e pagina no cliente.
+ */
 function TabLogs() {
   const [logs, setLogs] = useState<ApiLogResponse[]>([])
   const [loading, setLoading] = useState(false)
@@ -593,6 +604,7 @@ function TabLogs() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-fin-border">
+                {/* Comportamento atual: a key está nos <tr>, não no fragmento que o map devolve (o React avisa no console) */}
                 {paginados.map((l) => (
                   <>
                     <tr key={l.id} className={`hover:bg-fin-highlight-row transition ${l.isError ? 'bg-fin-negative-soft/40' : ''}`}>

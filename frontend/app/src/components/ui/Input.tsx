@@ -5,6 +5,7 @@ interface Props extends InputHTMLAttributes<HTMLInputElement> {
   error?: string
 }
 
+/** Campo de texto com rótulo e mensagem de erro. */
 export default function Input({ label, error, className = '', id, ...rest }: Props) {
   const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
   return (

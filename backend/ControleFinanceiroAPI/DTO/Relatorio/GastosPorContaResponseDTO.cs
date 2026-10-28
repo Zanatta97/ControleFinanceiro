@@ -2,6 +2,7 @@
 
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Despesas de uma conta no filtro e o percentual sobre o total.</summary>
     public class GastosPorContaResponseDTO
     {
         public Guid ContaId { get; set; }

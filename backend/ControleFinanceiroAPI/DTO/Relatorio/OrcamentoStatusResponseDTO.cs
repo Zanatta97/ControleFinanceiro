@@ -2,6 +2,7 @@ using ControleFinanceiroAPI.Enums;
 
 namespace ControleFinanceiroAPI.DTO.Relatorio
 {
+    /// <summary>Consumo de um orçamento: valor gasto na categoria até a DataLimite e o percentual do limite.</summary>
     public class OrcamentoStatusResponseDTO
     {
         public Guid Id { get; set; }

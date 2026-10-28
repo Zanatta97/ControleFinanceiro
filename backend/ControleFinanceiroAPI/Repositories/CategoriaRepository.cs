@@ -5,10 +5,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControleFinanceiroAPI.Repositories
 {
+    /// <summary>Implementação de <see cref="ICategoriaRepository"/> sobre o AppDbContext.</summary>
     public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
     {
         public CategoriaRepository(AppDbContext context) : base(context) { }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Categoria>> GetAllByUsuarioAsync(string usuarioId)
         {
             return await _context.Categorias
@@ -17,6 +19,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Categoria>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _context.Categorias

@@ -4,6 +4,10 @@ using System.Linq.Expressions;
 
 namespace ControleFinanceiroAPI.Common.Extensions
 {
+    /// <summary>
+    /// Converte coleções ou expressões em fontes assíncronas do Entity Framework 6 (System.Data.Entity),
+    /// via <see cref="DbAsyncEnumerable{T}"/>. Não há chamada a estas extensões no código atual.
+    /// </summary>
     public static class AsyncQueryableExtensions
     {
         public static IQueryable<TElement> AsAsyncQueryable<TElement>(this IEnumerable<TElement> source)

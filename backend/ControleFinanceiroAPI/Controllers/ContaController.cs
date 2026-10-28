@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControleFinanceiroAPI.Controllers
 {
+    /// <summary>
+    /// Contas do ambiente ativo. Ambiente e autor vêm do token; sem ambiente selecionado as rotas
+    /// respondem 403.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -19,6 +23,7 @@ namespace ControleFinanceiroAPI.Controllers
             _service = service;
         }
 
+        /// <summary>Contas de todos os ambientes. Só Admin do sistema; 404 se não houver nenhuma.</summary>
         [HttpGet]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<ContaResponseDTO>>), StatusCodes.Status200OK)]
@@ -35,6 +40,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<IEnumerable<ContaResponseDTO>>.SuccessResponse(contas.ToDTOList()));
         }
 
+        /// <summary>Contas do ambiente ativo (lista vazia quando não há).</summary>
         [HttpGet("ambiente")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<ContaResponseDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllByAmbiente()
@@ -46,6 +52,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<IEnumerable<ContaResponseDTO>>.SuccessResponse(contas.ToDTOList()));
         }
 
+        /// <summary>Uma conta do ambiente ativo; 404 se não existir nele.</summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<ContaResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
@@ -62,6 +69,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<ContaResponseDTO>.SuccessResponse(conta.ToResponseDTO()!));
         }
 
+        /// <summary>Cria a conta no ambiente ativo.</summary>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponseDTO<ContaResponseDTO>), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] ContaRequestDTO dto)
@@ -74,6 +82,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<ContaResponseDTO>.SuccessResponse(conta.ToResponseDTO()!, StatusCodes.Status201Created));
         }
 
+        /// <summary>Atualiza nome, tipo e saldo informado; 404 se a conta não existir no ambiente.</summary>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<ContaResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update(Guid id, [FromBody] ContaRequestDTO dto)
@@ -86,6 +95,10 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<ContaResponseDTO>.SuccessResponse(conta.ToResponseDTO()!));
         }
 
+        /// <summary>
+        /// Exclui a conta e, em cascata, as transações de origem nela. Conta que é destino de transferência
+        /// não pode ser excluída (FK Restrict; o erro do banco volta como 500). 404 se não existir no ambiente.
+        /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]

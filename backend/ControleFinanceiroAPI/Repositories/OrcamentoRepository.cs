@@ -6,10 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControleFinanceiroAPI.Repositories
 {
+    /// <summary>
+    /// Implementação de <see cref="IOrcamentoRepository"/>. As consultas incluem a Categoria, cujo nome
+    /// o relatório de status de orçamentos exibe.
+    /// </summary>
     public class OrcamentoRepository : Repository<Orcamento>, IOrcamentoRepository
     {
         public OrcamentoRepository(AppDbContext context) : base(context) { }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Orcamento>> GetAllByUsuarioAsync(string usuarioId)
         {
             return await _context.Orcamentos
@@ -19,6 +24,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Orcamento>> GetByStatusAsync(Guid ambienteId, StatusOrcamento status)
         {
             return await _context.Orcamentos
@@ -28,6 +34,7 @@ namespace ControleFinanceiroAPI.Repositories
                 .ToListAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Orcamento>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _context.Orcamentos

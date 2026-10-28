@@ -11,8 +11,13 @@ namespace ControleFinanceiroAPI.Filters
     /// </summary>
     public class BloquearDemoAttribute : ActionFilterAttribute
     {
+        /// <summary>Interrompe a ação com 403 quando o usuário tem a role "Demo" no token.</summary>
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            // Só os endpoints marcados com o atributo são bloqueados (os "sensíveis" do PLANEJAMENTO.md,
+            // seção Modo Demonstração). Os cadastros do ambiente demo continuam editáveis e são recriados
+            // no reset diário (DemoService).
+            // Atribuir context.Result curto-circuita: a action não é executada.
             if (context.HttpContext.User.IsInRole("Demo"))
             {
                 context.Result = new ObjectResult(

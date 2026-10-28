@@ -55,22 +55,28 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return <span className="ml-1">{dir === 'asc' ? '↑' : '↓'}</span>
 }
 
+/** Mês atual em "YYYY-MM" (formato do input type="month"). */
 function currentMonth() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
+/** "YYYY-MM" → "YYYY-MM-01": a competência vai ao backend sempre como dia 1. */
 function monthToDateOnly(ym: string) { return `${ym}-01` }
 
+/** Competência da API ("YYYY-MM-DD") → "YYYY-MM" do input; sem valor, usa o mês atual. */
 function dateOnlyToMonth(iso: string | null | undefined) {
   if (!iso) return currentMonth()
   return iso.slice(0, 7)
 }
 
+/** Formulário de nova transação: despesa, primeira conta e primeira categoria, competência do mês atual. */
 function emptyForm(contas: ContaResponse[], categorias: CategoriaResponse[]): TransacaoRequest {
   return {
     descricao: '',
     valor: 0,
+    // Comportamento atual: toISOString() está em UTC, então o horário inicial do campo datetime-local
+    // aparece adiantado em relação ao horário local (3h no fuso de Brasília).
     data: new Date().toISOString().slice(0, 16),
     observacao: null,
     tipoTransacao: TipoTransacao.Despesa,
@@ -82,6 +88,10 @@ function emptyForm(contas: ContaResponse[], categorias: CategoriaResponse[]): Tr
   }
 }
 
+/**
+ * Lista das competências que as parcelas vão ocupar ("jul/2025, ago/2025, ..."), para o usuário
+ * conferir antes de salvar. Espelha a regra do backend: parcela i cai i meses depois da competência inicial.
+ */
 function previewParcelas(mesInicio: string, n: number): string {
   const [year, month] = mesInicio.split('-').map(Number)
   return Array.from({ length: n }, (_, i) => {
@@ -93,6 +103,11 @@ function previewParcelas(mesInicio: string, n: number): string {
 
 const ITENS_POR_PAGINA = 20
 
+/**
+ * Tela de transações do ambiente ativo: lista com filtros e ordenação feitos no cliente (a API devolve
+ * tudo de uma vez), paginação de 20 itens e o formulário de criação/edição, inclusive transferência
+ * e compra parcelada.
+ */
 export default function Transacoes() {
   const [transacoes, setTransacoes] = useState<TransacaoResponse[]>([])
   const [contas, setContas] = useState<ContaResponse[]>([])
@@ -123,6 +138,7 @@ export default function Transacoes() {
 
   async function load() {
     setLoading(true)
+    // allSettled: uma chamada que falha não impede as outras de preencherem a tela (issue #21)
     const [t, c, cat] = await Promise.allSettled([
       listarDoAmbiente(),
       listarContas(),
@@ -155,6 +171,9 @@ export default function Transacoes() {
     setForm({
       descricao: t.descricao ?? '',
       valor: t.valor,
+      // Comportamento atual: a API devolve a data sem fuso, com o horário em que foi gravada (UTC, pois o
+      // envio usa toISOString). O campo mostra esse horário como se fosse local e, ao salvar, toISOString
+      // desloca de novo — cada edição soma a diferença de fuso ao horário.
       data: t.data.slice(0, 16),
       observacao: t.observacao ?? null,
       tipoTransacao: t.tipoTransacao,

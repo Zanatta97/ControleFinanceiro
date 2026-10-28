@@ -2,6 +2,7 @@ using ControleFinanceiroAPI.Enums;
 
 namespace ControleFinanceiroAPI.DTO.SaldoMensal
 {
+    /// <summary>Saldo de uma conta numa competência: inicial + entradas − saídas = final; Diferenca = final − inicial.</summary>
     public class SaldoMensalContaResponseDTO
     {
         public Guid ContaId { get; set; }

@@ -15,6 +15,7 @@ interface ListaCartoesProps {
   className?: string
 }
 
+/** Lista de CartaoLinha, visível só abaixo de md (no desktop aparece a tabela). */
 export function ListaCartoes({ children, className = '' }: ListaCartoesProps) {
   return <ul className={`divide-y divide-fin-border md:hidden ${className}`}>{children}</ul>
 }
@@ -36,6 +37,7 @@ interface Props {
   variante?: 'padrao' | 'total'
 }
 
+/** Uma linha de tabela larga desenhada como cartão, para telas pequenas. */
 export default function CartaoLinha({
   titulo,
   marcador,

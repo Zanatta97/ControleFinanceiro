@@ -4,6 +4,10 @@ using System.Text.RegularExpressions;
 
 namespace ControleFinanceiroAPI.Common.Extensions
 {
+    /// <summary>
+    /// Regras de leitura de transações usadas pelos relatórios e pelo saldo mensal:
+    /// reconhecimento de parcela e movimento de uma conta.
+    /// </summary>
     public static partial class TransacaoExtension
     {
         // Mesmo formato gravado pelo DTOMapper.ToEntity: "Parcela N/M" ou "Parcela N/M — <observação original>"

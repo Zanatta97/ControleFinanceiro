@@ -16,6 +16,9 @@ using System.Text;
 
 namespace ControleFinanceiroAPI
 {
+    /// <summary>
+    /// Ponto de entrada: registra serviços (EF Core, Identity, JWT, services e repositórios) e monta o pipeline HTTP.
+    /// </summary>
     public class Program
     {
         public static void Main(string[] args)
@@ -63,6 +66,8 @@ namespace ControleFinanceiroAPI
                     };
                 });
 
+            // Scoped = uma instância por requisição, compartilhando o mesmo AppDbContext (também Scoped):
+            // é o que faz o UnityOfWork gravar tudo de uma requisição num único SaveChangesAsync.
             builder.Services.AddScoped<IUnityOfWork, UnityOfWork>(); //Já instancia todos os repositórios dentro do UnityOfWork
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUsuarioService, UsuarioService>();
@@ -105,6 +110,7 @@ namespace ControleFinanceiroAPI
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+            // OpenAPI e Scalar (/scalar/v1) só existem em Development; em produção as rotas não são mapeadas.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();

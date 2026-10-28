@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { AxiosResponse } from 'axios'
 import type { ApiResponse } from '../types/api'
 
+/**
+ * Estado de uma busca de relatório. `ocioso` = busca desabilitada (filtro incompleto); `vazio` traz a
+ * mensagem do backend quando ele respondeu 404 com `errorMessage`.
+ */
 export type EstadoRelatorio<T> =
   | { status: 'ocioso' }
   | { status: 'carregando' }

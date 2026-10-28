@@ -11,6 +11,10 @@ using System.Security.Claims;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>
+    /// Implementação de <see cref="IDemoService"/>. O usuário demo e o ambiente dele (o AmbienteAtivoId
+    /// desse usuário) precisam existir no banco; nada aqui os cria.
+    /// </summary>
     public class DemoService : IDemoService
     {
         private readonly ILogger<DemoService> _logger;
@@ -35,6 +39,7 @@ namespace ControleFinanceiroAPI.Services
             _demoState = demoState;
         }
 
+        /// <inheritdoc />
         public async Task<ApiResponseDTO<object>> LoginDemoAsync()
         {
             var email = _configuration["Demo:Email"];
@@ -64,8 +69,11 @@ namespace ControleFinanceiroAPI.Services
                 }
             }
 
+            // As roles vêm do banco: é a role "Demo" do usuário que ativa o BloquearDemoAttribute
+            // e esconde Configurações/Admin no frontend
             var userRoles = await _userManager.GetRolesAsync(user);
 
+            // Diferente do Login comum, o claim de ambiente vai sempre: o demo entra direto no ambiente de exemplo
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
@@ -110,6 +118,9 @@ namespace ControleFinanceiroAPI.Services
             await SeedDadosExemploAsync(ambienteId, usuarioId);
         }
 
+        /// <summary>
+        /// Cria categorias, duas contas, transações do mês atual e dois orçamentos de exemplo no ambiente demo.
+        /// </summary>
         private async Task SeedDadosExemploAsync(Guid ambienteId, string usuarioId)
         {
             var hoje = DateTime.Today;

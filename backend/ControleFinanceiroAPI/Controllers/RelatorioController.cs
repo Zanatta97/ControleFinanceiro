@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControleFinanceiroAPI.Controllers
 {
+    /// <summary>
+    /// Relatórios do ambiente ativo (claim "ambiente_id" do token). Os endpoints com filtro capturam a
+    /// ArgumentException do service e devolvem 400; resumo, evolução, ritmo, orçamentos e extrato não capturam.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]

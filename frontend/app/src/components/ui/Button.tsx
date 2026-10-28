@@ -26,6 +26,7 @@ const sizes: Record<Size, string> = {
   lg: 'px-5 py-2.5 text-base',
 }
 
+/** Botão padrão do design system, com variantes, tamanhos e estado de carregamento. */
 export default function Button({ variant = 'primary', size = 'md', loading, children, className = '', disabled, ...rest }: Props) {
   return (
     <button

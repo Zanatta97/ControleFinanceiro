@@ -3,6 +3,10 @@ namespace ControleFinanceiroAPI.Logging
     // Singleton responsável por guardar o estado atual do log em memória.
     // Por ser Singleton, existe uma única instância compartilhada entre todos os requests —
     // ou seja, quando o estado muda, todos os requests seguintes já enxergam o novo valor.
+    /// <summary>
+    /// Estado do log completo em memória. Começa desligado a cada inicialização da API (não lê o appsettings)
+    /// e é alterado pelos endpoints /api/logs/ativar e /api/logs/desativar.
+    /// </summary>
     public class LogSettingsManager
     {
         // volatile garante que, em cenários com múltiplos requests simultâneos (threads diferentes),

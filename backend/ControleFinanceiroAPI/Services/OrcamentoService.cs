@@ -5,6 +5,7 @@ using ControleFinanceiroAPI.Model;
 
 namespace ControleFinanceiroAPI.Services
 {
+    /// <summary>Implementação de <see cref="IOrcamentoService"/>.</summary>
     public class OrcamentoService : IOrcamentoService
     {
         private readonly IUnityOfWork _repository;
@@ -16,31 +17,37 @@ namespace ControleFinanceiroAPI.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Orcamento>> GetAllAsync()
         {
             return await _repository.OrcamentoRepository.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Orcamento>> GetAllByAmbienteAsync(Guid ambienteId)
         {
             return await _repository.OrcamentoRepository.GetAllByAmbienteAsync(ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Orcamento>> GetByStatusAsync(Guid ambienteId, StatusOrcamento status)
         {
             return await _repository.OrcamentoRepository.GetByStatusAsync(ambienteId, status);
         }
 
+        /// <inheritdoc />
         public async Task<Orcamento?> GetAsync(Guid id, Guid ambienteId)
         {
             return await _repository.OrcamentoRepository.GetByIdAsync(o => o.Id == id && o.AmbienteId == ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Orcamento?> GetReadOnlyAsync(Guid id, Guid ambienteId)
         {
             return await _repository.OrcamentoRepository.GetByIdReadOnlyAsync(o => o.Id == id && o.AmbienteId == ambienteId);
         }
 
+        /// <inheritdoc />
         public async Task<Orcamento> AddAsync(Orcamento orcamento)
         {
             ArgumentNullException.ThrowIfNull(orcamento, nameof(orcamento));
@@ -57,6 +64,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<Orcamento> UpdateAsync(Guid id, Orcamento orcamento, Guid ambienteId)
         {
             ArgumentNullException.ThrowIfNull(orcamento, nameof(orcamento));
@@ -84,6 +92,7 @@ namespace ControleFinanceiroAPI.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteAsync(Guid id, Guid ambienteId)
         {
             try

@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControleFinanceiroAPI.Controllers
 {
+    /// <summary>
+    /// Orçamentos do ambiente ativo. O consumo de cada orçamento fica em GET /api/Relatorio/orcamentos.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -20,6 +23,7 @@ namespace ControleFinanceiroAPI.Controllers
             _service = service;
         }
 
+        /// <summary>Orçamentos de todos os ambientes. Só Admin do sistema; 404 se não houver nenhum.</summary>
         [HttpGet]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>), StatusCodes.Status200OK)]
@@ -36,6 +40,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>.SuccessResponse(orcamentos.ToDTOList()));
         }
 
+        /// <summary>Orçamentos do ambiente ativo, de qualquer status.</summary>
         [HttpGet("ambiente")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllByAmbiente()
@@ -47,6 +52,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>.SuccessResponse(orcamentos.ToDTOList()));
         }
 
+        /// <summary>Orçamentos do ambiente ativo com o status informado (1 Ativo, 0 Inativo).</summary>
         [HttpGet("status/{status}")]
         [ProducesResponseType(typeof(ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByStatus(StatusOrcamento status)
@@ -58,6 +64,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<IEnumerable<OrcamentoResponseDTO>>.SuccessResponse(orcamentos.ToDTOList()));
         }
 
+        /// <summary>Um orçamento do ambiente ativo; 404 se não existir nele.</summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<OrcamentoResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
@@ -74,6 +81,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<OrcamentoResponseDTO>.SuccessResponse(orcamento.ToResponseDTO()!));
         }
 
+        /// <summary>Cria o orçamento no ambiente ativo.</summary>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponseDTO<OrcamentoResponseDTO>), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] OrcamentoRequestDTO dto)
@@ -86,6 +94,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<OrcamentoResponseDTO>.SuccessResponse(orcamento.ToResponseDTO()!, StatusCodes.Status201Created));
         }
 
+        /// <summary>Atualiza o orçamento; 404 se não existir no ambiente.</summary>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<OrcamentoResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Update(Guid id, [FromBody] OrcamentoRequestDTO dto)
@@ -98,6 +107,7 @@ namespace ControleFinanceiroAPI.Controllers
                 ApiResponseDTO<OrcamentoResponseDTO>.SuccessResponse(orcamento.ToResponseDTO()!));
         }
 
+        /// <summary>Exclui o orçamento; 404 se não existir no ambiente.</summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
